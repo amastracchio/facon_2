@@ -1,0 +1,283 @@
+#!/usr/bin/perl -w
+
+# cisco-access-server-collector - a facon collector Cisco Access Servers
+#  I have a 5300, so I haven't checked others
+# $Id: cisco-access-server-collector.pl,v 1.21 2002/08/19 20:09:03 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'cisco-access-server-collector';
+# Which collector is this
+$main::collector = 'cisco-access-server';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Where is the OID tree we want
+$main::oidname = 'cmInitialLineConnections';
+$main::oid = '1.3.6.1.4.1.9.9.47.1.3.4.1.2';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.21 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use SNMP_util "0.69";
+use RRDs;
+require "snmpstuff.pl";
+
+# connect the name and number
+&snmpmapOID($main::oidname, $main::oid);
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('c:d:f:FG:hH:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $main::community = $opt{'c'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'times', 'rrds',
+	'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+# Do host selection
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $comhost, $first_rrd, $wildrrd, $wildpart, $realrrd, 
+	$fixedrrd, $start_time, $run_time);
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+$start_time = time();
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if( $host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("$host isn't resolvable; skipped") if ($main::debug);
+		next;
+	}
+
+	&debug("doing host $host ".&timestamp) if ($main::debug);
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $wildrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+		&debug("  doing rrd $realrrd($wildrrd)") if ($main::debug);
+
+		$comhost = &get_comhost( $host, $realrrd, $wildrrd, $ip);
+		next unless (defined $comhost);
+		&debug("  using '$comhost' for $wildrrd") if ($main::debug>2);
+		&collect_rrd( $host, $comhost, $realrrd, $wildrrd, $wildpart);
+	}
+}
+
+
+# Now facon instrumentation info
+my $now = time();
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#------------------------------------------------------ collect_rrd ---
+sub collect_rrd {
+	my ($host, $comhost, $realrrd, $wildrrd, $wildpart) = @_;
+	my ($i, $speed, $count, $result, %speeds, $rrdspeed, %category, 
+		$total, $found, $line, %lines, $now, $percent);
+	my @rrdspeeds = (1200, 2400, 9600, 14400, 19200, 24000,
+		28800, 33600, 40000, 45000, 50000, 56000);
+
+	my @results = snmpwalk( $comhost, $main::oidname);
+	$total = 0;
+	%speeds = %category = %lines = ();
+	++$main::requests;
+
+# Collect counts
+	foreach my $result (@results) {
+		next unless defined $result;
+		if ($result =~ /^(\d+\.\d+)\.(\d+):(\d+)$/) {
+			$line = $1;
+			$speed = $2;
+			$count = $3;
+		}
+		else {
+			&error("result from snmpwalk is malformed: '$result'");
+			return undef;
+		}
+		&debug("  line=$line, speed=$speed, count=$count") if ($main::debug);
+		if (defined $speeds{$speed}) { $speeds{$speed} += $count; }
+		else { $speeds{$speed} = $count; }
+		$lines{$line} = 1;
+		$total += $count;
+		++$main::entries_collected;
+		++$main::entries_used;
+	}
+
+# Categorize them
+	foreach $speed (keys %speeds) {
+		$found = 0;
+		foreach $rrdspeed (@rrdspeeds) {
+			if ($speed <= $rrdspeed) {
+				&debug("  added $speeds{$speed} to category $rrdspeed")
+					if ($main::debug);
+				$found = 1;
+				if (defined $category{$rrdspeed}) {
+					$category{$rrdspeed} += $speeds{$speed};
+				}
+				else {
+					$category{$rrdspeed} = $speeds{$speed};
+				}
+				last;
+			}
+		}
+		unless ($found) {
+			&debug("  added $speeds{$speed} to category more")
+				if ($main::debug);
+			if (defined $category{'more'}) {
+				$category{'more'} += $speeds{$speed};
+			}
+			else {
+				$category{'more'} = $speeds{$speed};
+			}
+		}
+	}
+
+# Show what we found
+	$now = time();
+	foreach $speed (@rrdspeeds) {
+		if (defined $category{$speed}) {
+			$percent = $category{$speed}/$total*100;
+		}
+		else { $percent = 0; }
+		print "$host $now b$speed $percent\n";
+		print TMP "$host $now b$speed $percent\n";
+		++$main::entries_collected;
+	}
+
+# Don't forget the bmore category
+	$speed = 'more';
+	if (defined $category{$speed}) {
+		$percent = $category{$speed}/$total*100;
+	}
+	else { $percent = 0; }
+	print TMP "$host $now b$speed $percent\n";
+	++$main::entries_collected;
+}
+
+#----------------------------------------------------------- timetosecs ---
+sub timetosecs {
+	my ($time) = @_;
+	my $secs;
+
+	if ($time =~ /^\s*(\d+)\s*days?,\s*(\d+):(\d+):(\d+)/) {
+		$secs = $1*24*60*60 + $2*60*60 + $3*60 + $4;
+	}
+	elsif ( $time =~ /^(\d+):(\d+):(\d+)$/) {
+		$secs = $1*3600 + $2*60 + $3;
+	}
+	elsif ( $time =~ /^(\d+):(\d+)$/) {
+		$secs = $1*60 + $2;
+	}
+	elsif ($time =~ /^(\d+)$/) {
+		$secs = $1;
+	}
+	else {
+		&error("timetosecs: unknown time display: $time");
+		$secs = 0;
+	}
+$secs;
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -c ccc  use 'ccc' for the read community string; overrides host
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it's not time
+	-G GGG  only try hosts in groups 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+	-K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ keep_strict_happy ---
+sub keep_strict_happy {
+	$main::community = 0;
+}

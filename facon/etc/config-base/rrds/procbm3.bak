@@ -1,0 +1,26 @@
+# rrds/bm3procs - number of smbd's running (part of Samba)
+# CVS $Id: bm3procs,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	bm3procs=ps:bm3procs GAUGE:1200:0:U ps count bm3
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	bm3procs desc="This is collected by the unix-status-collector.  It works by running the ps command on the remote host and parsing the output to look for the specified program by name, and counting how many are running.  The smbd process is part of Samba and must be running for Samba to work.  See also nmbdprocs."
+	--title '##HOST## - BM3 processes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:bm3procs=##DB##:bm3procs:AVERAGE
+	CDEF:missing=bm3procs,UN,INF,UNKN,IF
+	'LINE2:bm3procs###COLOR1##:processes'
+	'GPRINT:bm3procs:AVERAGE:avg=%.0lf%s'
+	'GPRINT:bm3procs:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

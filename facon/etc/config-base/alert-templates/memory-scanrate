@@ -1,0 +1,2 @@
+The scanrate on ##HOST##(##IP##) is now ##VALUE##.  
+Anything above zero indicates that it is swapping.  This is bad.

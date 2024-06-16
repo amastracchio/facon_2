@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	referentiel=referentiel:* GAUGE:1800:0:U  bamsql *
+data	mk1_temp=mk1_temp:* GAUGE:1800:0:U  bamsql *
+data	ibo=ibo:* GAUGE:1800:0:U  bamsql *
+data	mk1_index_ex=mk1_index_ex:* GAUGE:1800:0:U  bamsql *
+data	ireferentiel=ireferentiel:* GAUGE:1800:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1800:0:U  bamsql *
+data	mk1_data_install=mk1_data_install:* GAUGE:1800:0:U  bamsql *
+data	mk1_index=mk1_index:* GAUGE:1800:0:U  bamsql *
+data	mk1_index_install=mk1_index_install:* GAUGE:1800:0:U  bamsql *
+data	bmcqdrb1=bmcqdrb1:* GAUGE:1800:0:U  bamsql *
+data	interfaces=interfaces:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+	 DEF:mk1_temp=##DB##:mk1_temp:AVERAGE
+	 DEF:ibo=##DB##:ibo:AVERAGE
+	 DEF:mk1_index_ex=##DB##:mk1_index_ex:AVERAGE
+	 DEF:ireferentiel=##DB##:ireferentiel:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:mk1_data_install=##DB##:mk1_data_install:AVERAGE
+	 DEF:mk1_index=##DB##:mk1_index:AVERAGE
+	 DEF:mk1_index_install=##DB##:mk1_index_install:AVERAGE
+	 DEF:bmcqdrb1=##DB##:bmcqdrb1:AVERAGE
+	 DEF:interfaces=##DB##:interfaces:AVERAGE
+      CDEF:missing=referentiel,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:referentiel###COLOR1##:referentiel'
+	'LINE2:mk1_temp###COLOR2##:mk1_temp'
+	'LINE2:ibo###COLOR3##:ibo'
+	'LINE2:mk1_index_ex###COLOR4##:mk1_index_ex'
+	'LINE2:ireferentiel###COLOR5##:ireferentiel'
+	'LINE2:rbs###COLOR6##:rbs'
+	'LINE2:mk1_data_install###COLOR7##:mk1_data_install'
+	'LINE2:mk1_index###COLOR8##:mk1_index'
+	'LINE2:mk1_index_install###COLOR9##:mk1_index_install'
+	'LINE2:bmcqdrb1###COLOR10##:bmcqdrb1'
+	'LINE2:interfaces###COLOR11##:interfaces'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'
+	'GPRINT:mk1_temp:LAST:mk1_temp         = %.2lf\l'
+	'GPRINT:ibo:LAST:ibo         = %.2lf\l'
+	'GPRINT:mk1_index_ex:LAST:mk1_index_ex         = %.2lf\l'
+	'GPRINT:ireferentiel:LAST:ireferentiel         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:mk1_data_install:LAST:mk1_data_install         = %.2lf\l'
+	'GPRINT:mk1_index:LAST:mk1_index         = %.2lf\l'
+	'GPRINT:mk1_index_install:LAST:mk1_index_install         = %.2lf\l'
+	'GPRINT:bmcqdrb1:LAST:bmcqdrb1         = %.2lf\l'
+	'GPRINT:interfaces:LAST:interfaces         = %.2lf\l'

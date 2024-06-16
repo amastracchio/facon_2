@@ -1,0 +1,142 @@
+# rrds/ports- - port traffic data per interface (from cflowd)
+# CVS $Id: ports-,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# FIXME - you'll probably want to customize this for your own network usage
+
+source	artsportms
+step	300
+
+data	ftpdatap=if-*-ftpdata-packets GAUGE:1200:0:U
+data	ftpdatab=if-*-ftpdata-bytes GAUGE:1200:0:U
+data	ftpp=if-*-ftp-packets GAUGE:1200:0:U
+data	ftpb=if-*-ftp-bytes GAUGE:1200:0:U
+data	sshp=if-*-ssh-packets GAUGE:1200:0:U
+data	sshb=if-*-ssh-bytes GAUGE:1200:0:U
+data	telnetp=if-*-telnet-packets GAUGE:1200:0:U
+data	telnetb=if-*-telnet-bytes GAUGE:1200:0:U
+data	smtpp=if-*-smtp-packets GAUGE:1200:0:U
+data	smtpb=if-*-smtp-bytes GAUGE:1200:0:U
+data	whoisp=if-*-whois-packets GAUGE:1200:0:U
+data	whoisb=if-*-whois-bytes GAUGE:1200:0:U
+data	dnsp=if-*-dns-packets GAUGE:1200:0:U
+data	dnsb=if-*-dns-bytes GAUGE:1200:0:U
+data	httpp=if-*-http-packets GAUGE:1200:0:U
+data	httpb=if-*-http-bytes GAUGE:1200:0:U
+data	pop3p=if-*-pop3-packets GAUGE:1200:0:U
+data	pop3b=if-*-pop3-bytes GAUGE:1200:0:U
+data	identp=if-*-ident-packets GAUGE:1200:0:U
+data	identb=if-*-ident-bytes GAUGE:1200:0:U
+data	nntpp=if-*-nntp-packets GAUGE:1200:0:U
+data	nntpb=if-*-nntp-bytes GAUGE:1200:0:U
+data	ntpp=if-*-ntp-packets GAUGE:1200:0:U
+data	ntpb=if-*-ntp-bytes GAUGE:1200:0:U
+data	nbnsp=if-*-nbns-packets GAUGE:1200:0:U
+data	nbnsb=if-*-nbns-bytes GAUGE:1200:0:U
+data	nbdgmp=if-*-nbdgm-packets GAUGE:1200:0:U
+data	nbdgmb=if-*-nbdgm-bytes GAUGE:1200:0:U
+data	nbssnp=if-*-nbssn-packets GAUGE:1200:0:U
+data	nbssnb=if-*-nbssn-bytes GAUGE:1200:0:U
+data	imapp=if-*-imap-packets GAUGE:1200:0:U
+data	imapb=if-*-imap-bytes GAUGE:1200:0:U
+data	snmpp=if-*-snmp-packets GAUGE:1200:0:U
+data	snmpb=if-*-snmp-bytes GAUGE:1200:0:U
+data	ldapp=if-*-ldap-packets GAUGE:1200:0:U
+data	ldapb=if-*-ldap-bytes GAUGE:1200:0:U
+data	httpsp=if-*-https-packets GAUGE:1200:0:U
+data	httpsb=if-*-https-bytes GAUGE:1200:0:U
+data	lpdp=if-*-lpd-packets GAUGE:1200:0:U
+data	lpdb=if-*-lpd-bytes GAUGE:1200:0:U
+data	rsyncp=if-*-rsync-packets GAUGE:1200:0:U
+data	rsyncb=if-*-rsync-bytes GAUGE:1200:0:U
+data	cvspserverp=if-*-cvspserver-packets GAUGE:1200:0:U
+data	cvspserverb=if-*-cvspserver-bytes GAUGE:1200:0:U
+data	squidp=if-*-squid-packets GAUGE:1200:0:U
+data	squidb=if-*-squid-bytes GAUGE:1200:0:U
+data	otherp=if-*-other-packets GAUGE:1200:0:U
+data	otherb=if-*-other-bytes GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	trafficbyport-* desc="This information comes from the artsportms-loader and is not collected frequently.  It works by parsing the output of <B>artsportms</B> from the cflowd distribution, and producing remstats collector records.  This shows the traffic distribution by port."
+	--title '##HOST## - ##WILDPART## - bps by Port (##GRAPHTIME##)'
+	--width 800 --height 600
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'bps'
+	DEF:ftpdatab=##DB##:ftpdatab:AVERAGE
+	CDEF:ftpdata=ftpdatab,8,/
+	DEF:ftpb=##DB##:ftpb:AVERAGE
+	CDEF:ftp=ftpb,8,/
+	DEF:sshb=##DB##:sshb:AVERAGE
+	CDEF:ssh=sshb,8,/
+	DEF:telnetb=##DB##:telnetb:AVERAGE
+	CDEF:telnet=telnetb,8,/
+	DEF:smtpb=##DB##:smtpb:AVERAGE
+	CDEF:smtp=smtpb,8,/
+	DEF:whoisb=##DB##:whoisb:AVERAGE
+	CDEF:whois=whoisb,8,/
+	DEF:dnsb=##DB##:dnsb:AVERAGE
+	CDEF:dns=dnsb,8,/
+	DEF:httpb=##DB##:httpb:AVERAGE
+	CDEF:http=httpb,8,/
+	DEF:pop3b=##DB##:pop3b:AVERAGE
+	CDEF:pop3=pop3b,8,/
+	DEF:identb=##DB##:identb:AVERAGE
+	CDEF:ident=identb,8,/
+	DEF:nntpb=##DB##:nntpb:AVERAGE
+	CDEF:nntp=nntpb,8,/
+	DEF:ntpb=##DB##:ntpb:AVERAGE
+	CDEF:ntp=ntpb,8,/
+	DEF:nbnsb=##DB##:nbnsb:AVERAGE
+	CDEF:nbns=nbnsb,8,/
+	DEF:nbdgmb=##DB##:nbdgmb:AVERAGE
+	CDEF:nbdgm=nbdgmb,8,/
+	DEF:nbssnb=##DB##:nbssnb:AVERAGE
+	CDEF:nbssn=nbssnb,8,/
+	DEF:imapb=##DB##:imapb:AVERAGE
+	CDEF:imap=imapb,8,/
+	DEF:snmpb=##DB##:snmpb:AVERAGE
+	CDEF:snmp=snmpb,8,/
+	DEF:ldapb=##DB##:ldapb:AVERAGE
+	CDEF:ldap=ldapb,8,/
+	DEF:httpsb=##DB##:httpsb:AVERAGE
+	CDEF:https=httpsb,8,/
+	DEF:lpdb=##DB##:lpdb:AVERAGE
+	CDEF:lpd=lpdb,8,/
+	DEF:rsyncb=##DB##:rsyncb:AVERAGE
+	CDEF:rsync=rsyncb,8,/
+	DEF:cvspserverb=##DB##:cvspserverb:AVERAGE
+	CDEF:cvspserver=cvspserverb,8,/
+	DEF:squidb=##DB##:squidb:AVERAGE
+	CDEF:squid=squidb,8,/
+	DEF:otherb=##DB##:otherb:AVERAGE
+	CDEF:other=otherb,8,/
+	CDEF:missing=otherb,UN,INF,UNKN,IF
+	'AREA:ftpdata###COLORX##:ftpdata'
+	'AREA:ftp###COLORX##:ftp'
+	'AREA:ssh###COLORX##:ssh'
+	'AREA:telnet###COLORX##:telnet'
+	'AREA:smtp###COLORX##:smtp'
+	'AREA:whois###COLORX##:whois'
+	'AREA:dns###COLORX##:dns'
+	'AREA:http###COLORX##:http'
+	'AREA:pop3###COLORX##:pop3'
+	'AREA:ident###COLORX##:ident'
+	'AREA:nntp###COLORX##:nntp'
+	'AREA:ntp###COLORX##:ntp'
+	'AREA:nbns###COLORX##:nbns'
+	'AREA:nbdgm###COLORX##:nbdgm'
+	'AREA:nbssn###COLORX##:nbssn'
+	'AREA:imap###COLORX##:imap'
+	'AREA:snmp###COLORX##:snmp'
+	'AREA:ldap###COLORX##:ldap'
+	'AREA:https###COLORX##:https'
+	'AREA:lpd###COLORX##:lpd'
+	'AREA:rsync###COLORX##:rsync'
+	'AREA:cvspserver###COLORX##:cvspserver'
+	'AREA:squid###COLORX##:squid'
+	'AREA:other###COLORX##:other'
+	'AREA:missing###MISSING##:missing'

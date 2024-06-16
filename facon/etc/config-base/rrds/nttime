@@ -1,0 +1,21 @@
+# rrds/nttime - clock time differences
+# CVS $Id: nttime,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source		nt-status
+step		300
+data		diff=timediff GAUGE:600:U:U	time
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times		day yesterday week month 3month year
+graph		timediff desc="The difference in time between the remote host and the remstats collector"
+	--title '##HOST## - Time Difference (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'sec'
+	DEF:diff=##DB##:diff:AVERAGE
+	CDEF:missing=diff,UN,INF,UNKN,IF
+	'LINE2:diff###COLOR1##:difference'
+	'GPRINT:diff:AVERAGE:avg=%.1lf%s'
+	'AREA:missing###MISSING##:missing'
+

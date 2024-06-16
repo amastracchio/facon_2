@@ -1,0 +1,26 @@
+# rrds/snmpuptime - SNMP uptime, which may be different from system uptime
+# CVS $Id: snmpuptime,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+#
+desc	SNMP uptime, which may be different from system uptime
+source	snmp
+step	300
+
+data	uptime GAUGE:600:0:U	uptime
+
+oid	sysUptime
+
+alert	uptime delta> 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	uptime desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  The OID in question should be implemented in any SNMP implementation.  Note that it is only telling the time since the SNMP software started.  In a hardware implementation, it usually does mean how long the equipment has been up, but in host SNMP software, the distinction between SNMP uptime and host uptime must be remembered."
+	--title '##HOST## - Up-time (##GRAPHTIME##)'
+	--vertical-label 'sec'
+	DEF:uptime=##DB##:uptime:AVERAGE
+	CDEF:missing=uptime,UN,INF,UNKN,IF
+	'LINE1:uptime###COLOR1##:uptime'
+	'GPRINT:uptime:LAST:current=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

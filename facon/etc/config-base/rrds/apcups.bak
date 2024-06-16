@@ -1,0 +1,121 @@
+# rrds/apcups - electrical info from an APC UPS
+# CVS $Id: apcups,v 1.17 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	snmp
+step	300
+
+data	onbattery=apcupsbasicbatterytimeonbattery GAUGE:1200:0:U
+data	capacity=apcupsadvbatterycapacity GAUGE:1200:0:100
+data	temperature=apcupsadvbatterytemperature GAUGE:1200:10:65
+data	timeleft=apcupsadvbatteryruntimeremaining GAUGE:1200:0:U
+data	load=apcupsadvoutputload GAUGE:1200:0:100
+data	ocurrent=apcupsadvoutputcurrent GAUGE:1200:0:U
+data	ovoltage=apcupsadvoutputvoltage GAUGE:1200:90:130
+data	ofrequency=apcupsadvoutputfrequency GAUGE:1200:50:70
+data	iphase=apcupsbasicinputphase GAUGE:1200:U:U
+data	ivoltage=apcupsadvinputlinevoltage GAUGE:1200:90:130
+data	ivoltagemax=apcupsadvinputmaxlinevoltage GAUGE:1200:60:170
+data	ivoltagemin=apcupsadvinputminlinevoltage GAUGE:1200:60:170
+data	ifrequency=apcupsadvinputfrequency GAUGE:1200:50:70
+
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+alert	onbattery < 60 120 180
+alert	timeleft > 15 10 5
+alert	temperature < 60 65 70
+oid APCUpsBasicBatteryTimeOnBattery
+oid APCUpsAdvBatteryCapacity
+oid APCUpsAdvBatteryTemperature
+oid APCUpsAdvBatteryRunTimeRemaining
+oid APCUpsAdvOutputLoad
+oid APCUpsAdvOutputCurrent
+oid APCUpsAdvOutputVoltage
+oid APCUpsAdvOutputFrequency
+oid APCUpsBasicInputPhase
+oid APCUpsAdvInputLineVoltage
+oid APCUpsAdvInputMaxLineVoltage
+oid APCUpsAdvInputMinLineVoltage
+oid APCUpsAdvInputFrequency
+
+graph	capacity desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS.  Battery Capacity is the percentace of a full charge currently on the batteries.'
+	--title '##HOST## - Battery Capacity (##GRAPHTIME##)'
+	--vertical-label '%'
+	DEF:capacity=##DB##:capacity:AVERAGE
+	DEF:load=##DB##:load:AVERAGE
+	CDEF:missing=load,UN,INF,UNKN,IF
+	'LINE2:capacity###COLOR1##:battery capacity'
+	'LINE2:load###COLOR2##:load'
+	'GPRINT:capacity:MIN:minimum capacity=%.0lf%%'
+	'AREA:missing###MISSING##:missing'
+
+graph	batterytime desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS.  Battery Time is how long the batteries could sustain the current load if power were removed.'
+	--title '##HOST## - Battery Times (##GRAPHTIME##)'
+	--vertical-label 'min'
+	DEF:onbattery=##DB##:onbattery:AVERAGE
+	DEF:timeleft=##DB##:timeleft:AVERAGE
+	CDEF:mintimeleft=timeleft,60,/
+	CDEF:minonbattery=onbattery,60,/
+	CDEF:missing=onbattery,UN,INF,UNKN,IF
+	'LINE2:minonbattery###COLOR1##:on battery'
+	'LINE2:mintimeleft###COLOR2##:time left'
+	'GPRINT:mintimeleft:MIN:minimum %.0lf minutes left'
+	'AREA:missing###MISSING##:missing'
+
+graph	voltage desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS.  Voltages are measured on the equipment side (output) and the line supply side (input).  In addition, on the input side, the maximum and minimum voltages seen during each 5-minute period are also shown.'
+	--title '##HOST## - Voltages (##GRAPHTIME##)'
+	--vertical-label 'volts'
+	DEF:ovoltage=##DB##:ovoltage:AVERAGE
+	DEF:ivoltage=##DB##:ivoltage:AVERAGE
+	DEF:ivoltagemax=##DB##:ivoltagemax:AVERAGE
+	DEF:ivoltagemin=##DB##:ivoltagemin:AVERAGE
+	CDEF:missing=ovoltage,UN,INF,UNKN,IF
+	'LINE1:ovoltage###COLOR1##:output'
+	'LINE1:ivoltage###COLOR2##:input'
+	'LINE1:ivoltagemax###COLOR3##:in max(5min)'
+	'LINE1:ivoltagemin###COLOR4##:in min(5min)'
+	'AREA:missing###MISSING##:missing'
+
+graph	temperature desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS. The Battery Temperature is measured in order to shut down the UPS if it gets too high, which usually indicates either too high an ambient temperature, or something wrong with the batteries.  Unfortunately, this is neither very accurate, nor very consistent between UPSs.  It is probably within 10&deg;C.'
+	--title '##HOST## - Battery Temperature (##GRAPHTIME##)'
+	--vertical-label 'degrees C'
+	DEF:temperature=##DB##:temperature:AVERAGE
+	CDEF:missing=temperature,UN,INF,UNKN,IF
+	'LINE2:temperature###COLOR1##'
+	'GPRINT:temperature:MIN:min=%.0lf'
+	'GPRINT:temperature:AVERAGE:avg=%.0lf'
+	'GPRINT:temperature:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'
+
+# I've never found a UPS that returned other than zero for this 
+# and APC never answered my queries.
+graph	current desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS.  Current is the current drawn by the attached equipment.  Or it would be if it worked.  I have never had one which actually returned anything except zero here.  Tell me if you do.'
+	--title '##HOST## - Current (##GRAPHTIME##)'
+	--vertical-label 'amps'
+	DEF:ocurrent=##DB##:ocurrent:AVERAGE
+	CDEF:ocurrent=afdprocs,UN,INF,UNKN,IF
+	'LINE2:ocurrent###COLOR1##:output'
+	'GPRINT:ocurrent:MIN:min=%.0lf'
+	'GPRINT:ocurrent:AVERAGE:avg=%.0lf'
+	'GPRINT:ocurrent:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'
+
+graph	frequency desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS.  The Frequency is measured on the input and output side, and should be 60 on this side of the pond.  I have never seen it vary from 60, so I do not know if it actually works.  Please tell me if you see something else, besides 50, if you are in a 50Hz area.'
+	--title '##HOST## - Frequency (##GRAPHTIME##)'
+	--vertical-label 'Hz'
+	DEF:ofrequency=##DB##:ofrequency:AVERAGE
+	DEF:ifrequency=##DB##:ifrequency:AVERAGE
+	CDEF:missing=ofrequency,UN,INF,UNKN,IF
+	'LINE2:ofrequency###COLOR1##:output'
+	'LINE2:ifrequency###COLOR2##:input'
+	'AREA:missing###MISSING##:missing'
+
+graph	phase desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS.  The Phase Angle is the angle by which the voltage lags the current, or the other way around.  I am not an electrician.  This may be important, but again, it always seems to be one here.  Please tell me if you see anything else.'
+	--title '##HOST## - Phase Angle (##GRAPHTIME##)'
+	--vertical-label 'degrees'
+	DEF:iphase=##DB##:iphase:AVERAGE
+	CDEF:missing=iphase,UN,INF,UNKN,IF
+	'LINE2:iphase###COLOR1##'
+	'AREA:missing###MISSING##:missing'
+

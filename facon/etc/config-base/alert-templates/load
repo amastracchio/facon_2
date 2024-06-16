@@ -1,0 +1,3 @@
+The 5-minute load-average on ##HOST##(##IP##) is ##VALUE##.  
+This means that (on average) there were that many processes 
+that wanted to use the CPU.

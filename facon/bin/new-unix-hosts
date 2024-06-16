@@ -1,0 +1,227 @@
+#!/usr/bin/perl -w
+
+# new-unix-hosts - add rrds for hosts running the unix-status-server
+# CVS $Id: new-unix-hosts.pl,v 1.12 2003/05/20 19:29:53 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'new-unix-hosts';
+# Where is the config-dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# How long to wait for response
+$main::timeout = 10;
+# Where does the unix-status-server hang out?
+$main::port = 1957;
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.12 $');
+
+# - - -   Setup   - - -
+
+require 5.004;
+use lib '.', '/root/3p/facon/lib';
+use Getopt::Std;
+use Socket;
+require "facon.pl";
+require "socketstuff.pl";
+
+# Parse the command-line
+&parse_command_line();
+
+unless (-d $main::config_dir) {
+	&abort("missing config-dir $main::config_dir");
+}
+&read_config_dir( $main::config_dir, 'general');
+
+&add_group_if_missing( $main::group);
+
+my %unix_rrds = (
+	'cpuuser'			=> 'cpu',
+	'dfused:(\S+)'			=> 'df-$1',
+	'interface_packets_in:(\S+)'	=> 'if-$1',
+	'load15'			=> 'load',
+	'freemem'			=> 'memory',
+	'qmail_qbacklog'	=> 'qmail-qstat',
+	'tcpstate:'			=> 'tcpstates',
+	'timediff'			=> 'unixtime',
+	'uptime'			=> 'uptime',
+	'procmeminfo'		=> 'procmeminfo',
+	'procnetdev-(\S+)'	=> 'procnetdev-$1',
+	'proc_disk_rio:(\S+)' => 'procdiskio',
+	'tcpstate:(\S+)'	=> 'tcpstates',
+	# FIXME need to add sar-based RRDs when some get defined
+);
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $hostfile, $socket, $status, $query, $pattern,
+	$instance, $rrd, %rrds, $line, $os_name, $records, );
+$query = join("\n", 'DF', 'FTPCOUNT', 'NETSTAT', 'NETSTAT-TCPSTATES',
+	'PROCDISKIO', 'PROCNETDEV', 'PROCMEMINFO', 'PS', 'QMAILQSTAT', 
+	'QMAILQREAD', 'TIME ' . time(), 'UNAME', 'UPTIME', 'VMSTAT'
+	) .  
+	"\nGO\n";
+
+while (<>) {
+	chomp;
+	next if (/^#/ or /^\s*$/);
+	$host = lc $_;
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&error("couldn't find IP number for $host; skipped");
+		next;
+	}
+
+	$hostfile = $main::config_dir .'/hosts/'. $host;
+	if ( -f $hostfile) {
+		open (HOST, ">>$hostfile") or &abort("can't open $hostfile: $!");
+	}
+	else {
+		open (HOST, ">$hostfile") or &abort("can't open $hostfile: $!");
+		print HOST <<"EOD";
+# hosts/$host
+#ip	$ip
+desc\tnew unix host
+group\t$main::group
+tools\tping traceroute telnet availability status
+rrd\tping
+EOD
+	}
+
+# Open the connection to the host
+	($socket, $status, $main::timeout) = 
+		&open_socket( $host, $main::port, $main::timeout);
+	unless ($status == $main::SOCKET_OK) {
+		&error("couldn't connect to $host: $!");
+		next;
+	}
+	&debug("  connected to $host:$main::port") if ($main::debug);
+	$records = 0;
+
+# Send query
+	($status, $main::timeout) = &write_socket( $socket, $query, 
+		$main::timeout, "query for ${host}:$main::port");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		&error("can't send query to $host: $!");
+		next;
+	}
+	&debug("  sent query") if ($main::debug);
+
+# Collect the response
+	%rrds = ();
+	while (($line, $status, $main::timeout) = 
+			&read_socket($socket, $main::timeout, "response from $host"), 
+			(defined $line and ($status == $main::SOCKET_OK))) {
+		$line =~ tr/\012\015//d;
+		++$records;
+
+		# Deal with remote messages
+		&debug("  RAW: $line") if ($main::debug>1);
+		if( $line =~ /^(DEBUG|ERROR|ABORT):/) {
+			print STDERR 'REMOTE: ', $line, "\n";
+			next;
+		}
+
+		foreach $pattern (keys %unix_rrds) {
+			&debug("  looking for '$pattern'") if( $main::debug>1);
+			if ($line =~ / $pattern /i) {
+				$instance = $1;
+				if (defined $instance) {
+					$rrd  = $unix_rrds{$pattern};
+					$rrd =~ s/\$1/$instance/;
+					&debug("  rrd $rrd, instance=$instance") if( $main::debug);
+				}
+				else {
+					$rrd = $unix_rrds{$pattern};
+					&debug("  rrd $rrd") if( $main::debug);
+				}
+				if (defined $rrds{$rrd}) {
+					&debug("  $rrd exists already; skipped") if ($main::debug);
+					next;
+				}
+				$rrds{$rrd} = 1;
+				print HOST "rrd\t $rrd\n";
+				&debug("  added rrd $rrd") if ($main::debug);
+			}
+			if ($line =~ / os_name\s+(.*)/) { $os_name = $1; }
+		}
+	}
+	unless( $records) {
+		&error("no data from $host");
+		next;
+	}
+
+# Special cases
+	if (defined $os_name and $os_name eq 'Linux' and defined $rrds{'memory'}) {
+		print HOST "nograph memory scanrate\n";
+	}
+
+	$socket->close() or do {
+		&error("can't close connection to $host: $!");
+		next;
+	};
+	close(HOST);
+}
+
+# Touch config_dir for update time
+my $now = time;
+utime $now, $now, $main::config_dir or
+	&abort("can't touch $main::config_dir for update time");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] group [hostfile ...]
+where options are:
+    -d      enable debugging output
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h     	show this help
+    -p ppp  use port 'ppp' [$main::port]
+    -t ttt  use 'ttt' for timeout [$main::timeout]
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ parse_command_line ---
+sub parse_command_line {
+	my %opt = ();
+	getopts('d:f:hp:t:', \%opt);
+
+	if (defined $opt{'h'}) { &usage; } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+	if (defined $opt{'p'}) { $main::port = $opt{'p'}; }
+	if (defined $opt{'t'}) { $main::timeout = $opt{'t'}; }
+
+	unless (@ARGV >= 1) { &usage(); }
+	$main::group = shift @ARGV;
+}

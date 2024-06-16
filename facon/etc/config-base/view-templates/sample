@@ -1,0 +1,18 @@
+<VIEW::HEADER A sample view using a template>
+
+<P>
+You can put whatever you want, wherever you want it:
+<UL>
+<VIEW::GRAPH lois.dgim.crc.ca load cpu>
+</UL>
+</P>
+
+<P>
+And here's silverlock:
+<UL>
+<VIEW::CUSTOMGRAPH servercpu>
+</UL>
+
+Silverlock's uptime: <VIEW::INCLUDE /var/remstats/data/silverlock.dgim.crc.ca/UPTIME.html>
+
+<VIEW::FOOTER>

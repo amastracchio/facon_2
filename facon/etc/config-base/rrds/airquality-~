@@ -1,0 +1,40 @@
+# rrds/airqualityontario-* - get air quality index for ontario regions/cities
+# CVS $Id: airqualityontario-,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	port
+step	300
+port	80
+
+data	status=aqi-* GAUGE:1200:0:U
+data	response=aqi-response GAUGE:1200:0:U
+data	aqi=aqi GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	response-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, measuring the time that the service takes to respond."
+	--title '##RRD## Response for ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:response:AVERAGE:%.0lf%s,'
+	'GPRINT:response:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	aqi-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response.  Lower is better. They say (0-15=v.good, 16-31=good, 32-49=moderate, 50-99=poor, 100+=v.poor)"
+	--title 'Air Quality Index for ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:aqi=##DB##:aqi:AVERAGE
+	CDEF:missing=aqi,UN,INF,UNKN,IF
+	'LINE2:aqi###COLOR1##:aqi'
+	'GPRINT:aqi:MIN:aqi min=%.1lf'
+	'GPRINT:aqi:AVERAGE:avg=%.1lf'
+	'GPRINT:aqi:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'

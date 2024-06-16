@@ -1,0 +1,15 @@
+# host-templates/nt-workstation
+# $Id: nt-workstation,v 1.2 2002/04/16 15:25:23 remstats Exp $
+#
+desc	MISSING DESCRIPTION (NT workstation)
+tools	ping traceroute availability status
+template	default-nt-status-server
+
+rrd	ping
+rrd	ntcpu
+rrd	ntmemory
+rrd	ntpaging
+rrd	ntactivity
+rrd	ntuptime
+rrd	ntnetworkinterface-0
+rrd	ntlogicaldisk-c

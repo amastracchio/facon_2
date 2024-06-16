@@ -1,0 +1,99 @@
+#!/usr/bin/perl -w
+
+# genindex - make a POD index from (URL, text) pairs
+# $Id: genindex.pl,v 1.7 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'genindex';
+# What format of output to use
+$main::index_format = 'pod';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.7 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+
+# Parse the command-line
+&parse_command_line();
+
+# - - -   Mainline   - - -
+
+my ($url, $text, %urls, $key);
+# Slurp in the index pairs
+while (<>) {
+	chomp;
+	($url, $text) = split(' ', $_, 2);
+	$urls{$text} = $url;
+}
+
+for $key (sort keys %urls) {
+	if ($main::index_format eq 'html') {
+		print "<A HREF=\"$urls{$key}\">$key</A><BR>\n";
+	}
+	elsif ($main::index_format eq 'pod') {
+		print "=for html\n<A HREF=\"$urls{$key}\">$key</A><BR>\n\n" .
+			"=for text $key - $urls{$key}\n\n";
+	}
+	elsif ($main::index_format eq 'text') {
+		print "$key - $urls{$key}\n";
+	}
+	else {
+		&abort("unknown index format '$main::index_format')");
+	}
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] file ...
+where options are:
+	-d	enable debugging output
+	-f fff  use 'fff' format for output (html, pod or text)[$main::index_format]
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ parse_command_line ---
+sub parse_command_line {
+	my %opt = ();
+	getopts('d:f:h', \%opt);
+
+	if (defined $opt{'h'}) { &usage(); } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if (defined $opt{'f'}) { $main::index_format = $opt{'f'}; }
+
+	unless ($main::index_format eq 'html' or $main::index_format eq 'pod' or
+			$main::index_format eq 'text') {
+		&usage(); # no return
+	}
+}

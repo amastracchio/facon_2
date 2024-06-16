@@ -1,0 +1,14 @@
+# Get the current log-file position
+if ( -f $contextfile) {
+	$position = &get_context( $contextfile);
+	&abort("can't open existing context $contextfile")
+		unless( defined $position);
+	&debug("got $position from context $contextfile") if ($main::debug);
+
+# Has the log-file been rolled-over since last time?
+	if ((! defined $position) or ($position > -s $logfile)) {
+		&debug("logfile rolled over; starting from beginning") 
+			if ($main::debug);
+		$position = 0;
+	}
+}

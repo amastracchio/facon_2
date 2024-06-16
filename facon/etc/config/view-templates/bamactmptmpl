@@ -1,0 +1,34 @@
+
+<VIEW::HEADER Bamac disco tmp disco>
+<P>
+<h1>Detalle de los discos</h1>.
+<UL>
+
+<VIEW::GRAPH pyah14 df--tmp df-* day>
+<VIEW::GRAPH pyahg8 df--tmp df-* day>
+<VIEW::GRAPH pyahha df--tmp df-* day>
+<VIEW::GRAPH pyahfb df--tmp df-* day>
+<VIEW::GRAPH pyahg3 df--tmp df-* day>
+<VIEW::GRAPH yvas4180 df--tmp df-* day>
+<VIEW::GRAPH yval1760 df--tmp df-* day>
+<VIEW::GRAPH yval3260 df--tmp df-* day> 
+<VIEW::GRAPH yval3340 df--tmp df-* day> 
+<VIEW::GRAPH yvasb430 df--tmp df-* day> 
+<VIEW::GRAPH yvasb440 df--tmp df-* day> 
+<VIEW::GRAPH yvasb460 df--tmp df-* day> 
+
+<VIEW::GRAPH pyahde df--tmp df-* day> 
+<VIEW::GRAPH yval1920 df--tmp df-* day> 
+<VIEW::GRAPH yvas6120 df--tmp df-* day> 
+<VIEW::GRAPH yvasa850 df--tmp df-* day> 
+
+</UL>
+
+</P>
+
+<P>
+<UL>
+</UL>
+
+<VIEW::FOOTER>
+~

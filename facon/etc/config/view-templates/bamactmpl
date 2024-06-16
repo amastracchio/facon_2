@@ -1,0 +1,236 @@
+
+<VIEW::HEADER Bamac Status>
+
+<P>
+<h1>Detalle de corridas batch </h1>
+<UL>
+
+
+<h3>PDG</h3>
+
+<VIEW::GRAPH pyah14 bamsrv-pdg value-* day>
+<VIEW::GRAPH pyah14 bamsrv-pdg value-* yesterday>
+<VIEW::GRAPH pyah14 bamsrv-pdg value-* week>
+<IFRAME src="http://yvas6120:8900/pdg-pyah14.html" width=497 height=267>
+</IFRAME>
+
+
+
+
+<hr/>
+
+<h3>UK</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-uk value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-uk value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-uk value-* week>
+<IFRAME src="http://yvas6120:8900/uk-yvas4180.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>PPA</h3>
+
+<VIEW::GRAPH pyah14 bamsrv-ppa value-* day>
+<VIEW::GRAPH pyah14 bamsrv-ppa value-* yesterday>
+<VIEW::GRAPH pyah14 bamsrv-ppa value-* week>
+<IFRAME src="http://yvas6120:8900/ppa-pyah14.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>PAI</h3>
+
+<VIEW::GRAPH pyahg8 bamsrv-pai value-* day>
+<VIEW::GRAPH pyahg8 bamsrv-pai value-* yesterday>
+<VIEW::GRAPH pyahg8 bamsrv-pai value-* week>
+<IFRAME src="http://yvas6120:8900/pai-pyahg8.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>PNE</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-pne value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-pne value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-pne value-* week>
+<IFRAME src="http://yvas6120:8900/pne-yvas4180.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>PSU</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-psu value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-psu value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-psu value-* week>
+<IFRAME src="http://yvas6120:8900/psu-yvas4180.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+
+<h3>PSU</h3>
+
+<VIEW::GRAPH pyahg8 bamsrv-psu value-* day>
+<VIEW::GRAPH pyahg8 bamsrv-psu value-* yesterday>
+<VIEW::GRAPH pyahg8 bamsrv-psu value-* week>
+<IFRAME src="http://yvas6120:8900/psu-pyahg8.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+
+<h3>FR</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-fr value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-fr value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-fr value-* week>
+<IFRAME src="http://yvas6120:8900/fr-yvas4180.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>CDAG</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-cdag value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-cdag value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-cdag value-* week>
+<IFRAME src="http://yvas6120:8900/cdag-yvas4180.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+<h3>ACP</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-acp value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-acp value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-acp value-* week>
+<IFRAME src="http://yvas6120:8900/acp-yvas4180.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>CIS</h3>
+
+
+<VIEW::GRAPH yvas4180 bamsrv-cis value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-cis value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-cis value-* week>
+<IFRAME src="http://yvas6120:8900/cis-yvas4180.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+<h3>ACE</h3>
+
+<VIEW::GRAPH pyahfb bamsrv-ace value-* day>
+<VIEW::GRAPH pyahfb bamsrv-ace value-* yesterday>
+<VIEW::GRAPH pyahfb bamsrv-ace value-* week>
+<IFRAME src="http://yvas6120:8900/ace-pyahfb.html" width=497 height=267>
+</IFRAME>
+<hr/>
+
+<h3>PBL</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-pbl value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-pbl value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-pbl value-* week>
+<IFRAME src="http://yvas6120:8900/pbl-yvas4180.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+<h3>BAMAC COMUN</h3>
+
+<VIEW::GRAPH yvas4180 bamsrv-com value-* day>
+<VIEW::GRAPH yvas4180 bamsrv-com value-* yesterday>
+<VIEW::GRAPH yvas4180 bamsrv-com value-* week>
+<IFRAME src="http://yvas6120:8900/com-yvas4180.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+<h3>SPOC</h3>
+
+<VIEW::GRAPH pyahg3 bamsrv-spoc value-* day>
+<VIEW::GRAPH pyahg3 bamsrv-spoc value-* yesterday>
+<VIEW::GRAPH pyahg3 bamsrv-spoc value-* week>
+<IFRAME src="http://yvas6120:8900/spoc-pyahg3.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+<h3>Neolane</h3>
+
+<VIEW::GRAPH yval1760 bamsrv-neo value-* day>
+<VIEW::GRAPH yval1760 bamsrv-neo value-* yesterday>
+<VIEW::GRAPH yval1760 bamsrv-neo value-* week>
+<IFRAME src="http://yvas6120:8900/neo-yval1760.html" width=497 height=267>
+</IFRAME>
+
+
+</UL>
+
+<hr/>
+
+<h3>Sysame/Convergence</h3>
+
+<VIEW::GRAPH yvasb460 bamsrv-syz value-* day>
+<VIEW::GRAPH yvasb460 bamsrv-syz value-* yesterday>
+<VIEW::GRAPH yvasb460 bamsrv-syz value-* week>
+
+
+</UL>
+
+
+<hr/>
+
+<h3>Sysame/Neolane</h3>
+
+<VIEW::GRAPH yval3340 bamsrv-nes value-* day>
+<VIEW::GRAPH yval3340 bamsrv-nes value-* yesterday>
+<VIEW::GRAPH yval3340 bamsrv-nes value-* week>
+
+
+</UL>
+
+
+
+
+<hr/>
+
+<h3>Sysame/Neolane DB</h3>
+
+<VIEW::GRAPH yvasb440 bamsrv-nes value-* day>
+<VIEW::GRAPH yvasb440 bamsrv-nes value-* yesterday>
+<VIEW::GRAPH yvasb440 bamsrv-nes value-* week>
+
+
+</UL>
+
+<hr/>
+
+<h3>Sysame/Reporting</h3>
+
+<VIEW::GRAPH yvasb430 bamsrv-syr value-* day>
+<VIEW::GRAPH yvasb430 bamsrv-syr value-* yesterday>
+<VIEW::GRAPH yvasb430 bamsrv-syr value-* week>
+
+
+</UL>
+
+<P>
+<h1>Detalle de los discos</h1>.
+<UL>
+
+<VIEW::GRAPH pyah14 df--users df-* day>
+<VIEW::GRAPH pyah14 df--users2 df-* day>
+<VIEW::GRAPH pyahg8 df--users df-* day>
+<VIEW::GRAPH pyahha df--users df-* day>
+<VIEW::GRAPH pyahfb df--users df-* day>
+<VIEW::GRAPH yvas4180 df--users df-* day>
+<VIEW::GRAPH yvas4180 df--users2 df-* day>
+<VIEW::GRAPH yvas4180 df--users20 df-* day> 
+</UL>
+
+</P>
+
+<P>
+<UL>
+</UL>
+
+<VIEW::FOOTER>
+~

@@ -1,0 +1,28 @@
+# rrds/errors-* - errors in * collector
+# CVS $Id: errors-,v 1.2 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	error
+step	300
+
+data	errors=*-errors GAUGE:600:0:U
+data	aborts=*-aborts GAUGE:600:0:U
+
+alert	errors > 0 0
+alert	aborts > 0 0 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	errors-* desc="This is collected by the error-collector.  It simply shows the number of error and abort messages printed by the named collector during its last run.  Both errors and aborts should be zero."
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--title '##HOST## - errors for ##WILDPART## (##GRAPHTIME##)'
+	--units-exponent 0
+	DEF:errors=##DB##:errors:AVERAGE
+	DEF:aborts=##DB##:aborts:AVERAGE
+	CDEF:missing=errors,UN,INF,UNKN,IF
+	'LINE2:errors###COLOR1##:errors'
+	'LINE2:aborts###COLOR2##:aborts'
+	'AREA:missing###MISSING##:missing'
+

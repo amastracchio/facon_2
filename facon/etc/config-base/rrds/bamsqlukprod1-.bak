@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	interfaces=interfaces:* GAUGE:1800:0:U  bamsql *
+data	temp_5=temp_5:* GAUGE:1800:0:U  bamsql *
+data	bo=bo:* GAUGE:1800:0:U  bamsql *
+data	neo_temp_1=neo_temp_1:* GAUGE:1800:0:U  bamsql *
+data	iano=iano:* GAUGE:1800:0:U  bamsql *
+data	ibamac=ibamac:* GAUGE:1800:0:U  bamsql *
+data	temp=temp:* GAUGE:1800:0:U  bamsql *
+data	neo_temp_2=neo_temp_2:* GAUGE:1800:0:U  bamsql *
+data	mk1_data=mk1_data:* GAUGE:1800:0:U  bamsql *
+data	temp_8=temp_8:* GAUGE:1800:0:U  bamsql *
+data	system=system:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:interfaces=##DB##:interfaces:AVERAGE
+	 DEF:temp_5=##DB##:temp_5:AVERAGE
+	 DEF:bo=##DB##:bo:AVERAGE
+	 DEF:neo_temp_1=##DB##:neo_temp_1:AVERAGE
+	 DEF:iano=##DB##:iano:AVERAGE
+	 DEF:ibamac=##DB##:ibamac:AVERAGE
+	 DEF:temp=##DB##:temp:AVERAGE
+	 DEF:neo_temp_2=##DB##:neo_temp_2:AVERAGE
+	 DEF:mk1_data=##DB##:mk1_data:AVERAGE
+	 DEF:temp_8=##DB##:temp_8:AVERAGE
+	 DEF:system=##DB##:system:AVERAGE
+      CDEF:missing=interfaces,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:interfaces###COLOR1##:interfaces'
+	'LINE2:temp_5###COLOR2##:temp_5'
+	'LINE2:bo###COLOR3##:bo'
+	'LINE2:neo_temp_1###COLOR4##:neo_temp_1'
+	'LINE2:iano###COLOR5##:iano'
+	'LINE2:ibamac###COLOR6##:ibamac'
+	'LINE2:temp###COLOR7##:temp'
+	'LINE2:neo_temp_2###COLOR8##:neo_temp_2'
+	'LINE2:mk1_data###COLOR9##:mk1_data'
+	'LINE2:temp_8###COLOR10##:temp_8'
+	'LINE2:system###COLOR11##:system'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:interfaces:LAST:interfaces         = %.2lf\l'
+	'GPRINT:temp_5:LAST:temp_5         = %.2lf\l'
+	'GPRINT:bo:LAST:bo         = %.2lf\l'
+	'GPRINT:neo_temp_1:LAST:neo_temp_1         = %.2lf\l'
+	'GPRINT:iano:LAST:iano         = %.2lf\l'
+	'GPRINT:ibamac:LAST:ibamac         = %.2lf\l'
+	'GPRINT:temp:LAST:temp         = %.2lf\l'
+	'GPRINT:neo_temp_2:LAST:neo_temp_2         = %.2lf\l'
+	'GPRINT:mk1_data:LAST:mk1_data         = %.2lf\l'
+	'GPRINT:temp_8:LAST:temp_8         = %.2lf\l'
+	'GPRINT:system:LAST:system         = %.2lf\l'

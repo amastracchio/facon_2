@@ -1,0 +1,10 @@
+# scripts/weather - weather stuff from www.theweathernetwork.com
+# $Id: weathernetwork,v 1.3 2002/04/16 15:21:28 remstats Exp $
+# (until they change the format of their pages. :-(
+
+port	80
+timeout	10
+proxy	proxy.crc.ca:3128
+send	GET http://www.theweathernetwork.com/cities/can/Ottawa_ON.htm HTTP/1.0\nUser-Agent: Remstats/1.0.13a\nHost: ##HOST##\nConnection: close\n\n
+valuepattern temp\.gif.*?\>\s+(-?\d+).*?humidity\.gif.*?>\s+(\d+)%.*?(humidex|windchill)\.gif.*?>\s+(-?\d+)&nbsp;.*?pressure.gif.*?>\s*(\d+\.\d+)&nbsp;.*?windspeed.gif.*?>\s+(\d+)&nbsp;.*?dewpoint.gif.*?>\s+(-?\d+)&nbsp;
+OK	</HTML>

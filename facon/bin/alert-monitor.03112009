@@ -1,0 +1,819 @@
+#!/usr/bin/perl -w
+
+# alert-monitor - a facon status evaluator and alert-trigger
+# $Id: alert-monitor.pl,v 1.27 2002/06/10 14:33:45 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# N.B.: must run after ping-monitor, since it uses the STATUS file
+#	created by it.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'alert-monitor';
+# Where is the default configuration directory
+$main::config_dir = '/root/3p/facon/etc/config';
+# How many samples to examine
+$main::samples = 5;
+# Where is the alert-sender?
+$main::alerter = '/root/3p/facon/bin/alerter';
+$main::very_small = 1e-10;
+
+# - - -   Version History   - - -
+
+$main::version  = (split(' ', '$Revision: 1.27 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "alertstuff.pl";
+require "htmlstuff.pl";
+use Getopt::Std;
+use RRDs;
+use Socket;
+
+# Parse the command-line
+&parse_command_line();
+
+&read_config_dir($main::config_dir, 'general', 'alerts', 'html', 
+	'oids', 'times', 'rrds', 'groups', 'host-templates', 'hosts', 
+	'alert-template-map');
+
+%main::alerts = &read_alerts();
+%main::ip2host = &make_hosts_map();
+%main::blocked_by = &read_paths();
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $var, 
+	$relation, @thresholds, @blocks, $alerts, $alert_level,
+	$new_alerts, $new_alert_level, @hosts);
+
+@hosts = &select_hosts( \@main::hosts, \@main::groups, \@main::keys);
+
+foreach $host (@hosts) {
+	$ip = $main::ip2host{$host};
+	unless (defined $ip) {
+		&debug("no IP# for $host; skipped") if ($main::debug>1);
+		next;
+	}
+
+	# No alerts for unreachable hosts, which are blocked by a down host
+	unless ($main::alerts_for_unreachable) {
+		@blocks = keys %{$main::blocked_by{$host}};
+		if (@blocks and @blocks > 0) {
+			&debug("$host unreachable via: ". join(' ',@blocks))
+				if ($main::debug);
+			next;
+		}
+	}
+
+	&debug("checking host $host") if ($main::debug);
+	$alerts = 0;
+	$alert_level = 'OK';
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		&debug("  rrd $realrrd") if ($main::debug);
+		undef $relation;
+		undef @thresholds;
+
+		foreach $var (@{$main::config{RRD}{$wildrrd}{DATANAMES}}) {
+
+			# Sometimes we just don't want alerts on this var on this host
+			if (defined $main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{NOALERT}) {
+				&debug("  noalert for $realrrd $var; skipped")
+					if ($main::debug);
+					next;
+			}
+
+			# Alerts defined on the host override those on the rrd
+			elsif (defined $main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{RELATION}) {
+				$relation =$main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{RELATION};
+				@thresholds = @{$main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{THRESHOLDS}};
+				&debug("    host alert for $realrrd $var $relation ",
+					join(',',@thresholds)) if ($main::debug);
+			}
+
+			
+			# But we'll use alerts on the rrd if the host doesn't define 
+			# an alert for that variable
+			elsif (defined $main::config{RRD}{$wildrrd}{ALERT}{$var}{RELATION}) {
+				$relation = $main::config{RRD}{$wildrrd}{ALERT}{$var}{RELATION};
+				@thresholds = @{$main::config{RRD}{$wildrrd}{ALERT}{$var}{THRESHOLDS}};
+				&debug("    rrd alert for $realrrd $var $relation ",
+					join(',',@thresholds)) if ($main::debug);
+			}
+
+			# No alert is no problem
+			else {
+				&debug('    no alert defined for ', $realrrd, ' ', $var)
+					if ($main::debug);
+				next;
+			}
+
+			# Figure out what the new status is
+			($new_alerts, $new_alert_level) = &evaluate_status($host, 
+				$ip, $realrrd, $wildrrd, $wildpart,
+				$fixedrrd, $var, $relation, @thresholds);
+			&debug( '        alerts=', $new_alerts,
+				', level=', $new_alert_level) if ($main::debug);
+			$alerts += $new_alerts;
+
+			# Keep track of the max alert level for this host
+			$alert_level = &set_alert_level( $new_alerts, $alert_level,
+				$new_alert_level);
+		}
+	}
+	($new_alerts, $new_alert_level) = &misc_alerts($host, $ip);
+	$alerts += $new_alerts;
+	# Keep track of the max alert level for this host
+	$alert_level = &set_alert_level( $new_alerts, $alert_level,
+		$new_alert_level);
+
+	# Put out an alert flag for the highest alert for this host
+	&debug("writing ALERTFLAG.html for $host") if( $main::debug>1);
+	if ($alerts) {
+		&put_status( $host, 'ALERTFLAG.html', 
+			$main::config{HTML}{'ALERTFLAG'. $alert_level});
+	}
+	else {
+		&put_status( $host, 'ALERTFLAG.html', '');
+	}
+}
+
+&write_alerts(%main::alerts);
+
+exit 0;
+
+#------------------------------------------------------------- misc_alerts ---
+sub misc_alerts {
+	my ($host, $ip) = @_;
+	my ($uptime);
+
+# Uptime alerts.  I.E. the machine rebooted recently
+	if (defined $main::config{UPTIMEALERT}) {
+		($uptime) = &get_status($host, 'UPTIME');
+		if ($uptime eq 'MISSING' or $uptime eq 'EMPTY') {
+			return (0, 0);
+		}
+		elsif ($uptime <= $main::config{UPTIMEALERT}) {
+			my $now = time;
+			my ($lastalert) = &get_status( $host, 'LASTUPTIMEALERT');
+			if ($lastalert eq 'MISSING' or $lastalert eq 'EMPTY') {
+				$lastalert = 0;
+			}
+			if (($lastalert + $main::config{UPTIMEALERT}) < $now) {
+				$main::alerts{$host}{MISC}{UPTIME}{STATUS} = 'WARN';
+				$main::alerts{$host}{MISC}{UPTIME}{OLDSTATUS} = 'OK';
+				$main::alerts{$host}{MISC}{UPTIME}{VALUE} = $uptime;
+				$main::alerts{$host}{MISC}{UPTIME}{START} = $now;
+				$main::alerts{$host}{MISC}{UPTIME}{LASTALERT} = $now;
+				$main::alerts{$host}{MISC}{UPTIME}{LASTCHANGE} = $now;
+				$main::alerts{$host}{MISC}{UPTIME}{QUENCH} = 0;
+				$main::alerts{$host}{MISC}{UPTIME}{COMMENT} = '';
+				&send_alert($host, $ip, 'MISC', 'MISC', 'UPTIME', 
+					'UPTIME', 'WARN', 'OK', $uptime,
+					'<', $main::config{UPTIMEALERT}, $now); #SRF
+				&put_status($host,'LASTUPTIMEALERT',$now);
+				return (1, 'WARN');
+			}
+		}
+		else {
+			undef $main::alerts{$host}{MISC}{UPTIME}{STATUS};
+			undef $main::alerts{$host}{MISC}{UPTIME}{OLDSTATUS};
+			undef $main::alerts{$host}{MISC}{UPTIME}{VALUE};
+			undef $main::alerts{$host}{MISC}{UPTIME}{START};
+			undef $main::alerts{$host}{MISC}{UPTIME}{LASTALERT};
+			undef $main::alerts{$host}{MISC}{UPTIME}{LASTCHANGE};
+			undef $main::alerts{$host}{MISC}{UPTIME}{QUENCH};
+			undef $main::alerts{$host}{MISC}{UPTIME}{COMMENT};
+			undef $main::alerts{$host}{MISC}{UPTIME};
+			return (0, 'NODATA');
+		}
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -f fff  use config-dir 'fff'[$main::config_dir]
+  -h      show this help
+  -G GGG  only do hosts in groups 'GGG' (a comma-separated list)
+  -H HHH  only do hosts 'HHH' (a comma-separated list)
+  -K KKK  only do hosts with keys 'KKK' (a comma-separated list)
+  -s sss  search 'sss' data samples for values [$main::samples]
+  -u      generate alerts for hosts unreachable via a down host
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------- evaluate_status ---
+sub evaluate_status {
+	my ($host, $ip, $realrrd, $wildrdd, $wildpart, $fixedrrd, $var, 
+		$relation, @thresholds) = @_;
+	my ($start, $step, $names, $data, $line, $rrdfile, $last, $min, 
+		$max, @raw, $index, $value, $status, $thresh, $i, $isalert,
+		$last_data_is_valid, $delta, $nodata_alert, $now, $old_status,
+		$start_offset, $sum_of_x, $sum_of_squares, $number_of_samples,
+		$mean, $stddev, $variance, $send_now, %found);
+	&debug("    evaluate_status: START: $host $realrrd $var")
+		if ($main::debug>1);
+
+	$isalert = 0;
+
+	# Where is the data
+	$rrdfile = "$main::config{DATADIR}/$host/$fixedrrd.rrd";
+	unless (-f $rrdfile or -l $rrdfile) {
+		&error("    evaluate_status: missing rrd $rrdfile; skipped");
+		return (0, 0);
+	}
+
+	# Figure out how many samples we need
+	if (!defined $relation) {
+		&error('evaluate_status: no relation for ', $host, ', ', $realrrd, ', ',
+			$var, '; why are we here?');
+		return ( 0, 0);
+	}
+	elsif ($relation eq '<daystddev') {
+		$start_offset = 24 * 60 * 60;
+	}
+	elsif ($relation eq '<weekstddev') {
+		$start_offset = 7 * 24 * 60 * 60;
+	}
+	elsif ($relation eq '<monthstddev') {
+		$start_offset = 30 * 7 * 24 * 60 * 60;
+	}
+	else {
+		$start_offset = $main::config{RRD}{$wildrrd}{STEP}*($main::samples-1);
+	}
+
+	# Get the last few samples
+	($start, $step, $names, $data) = RRDs::fetch $rrdfile, 'AVERAGE', 
+		'--start', (time() - $start_offset);
+	unless (defined $start) {
+		&error("evaluate_status: fetch failed for $rrdfile: " . RRDs::error);
+		return (0, 0);
+	}
+
+	# Find the number for this variable
+	for ($i=0; $i<=$#$names; ++$i) {
+		if ($$names[$i] eq $var) { $index = $i; last; }
+	}
+	unless (defined $index) {
+		&error("evaluate_status: unknown variable ($var) in alert");
+		return (0, 0);
+	}
+
+	# Get the last valid value in the samples we requested
+	$last_data_is_valid = 1;
+	$sum_of_x = $sum_of_squares = 0;
+	foreach $line (@{$data}) {
+
+		# Invalid data (i.e. "NaN")
+		if ((defined ${$line}[$index] and ${$line}[$index] eq 'NaN') || (defined ${$line}[$index] and ${$line}[$index] eq 'nan')) {
+			$last_data_is_valid = 0;
+			next;
+		}
+
+		# Good data
+		elsif (defined ${$line}[$index]) {
+			$last_data_is_valid = 1;
+			# Do some stats for various relations
+			if (defined $value) {
+				$delta = ${$line}[$index] - $value;
+				if ($delta < 0) { $delta = - $delta; }
+			}
+			else { undef $delta; }
+			$value = ${$line}[$index];
+			$sum_of_x += $value;
+			$sum_of_squares += $value * $value;
+			++ $number_of_samples;
+		}
+		else { $last_data_is_valid = 0; next; }
+	}
+
+	# Make sure that we update the value even if there is no alert possible
+	$main::alerts{$host}{$realrrd}{$var}{VALUE} = $value;
+
+	# First, deal with no-data alerts (i.e. alerts triggered by missing data)
+	$nodata_alert = 0;
+	if ((defined $main::config{RRD}{$wildrrd}{ALERT}{$var}{NODATA} or
+			defined $main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{NODATA})
+			and !$last_data_is_valid) {
+		$status = (defined $main::config{RRD}{$wildrrd}{ALERT}{$var}{NODATA}) ?
+			$main::config{RRD}{$wildrrd}{ALERT}{$var}{NODATA} :
+			$main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{NODATA};
+		&set_alert_status( $host, $realrrd, $var, $status, 'NODATA');
+		$nodata_alert = 1;
+		$relation = 'eq';
+		$value = 'NODATA';
+		&debug("  NODATA alert for $host $realrrd $var") if ($main::debug);
+	}
+
+	# No data => no alert ( for NODATA alert, see above)
+	unless (defined $value) {
+		&debug("      no values for $host $realrrd $var; skipped.")
+			if ($main::debug);
+		return ($isalert, 0);
+	}
+
+	# Finish the Standard-Deviation calculation
+	if ($number_of_samples > 1) {
+		$variance = ($sum_of_squares - ($sum_of_x * $sum_of_x) / 
+			$number_of_samples) / ($number_of_samples - 1);
+		if ($variance < $main::very_small) { $stddev = 0; }
+		else { $stddev = sqrt($variance); }
+		$mean = $sum_of_x / $number_of_samples;
+		&debug("    stddev=$stddev, mean=$mean, n=$number_of_samples, x=$value") 
+			if ($main::debug>1);
+	}
+	elsif ($number_of_samples == 1) {
+		$mean = $sum_of_x / $number_of_samples;
+	}
+
+	# No alert defined
+	unless ((defined $relation and @thresholds) or $nodata_alert) {
+		$main::alerts{$host}{$realrrd}{$var}{STATUS} = 'OK';
+		$main::alerts{$host}{$realrrd}{$var}{OLDSTATUS} = 'OK';
+		$main::alerts{$host}{$realrrd}{$var}{START} = undef;
+		$main::alerts{$host}{$realrrd}{$var}{LASTCHANGE} = undef;
+		$main::alerts{$host}{$realrrd}{$var}{LASTALERT} = undef;
+		return (0, 0);
+	}
+
+	# Figure out what the status is
+	unless ($nodata_alert) {
+		for ($i=0; $i <= $#thresholds; ++$i) {
+			if ($relation eq '<') {
+				if ($value < $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif ($relation eq '=' or $relation eq '==') {
+				if ($value == $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif ($relation eq '>') {
+				if ($value > $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif ($relation eq '|<') {
+				if ((($value >= 0) ? $value : -$value) < $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif ($relation eq '|>') {
+				if ((($value >= 0) ? $value : -$value) > $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif ($relation eq 'delta>') {
+				if (defined $delta and $delta > $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif ($relation eq 'delta<') {
+				if (defined $delta and $delta < $thresholds[$i]) {
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			elsif( $relation eq '<daystddev' or 
+					$relation eq '<weekstddev' or
+					$relation eq '<monthstddev') {
+				if ($number_of_samples > 1) {
+					next if( abs($mean - $value) > $stddev * $thresholds[$i]);
+					$status = $i + 1;
+					$thresh = $thresholds[$i];
+					last;
+				}
+			}
+			else {
+				&abort( 'relation for ', $var, ' is "', $relation,
+					'", which is not valid in ', $realrrd, ' on ', $host, '.');
+				return;
+			}
+		}
+
+		# If we haven't placed it in a lower status, then the highest is it
+		unless (defined $status) {
+			$status = $#thresholds + 2;
+			$thresh = $thresholds[$#thresholds];
+			$relation = '!' . $relation;
+		}
+	}
+
+	# Translate the status
+	unless (defined $main::statuses{$status}) {
+		&abort('INTERNAL: status ', $status, ' is not defined');
+	}
+	$status = $main::statuses{$status};
+	&set_alert_status( $host, $realrrd, $var, $status, $value);
+	if ($nodata_alert) {
+		&debug('      alert status for ', $var, ' is ', $status, ' (nodata)')
+			if ($main::debug);
+	}
+	else {
+		&debug('      alert status for ', $var, ' is ', $status, ' (',
+			$value, ' ', $relation, ' ', $thresh, ')') if ($main::debug);
+	}
+
+	($isalert, $send_now, %found) = &evaluate_alert( $host, $realrrd, 
+		$var, $status);
+
+
+
+
+
+	if( $send_now) {
+		&send_alert($host, $ip, $realrrd, $wildrrd, $wildpart, 
+			$var, $status, $value, $relation, $thresh, %found);
+	}
+
+	return ($isalert, $status);
+}
+
+#---------------------------------------------------------------- send_alert ---
+sub send_alert {
+	my ($host, $ip, $realrrd, $wildrrd, $wildpart, $var, $status, 
+		$value, $relation, $thresh, %found) = @_;
+	my( $old_status);
+
+
+
+	&debug("  send_alert: START $host, $realrrd, $var = $status")
+		if ($main::debug);
+	
+	$old_status = $main::alerts{$host}{$realrrd}{$var}{OLDSTATUS};
+
+# Send the alert
+	$main::alerts{$host}{$realrrd}{$var}{LASTSENT} = time();
+	my $cmdhead = $main::alerter;
+	if (defined $main::debug and $main::debug > 0) {
+		$cmdhead .= ' -d '. $main::debug;
+	}
+
+	# Build the command-line for alerter
+	my $cmdtail = ' \''. $host .'\''.
+		' \''. $ip .'\''.
+		' \''. $realrrd . '\''.
+		' \''. ((defined $wildpart) ? $wildpart : '') .'\''.
+		' \''. $var .'\''.
+		' \''. $status .'\''.
+		' \''. $old_status .'\''.
+		' \''. $value .'\''.
+		' \''. $relation .'\''.
+		' \''. $thresh .'\''.
+		' \''. &timestamp($main::alerts{$host}{$realrrd}{$var}{START}) .'\''.
+		' \''. &sec_to_dhms($main::alerts{$host}{$realrrd}{$var}{LASTALERT} - 
+			$main::alerts{$host}{$realrrd}{$var}{START}) .'\' ';
+
+	&debug("ARI  send_alert: $cmdtail")
+		if ($main::debug);
+	
+# Get the host description
+	my ($hostdesc, $rrddesc);
+	if (defined $main::config{HOST}{$host}{DESC} and
+			$main::config{HOST}{$host}{DESC} !~ /^\s*$/) {
+		$hostdesc = $main::config{HOST}{$host}{DESC};
+		$hostdesc =~ tr/"'//d;
+	}
+	else {
+		$hostdesc = '';
+	}
+	$cmdtail .= '\''. $hostdesc .'\' ';
+
+# ... and the RRD instance description
+	if (defined $main::config{HOST}{$host}{RRDDESC}{$realrrd} and
+			$main::config{HOST}{$host}{RRDDESC}{$realrrd} !~ /^\s*$/) {
+		$rrddesc = $main::config{HOST}{$host}{RRDDESC}{$realrrd};
+		$rrddesc =~ tr/"'//d;
+	}
+	else {
+		$rrddesc = '';
+	}
+	$cmdtail .= '\''. $rrddesc .'\' ';
+
+	$cmdtail .= '\''. $main::config{WEBMASTER} .'\' ';
+
+        &debug("ARI1  send_alert: $cmdtail")
+                if ($main::debug);
+
+	my ($cmd, $error, $template_name);
+	foreach my $addr (@{$found{ADDRESSES}}) {
+
+        	&debug("ARI3  send_alert: $addr")
+                    if ($main::debug);
+
+		if ($addr eq 'CONTACT') {
+        		&debug("ARI4  send_alert: $addr")
+                    		if ($main::debug);
+
+			unless (defined $main::config{HOST}{$host}{CONTACTEMAIL}) {
+				&error("send_alert: alert for $host specifies CONTACT, but ".
+					"there is no contact for that host.");
+				next;
+			}
+			$cmd = $cmdhead .' \''. $main::config{HOST}{$host}{CONTACTEMAIL} .
+				'\' '. $cmdtail;
+		}
+		else {
+			$cmd = $cmdhead .' \''. $addr .'\' '. $cmdtail;
+		}
+
+		# Stick in the template
+		$template_name = &get_template_name( $realrrd, $wildrrd, $addr, $var);
+		$cmd .= ' \''. $template_name .'\'';
+
+	        &debug("ARI2  send_alert: $cmd")
+                if ($main::debug);
+
+		&debug("ARI6 doing alert with: $cmd") if ($main::debug);
+		$error = system($cmd) >> 8;
+		&error("send_alert: alert returned $error for:\n\t$cmd") if ($error);
+	}
+	&logit('ALERT', $host, $realrrd, $var, $value, 
+		"$relation $thresh $status since " .
+		&timestamp($main::alerts{$host}{$realrrd}{$var}{LASTALERT}));
+	return 1;
+}
+
+#--------------------------------------------------------------- read_paths ---
+sub read_paths {
+	my %blocked_by = ();
+	my (@path, $host, $ip, $node, $status, $stale, $nodename, %skippedip);
+
+	my $file = $main::config{DATADIR} .'/TRACEROUTES/PATHS';
+	open (PATHS, "<$file") or do {
+		&debug("read_paths: can't open $file: $!; skipped") if($main::debug);
+		return ();
+	};
+	while (<PATHS>) {
+		chomp;
+		($host, $ip, @path) = split( ' ', $_);
+		
+		# Make sure that the "host" isn't an IP#
+		if( $host =~ /^\d+\.\d+\.\d+\.\d+$/) {
+			if( defined $main::ip2host{$host}) {
+				$host = $main::ip2host{$host};
+			}
+		}
+
+		&debug("adding path for $host($ip): ". join(' ', @path))
+			if ($main::debug>1);
+
+		# Add in the hubs/switches
+		if (defined $main::config{HOST}{$host}{VIA}) {
+			push @path, split(' ',$main::config{HOST}{$host}{VIA});
+			&debug('  added hosts to path: '. $main::config{HOST}{$host}{VIA}) 
+				if ($main::debug>2);
+		}
+
+		# Make blocked list from the hosts in the path which aren't UP or 
+		# UPUNSTABLE
+Node:
+		foreach $node (@path) {
+			($node) = split(':', $node);
+
+			if ($node eq '-') {
+				&debug("  this node is unknown; skipped") if ($main::debug>2);
+				next Node;
+			}
+			else {
+				&debug("  this node is $node") if ($main::debug>2);
+			}
+			$nodename = $main::ip2host{$node};
+			if (defined $nodename) {
+				&debug("  adding path-node $node ($nodename)")
+					if ($main::debug>2);
+				($status, $stale) = &get_status( $nodename, 'STATUS');
+				if ($status eq 'MISSING') {
+					&debug("  don't know status of $nodename, skipped") 
+						if ($main::debug>2);
+				}
+				elsif ($status !~ /^UP/) {
+					$blocked_by{$host}{$node} = 1;
+					&debug('  ', $host, ' depends on ', $node, '(',
+						$nodename, '); which is ', $status) 
+						if($main::debug);
+				}
+				else {
+					&debug("  path $node($nodename) is up; no barrier")
+						if ($main::debug>2);
+				}
+			}
+			else {
+				$skippedip{$node} = 1;
+				&debug("  no name found for $node: skipped")
+					if ($main::debug>2);
+			}
+	    }
+	}
+	close (PATHS);
+
+	return %blocked_by;
+}
+
+#---------------------------------------------------------- make_hosts_map ---
+sub make_hosts_map {
+	my %map = ();
+	my( $ip, $host, $alias);
+	foreach $host (keys %{$main::config{HOST}}) {
+		$ip = &get_ip($host);
+		next unless( defined $ip);
+		&debug("$host = $ip") if ($main::debug>1);
+		$map{$ip} = $host;
+		$map{$host} = $ip;
+		foreach $alias (@{$main::config{HOST}{$host}{ALIASES}}) {
+			if ($alias =~ /^\d+\.\d+\.\d+\.\d+$/) { $map{$alias} = $host; }
+			else { $map{$host} = $alias; }
+			&debug("$host also = $alias") if ($main::debug>1);
+		}
+	}
+	return %map;
+}
+
+#---------------------------------------------------- get_template_name ---
+sub get_template_name {
+	my ($realrrd, $wildrrd, $address, $varname) = @_;
+	my ($template_name, $length_matched);
+
+# First match against the address (keep the longest match)
+	$length_matched = -1;
+	foreach my $addr_pat (keys %{$main::config{ALERTTEMPLATE}{ADDRESS}}) {
+		if ($address =~ /($addr_pat)/i) {
+			if (length($1) > $length_matched) {
+				$template_name =
+					$main::config{ALERTTEMPLATE}{ADDRESS}{$addr_pat};
+				$length_matched = length($1);
+			}
+		}
+	}
+
+# Then against RRDs
+	if (! defined $template_name and 
+			defined $main::config{ALERTTEMPLATE}{RRD}{$realrrd.':'.$varname}) {
+		$template_name = $main::config{ALERTTEMPLATE}{RRD}{$realrrd.':'.$varname};
+	}
+	elsif (! defined $template_name and
+			defined $main::config{ALERTTEMPLATE}{RRD}{$wildrrd.':'.$varname}) {
+		$template_name = $main::config{ALERTTEMPLATE}{RRD}{$wildrrd.':'.$varname};
+	}
+	elsif (! defined $template_name and
+			defined $main::config{ALERTTEMPLATE}{RRD}{$realrrd}) {
+		$template_name = $main::config{ALERTTEMPLATE}{RRD}{$realrrd};
+	}
+	elsif (! defined $template_name and
+			defined $main::config{ALERTTEMPLATE}{RRD}{$wildrrd}) {
+		$template_name = $main::config{ALERTTEMPLATE}{RRD}{$wildrrd};
+	}
+
+# A default template
+	unless (defined $template_name) {
+		$template_name = 'DEFAULT';
+	}
+
+	return $template_name;
+}
+
+#----------------------------------------------------- parse_command_line ---
+sub parse_command_line {
+	my %opt = ();
+	getopts('d:f:G:hH:K:s:u', \%opt);
+
+	if (defined $opt{'h'}) { &usage; } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+	if( defined $opt{'G'}) { @main::groups = split(',', $opt{'G'}); }
+	if( defined $opt{'H'}) { @main::hosts = split(',', $opt{'H'}); }
+	if( defined $opt{'K'}) { @main::keys = split(',', $opt{'K'}); }
+	if (defined $opt{'s'}) { $main::samples = $opt{'s'}; }
+	if (defined $opt{'u'}) { $main::alerts_for_unreachable = 1; }
+	else { $main::alerts_for_unreachable = 0; }
+}
+
+#--------------------------------------------------------- evaluate_alert ---
+# Figure out if this is an alert, and if we should send it at this time.
+# Returns ($is_alert, $send_now)
+sub evaluate_alert {
+	my ($host, $realrrd, $var, $status) = @_;
+	my( $found, %found, $alert, $mintime, $thistime, $interval,
+		$lastinterval, $now);
+	$now = time();
+
+	&debug("evaluate_alert: START $host, $realrrd, $var = $status")
+		if ($main::debug>1);
+
+	# Should we have an alert at all?
+	$found = 0;
+	foreach my $alert (@{$main::config{ALERT}}) {
+		next unless ($status =~ /$$alert{LEVEL}/i);
+		next unless ($host =~ /$$alert{HOST}/i);
+		next unless ($realrrd =~ /$$alert{RRD}/i);
+		next unless ($var =~ /$$alert{VAR}/i);
+		%found = %$alert;
+		$found = 1;
+		last;
+	}
+
+	
+	# Hmm.  Didn't find any alert to trigger.
+	unless ($found) {
+		&debug('  nothing in alerts for this; no alert') if ($main::debug>1);
+		return (0, 0);
+	}
+
+	# Found one.  Is it time for an alert yet?  Must be in this status at 
+	# least mintime.
+	$mintime = $found{MINTIME};
+	$thistime = $now - $main::alerts{$host}{$realrrd}{$var}{START};
+	unless ($thistime > $mintime) {
+		&debug('  too soon: mintime (', $thistime, ' < ', $mintime,
+			'); skipped') if ($main::debug>1);
+		return (1, 0, %found);
+	}
+
+	# If interval is 0, then only give one warning
+	$interval = $found{INTERVAL};
+	if ($interval == 0 and $main::alerts{$host}{$realrrd}{$var}{LASTALERT} !=
+			$main::alerts{$host}{$realrrd}{$var}{START}) {
+		&debug('  only one: interval=0 and last!=start (',
+			$main::alerts{$host}{$realrrd}{$var}{LASTALERT}, ' != ',
+			$main::alerts{$host}{$realrrd}{$var}{START}, ')')
+			if ($main::debug>1);
+		return (1, 0, %found);
+	}
+
+	# Has it been at least interval since the last alert?
+	$lastinterval = $now - $main::alerts{$host}{$realrrd}{$var}{LASTALERT};
+	unless ($lastinterval > $interval or $lastinterval == 0) {
+		&debug('  too soon: interval (', $lastinterval, ' < ',
+			$interval, ') ; skipped') if ($main::debug>1);
+		return (1, 0, %found);
+	}
+
+	# Manually disabled?
+	if ($main::alerts{$host}{$realrrd}{$var}{QUENCH}) {
+		&debug('alert for ', $host, ' ', $realrrd, ' ', $var,
+			'quenched; skipped') if ($main::debug>1);
+		return (1, 0, %found);
+	}
+
+	# It's not an alert
+	&debug('alert for ', $host, ' ', $realrrd, ' ', $var,
+		' needs to be sent now') if( $main::debug>1);
+	return (1, 1, %found);
+}
+
+#--------------------------------------------------------- set_alert_level ---
+sub set_alert_level {
+	my( $new_alerts, $alert_level, $new_alert_level) = @_;
+	if ($new_alerts && $main::statuses{$new_alert_level} > 
+			$main::statuses{$alert_level}) {
+		return $new_alert_level;
+	}
+	else { return $alert_level; }
+}

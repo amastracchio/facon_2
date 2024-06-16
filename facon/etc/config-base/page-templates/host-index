@@ -1,0 +1,32 @@
+<REMSTATS::RRDCGI>
+<REMSTATS::HEADER ##TOPDIR## ##HOST##>
+<REMSTATS::TOOLBAR>
+<REMSTATS::STATUSHEADER>
+<REMSTATS::FOR::RRD WITHIN="HOST">
+<REMSTATS::FOR::GRAPH WITHIN="RRD">
+<REMSTATS::SET::VAR HOSTGRAPHDIR ##GRAPHDIR##/##HOST##>\
+<REMSTATS::SET::VAR::FIXED FIXEDRRD ##RRD##>\
+<REMSTATS::SET::VAR::FIXED FIXEDGRAPH ##GRAPH##>\
+<REMSTATS::SET::VAR CGIFILE ##FIXEDRRD##-##FIXEDGRAPH##-index.cgi>\
+<REMSTATS::MKDIR ##HTMLDIR##/##HOSTGRAPHDIR##>\
+<REMSTATS::CHGRP facon ##HTMLDIR##/##HOSTGRAPHDIR##>\
+<REMSTATS::CHMOD 2775 ##HTMLDIR##/##HOSTGRAPHDIR##>\
+<A HREF="<REMSTATS::VAR CGIFILE>">\
+<REMSTATS::GRAPH ##HOSTGRAPHDIR## ##HOST## ##RRD## ##GRAPH## day>\
+</A>
+<REMSTATS::PAGE graph-index ##CGIFILE##>\
+</REMSTATS::FOR::GRAPH>
+</REMSTATS::FOR::RRD>
+
+<p>
+Powered by <table valign "bottom"> <tr> <td><IMG SRC="/img/gorila_bebe.jpg" BORDER=0 ALT="Powered by" HEIGHT="100", WIDTH="100" > </td>
+<td><IMG SRC="/img/cfengine.jpg" BORDER=0 ALT="cfengine" > </td>
+<td><IMG SRC="/img/facon.gif" BORDER=0 ALT="facon" > </td>
+<td><IMG SRC="/img/nagios.gif" BORDER=0 ALT="nagios"> </td>
+
+
+</tr>
+</table>
+
+
+<REMSTATS::FOOTER>

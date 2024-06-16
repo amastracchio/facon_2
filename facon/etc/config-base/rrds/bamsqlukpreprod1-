@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    600
+
+
+
+data	system=system:* GAUGE:1200:0:U  bamsql *
+data	referentiel=referentiel:* GAUGE:1200:0:U  bamsql *
+data	ibo=ibo:* GAUGE:1200:0:U  bamsql *
+data	neo_temp_3=neo_temp_3:* GAUGE:1200:0:U  bamsql *
+data	sysaux=sysaux:* GAUGE:1200:0:U  bamsql *
+data	ireferentiel=ireferentiel:* GAUGE:1200:0:U  bamsql *
+data	bamac_4m=bamac_4m:* GAUGE:1200:0:U  bamsql *
+data	ibamac_4m=ibamac_4m:* GAUGE:1200:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1200:0:U  bamsql *
+data	neo_data=neo_data:* GAUGE:1200:0:U  bamsql *
+data	mk1_index=mk1_index:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:system=##DB##:system:AVERAGE
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+	 DEF:ibo=##DB##:ibo:AVERAGE
+	 DEF:neo_temp_3=##DB##:neo_temp_3:AVERAGE
+	 DEF:sysaux=##DB##:sysaux:AVERAGE
+	 DEF:ireferentiel=##DB##:ireferentiel:AVERAGE
+	 DEF:bamac_4m=##DB##:bamac_4m:AVERAGE
+	 DEF:ibamac_4m=##DB##:ibamac_4m:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:neo_data=##DB##:neo_data:AVERAGE
+	 DEF:mk1_index=##DB##:mk1_index:AVERAGE
+      CDEF:missing=system,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:system###COLOR1##:system'
+	'LINE2:referentiel###COLOR2##:referentiel'
+	'LINE2:ibo###COLOR3##:ibo'
+	'LINE2:neo_temp_3###COLOR4##:neo_temp_3'
+	'LINE2:sysaux###COLOR5##:sysaux'
+	'LINE2:ireferentiel###COLOR6##:ireferentiel'
+	'LINE2:bamac_4m###COLOR7##:bamac_4m'
+	'LINE2:ibamac_4m###COLOR8##:ibamac_4m'
+	'LINE2:rbs###COLOR9##:rbs'
+	'LINE2:neo_data###COLOR10##:neo_data'
+	'LINE2:mk1_index###COLOR11##:mk1_index'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:system:LAST:system         = %.2lf\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'
+	'GPRINT:ibo:LAST:ibo         = %.2lf\l'
+	'GPRINT:neo_temp_3:LAST:neo_temp_3         = %.2lf\l'
+	'GPRINT:sysaux:LAST:sysaux         = %.2lf\l'
+	'GPRINT:ireferentiel:LAST:ireferentiel         = %.2lf\l'
+	'GPRINT:bamac_4m:LAST:bamac_4m         = %.2lf\l'
+	'GPRINT:ibamac_4m:LAST:ibamac_4m         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:neo_data:LAST:neo_data         = %.2lf\l'
+	'GPRINT:mk1_index:LAST:mk1_index         = %.2lf\l'

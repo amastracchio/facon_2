@@ -1,0 +1,4 @@
+# dbi-select/dbitest1
+# $Id: dbitest1,v 1.2 2002/04/16 15:24:45 remstats Exp $
+#
+SELECT COUNT(accyr_key) from accyr

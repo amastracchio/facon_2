@@ -1,0 +1,18 @@
+# run - which stages to run, in which order
+#
+# STAGE WHEN
+#
+# Make sure that the configuration is OK
+check
+# Either run ping and collectors, or ...
+ping
+collectors
+# ... run collectors-with-ping, but not both.
+# collectors-with-ping
+#
+# collect errors from the collectors
+post-collector
+# Evaluate the current state of things
+monitors
+# Re-make the web-pages, if necessary
+pagemakers	CONFIGCHANGE

@@ -1,0 +1,31 @@
+# rrds/snmpcpu - CPU usage via SNMP.  
+# CVS $Id: snmpcpu,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Unfortunately, this comes from a Cisco-specific MIB which appears to be
+# implemented only on routers.
+
+source	snmp
+step	300
+
+data	cpu=ciscocpuload GAUGE:600:0:U
+
+alert	cpu < 95
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+oid		CiscoCpuLoad
+
+graph	snmpcpu desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OID in question are only implemented on an <A HREF="http://www.cisco.com/">Cisco</A> router.  It tells the percentage of the time that the CPU is busy.'
+		--title '##HOST## - CPU Usage (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 100 --rigid
+		--vertical-label '%'
+		DEF:cpu=##DB##:cpu:AVERAGE
+		CDEF:missing=cpu,UN,INF,UNKN,IF
+		'LINE1:cpu###COLOR1##:CPU load'
+		'GPRINT:cpu:MIN:(min,avg,max) = (%.1lf%s,'
+		'GPRINT:cpu:AVERAGE:%.1lf%s,'
+		'GPRINT:cpu:MAX:%.1lf%s)'
+		'AREA:missing###MISSING##:missing'
+

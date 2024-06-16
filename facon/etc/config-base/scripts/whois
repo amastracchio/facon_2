@@ -1,0 +1,10 @@
+# scripts/whois - a whois server accessibility
+# $Id: whois,v 1.2 2002/04/16 15:21:29 remstats Exp $
+
+# Our whois server.  You'll have to change this to look for someone who
+# exists in your data, or live with the warning level.
+
+send	remstats\n
+timeout	5
+ok	name:
+

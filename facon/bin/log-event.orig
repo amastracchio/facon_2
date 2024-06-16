@@ -1,0 +1,94 @@
+#!/usr/bin/perl -w
+
+# log-event - manually log an event in the facon log 
+# 		for correlation with other system-logged events
+# $Id: log-event.pl,v 1.8 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'log-event';
+# What class of event are we logging?
+$main::class = 'EVENT';
+# Where is the config-dir?
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.8 $');
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+
+# Parse the command-line
+# STRICT use vars qw( $opt_c $opt_d $opt_h $opt_f $opt_r $opt_t );
+getopts('c:d:f:hr:t:');
+
+my ($rrd, $variable, $value, $time);
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_c) { $main::class = $main::opt_c; }
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+if (defined $main::opt_r) { ($rrd, $variable, $value) = split('\s*,\s*',$main::opt_r); }
+if (defined $main::opt_t) { $time = $main::opt_t; } else { $time = &timestamp(time); }
+
+# STRICT use vars qw( %config );
+&read_config_dir($main::config_dir, 'general');
+
+# - - -   Mainline   - - -
+
+if ($#ARGV < 1) { &usage; } # no return
+my $host = shift @ARGV;
+my $comment = join(' ', @ARGV);
+
+&debug("class=$class, host=$host, rrd=$rrd, var=$variable, val=$value," .
+	" comment='$comment'") if ($main::debug);
+&logit( $class, $host, $rrd, $variable, $value, $comment);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] host comment
+where options are:
+	-c ccc specify the class of event as 'ccc' [$main::class]
+	-d     enable debugging output
+	-f fff use 'fff' for config-dir [$main::config_dir]
+	-r r,v,V specify the rrd 'r', variable 'v' and value 'V'
+		   this is associated with [none]
+	-t ttt specify the time  as 'yyyy-mm-dd hh:mm:ss' [now]
+	-h     show this help
+
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

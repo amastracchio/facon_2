@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	neo_data=neo_data:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_5=temp_mv_5:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_12=temp_mv_12:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_1=temp_mv_1:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_15=temp_mv_15:* GAUGE:1200:0:U  bamsql *
+data	interfaces=interfaces:* GAUGE:1200:0:U  bamsql *
+data	bo=bo:* GAUGE:1200:0:U  bamsql *
+data	bamac6=bamac6:* GAUGE:1200:0:U  bamsql *
+data	ibamac=ibamac:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_8=temp_mv_8:* GAUGE:1200:0:U  bamsql *
+data	temp=temp:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:neo_data=##DB##:neo_data:AVERAGE
+	 DEF:temp_mv_5=##DB##:temp_mv_5:AVERAGE
+	 DEF:temp_mv_12=##DB##:temp_mv_12:AVERAGE
+	 DEF:temp_mv_1=##DB##:temp_mv_1:AVERAGE
+	 DEF:temp_mv_15=##DB##:temp_mv_15:AVERAGE
+	 DEF:interfaces=##DB##:interfaces:AVERAGE
+	 DEF:bo=##DB##:bo:AVERAGE
+	 DEF:bamac6=##DB##:bamac6:AVERAGE
+	 DEF:ibamac=##DB##:ibamac:AVERAGE
+	 DEF:temp_mv_8=##DB##:temp_mv_8:AVERAGE
+	 DEF:temp=##DB##:temp:AVERAGE
+      CDEF:missing=neo_data,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:neo_data###COLOR1##:neo_data'
+	'LINE2:temp_mv_5###COLOR2##:temp_mv_5'
+	'LINE2:temp_mv_12###COLOR3##:temp_mv_12'
+	'LINE2:temp_mv_1###COLOR4##:temp_mv_1'
+	'LINE2:temp_mv_15###COLOR5##:temp_mv_15'
+	'LINE2:interfaces###COLOR6##:interfaces'
+	'LINE2:bo###COLOR7##:bo'
+	'LINE2:bamac6###COLOR8##:bamac6'
+	'LINE2:ibamac###COLOR9##:ibamac'
+	'LINE2:temp_mv_8###COLOR10##:temp_mv_8'
+	'LINE2:temp###COLOR11##:temp'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:neo_data:LAST:neo_data         = %.2lf\l'
+	'GPRINT:temp_mv_5:LAST:temp_mv_5         = %.2lf\l'
+	'GPRINT:temp_mv_12:LAST:temp_mv_12         = %.2lf\l'
+	'GPRINT:temp_mv_1:LAST:temp_mv_1         = %.2lf\l'
+	'GPRINT:temp_mv_15:LAST:temp_mv_15         = %.2lf\l'
+	'GPRINT:interfaces:LAST:interfaces         = %.2lf\l'
+	'GPRINT:bo:LAST:bo         = %.2lf\l'
+	'GPRINT:bamac6:LAST:bamac6         = %.2lf\l'
+	'GPRINT:ibamac:LAST:ibamac         = %.2lf\l'
+	'GPRINT:temp_mv_8:LAST:temp_mv_8         = %.2lf\l'
+	'GPRINT:temp:LAST:temp         = %.2lf\l'

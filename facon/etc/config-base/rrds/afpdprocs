@@ -1,0 +1,24 @@
+# rrds/afdprocs - AppleTalk File Daemon processes
+# CVS $Id: afpdprocs,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+data	afpdprocs=ps:afpdprocs GAUGE:1200:0:U ps count afpd
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	afpdprocs desc="This is collected by the unix-status-collector.  It works by running the ps command on the remote host and parsing the output to look for the specified program by name, and counting how many are running."
+	--title '##HOST## - AFPD Processes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:afpdprocs=##DB##:afpdprocs:AVERAGE
+	CDEF:missing=afdprocs,UN,INF,UNKN,IF
+	'LINE2:afpdprocs###COLOR1##:processes'
+	'GPRINT:afpdprocs:AVERAGE:avg=%.0lf%s'
+	'GPRINT:afpdprocs:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

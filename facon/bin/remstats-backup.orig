@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# facon-backup  -  back up data, config, and cvs
+# $Id: facon-backup.sh,v 1.3 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright (c) 1999, 2000, 2001, 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# set -x 
+
+PATH=/var/facon/bin:${PATH}
+
+cd /var/facon/data
+tar cf - . | gzip -c >/var/facon/backup/data.tar.gz
+
+cd /var/facon/etc/config
+tar cf - . | gzip -c >/var/facon/backup/config.tar.gz
+
+if [ -d /var/facon/cvs ] ; then
+	cd  /var/facon/cvs
+	tar cf - . | gzip -c >/var/facon/backup/cvs.tar.gz
+fi

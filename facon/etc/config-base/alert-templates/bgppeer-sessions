@@ -1,0 +1,3 @@
+The BGP session from ##HOST##(##IP##) to peer 
+##WILDPART## has restarted, at least once.  If it's still down, 
+you should get an accompanying alert message for bgppeer state.

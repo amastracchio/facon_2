@@ -1,0 +1,24 @@
+# rrds/atalkdprocs - AppleTalk daemons
+# CVS $Id: atalkdprocs,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+data	atalkdprocs=ps:atalkdprocs GAUGE:1200:0:U ps count atalkd
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	atalkdprocs desc="This is collected by the unix-status-collector.  It works by running the ps command on the remote host and parsing the output to look for the specified program by name, and counting how many are running."
+	--title '##HOST## - ATALKD Processes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:atalkdprocs=##DB##:atalkdprocs:AVERAGE
+	CDEF:missing=atalkdprocs,UN,INF,UNKN,IF
+	'LINE2:atalkdprocs###COLOR1##:processes'
+	'GPRINT:atalkdprocs:AVERAGE:avg=%.0lf%s'
+	'GPRINT:atalkdprocs:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

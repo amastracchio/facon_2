@@ -1,0 +1,111 @@
+# rrds/ntop-host-proto-dist - shows distribution of traffic by protocol
+# CVS $Id: ntop-host-dist,v 1.3 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Note: I'm not sure if these should be ABSOLUTE or DERIVE, I.E. do the
+# counts roll over at 32 or 64 bits, or not at all.
+
+# FIXME - you may want to change this to keep other info
+
+desc	distribution of traffic by protocol
+source	ntop
+step	300
+
+data	rpappletalk=host-appletalkRcvd ABSOLUTE:600:0:U
+data	spappletalk=host-appletalkSent ABSOLUTE:600:0:U
+data	rpdecnet=host-decnetRcvd ABSOLUTE:600:0:U
+data	spdecnet=host-decnetSent ABSOLUTE:600:0:U
+data	rpicmp=host-icmpRcvd ABSOLUTE:600:0:U
+data	spicmp=host-icmpSent ABSOLUTE:600:0:U
+data	rpipx=host-ipxRcvd ABSOLUTE:600:0:U
+data	spipx=host-ipxSent ABSOLUTE:600:0:U
+data	rpnetbios=host-netbiosRcvd ABSOLUTE:600:0:U
+data	spnetbios=host-netbiosSent ABSOLUTE:600:0:U
+data	rposi=host-osiRcvd ABSOLUTE:600:0:U
+data	sposi=host-osiSent ABSOLUTE:600:0:U
+data	rpstp=host-stpRcvd ABSOLUTE:600:0:U
+data	spstp=host-stpSent ABSOLUTE:600:0:U
+data	rpigmp=host-igmpRcvd ABSOLUTE:600:0:U
+data	spigmp=host-igmpSent ABSOLUTE:600:0:U
+data	rptcploc=host-tcpRcvdLoc ABSOLUTE:600:0:U
+data	sptcploc=host-tcpSentLoc ABSOLUTE:600:0:U
+data	rptcprem=host-tcpRcvdRem ABSOLUTE:600:0:U
+data	sptcprem=host-tcpSentRem ABSOLUTE:600:0:U
+data	rpudploc=host-udpRcvdLoc ABSOLUTE:600:0:U
+data	spudploc=host-udpSentLoc ABSOLUTE:600:0:U
+data	rpudprem=host-udpRcvdRem ABSOLUTE:600:0:U
+data	spudprem=host-udpSentRem ABSOLUTE:600:0:U
+data	rpother=host-otherRcvd ABSOLUTE:600:0:U
+data	spother=host-otherSent ABSOLUTE:600:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	distribution desc='This is collected by the ntop-collector.  It works by connecting to the ntop server specified in the configuration and fetching the contents of the C</dumpData.html?language=perl> URL.  From this it extracts overall totals and the numbers for individual hosts.  This graph shows the distribution of traffic received from this host by protocol (in packets). The Input (packets sent to this host) is positive (above zero) and the Output (packets send by this host) is negative (below zero).'
+	--title '##HOST## - Protocol Distribution - In (##GRAPHTIME##)'
+	--vertical-label 'pkt/s'
+	DEF:rpappletalk=##DB##:rpappletalk:AVERAGE
+	DEF:rpdecnet=##DB##:rpdecnet:AVERAGE
+	DEF:rpicmp=##DB##:rpicmp:AVERAGE
+	DEF:rpigmp=##DB##:rpigmp:AVERAGE
+	DEF:rpipx=##DB##:rpipx:AVERAGE
+	DEF:rpnetbios=##DB##:rpnetbios:AVERAGE
+	DEF:rposi=##DB##:rposi:AVERAGE
+	DEF:rpstp=##DB##:rpstp:AVERAGE
+	DEF:rpother=##DB##:rpother:AVERAGE
+	DEF:rptcploc=##DB##:rptcploc:AVERAGE
+	DEF:rptcprem=##DB##:rptcprem:AVERAGE
+	CDEF:rptcp=rptcploc,rptcprem,+
+	DEF:rpudploc=##DB##:rpudploc:AVERAGE
+	DEF:rpudprem=##DB##:rpudprem:AVERAGE
+	CDEF:rpudp=rpudploc,rpudprem,+
+	DEF:xspappletalk=##DB##:spappletalk:AVERAGE
+	DEF:xspdecnet=##DB##:spdecnet:AVERAGE
+	DEF:xspicmp=##DB##:spicmp:AVERAGE
+	DEF:xspigmp=##DB##:spigmp:AVERAGE
+	DEF:xspipx=##DB##:spipx:AVERAGE
+	DEF:xspnetbios=##DB##:spnetbios:AVERAGE
+	DEF:xsposi=##DB##:sposi:AVERAGE
+	DEF:xspstp=##DB##:spstp:AVERAGE
+	DEF:sptcploc=##DB##:sptcploc:AVERAGE
+	DEF:sptcprem=##DB##:sptcprem:AVERAGE
+	CDEF:sptcp=0,sptcploc,sptcprem,+,-
+	DEF:spudploc=##DB##:spudploc:AVERAGE
+	DEF:spudprem=##DB##:spudprem:AVERAGE
+	CDEF:spudp=0,spudploc,spudprem,+,-
+	DEF:xspother=##DB##:spother:AVERAGE
+	CDEF:spappletalk=0,xspappletalk,-
+	CDEF:spdecnet=0,xspdecnet,-
+	CDEF:spicmp=0,xspicmp,-
+	CDEF:spigmp=0,xspigmp,-
+	CDEF:spipx=0,xspipx,-
+	CDEF:spnetbios=0,xspnetbios,-
+	CDEF:sposi=0,xsposi,-
+	CDEF:spstp=0,xspstp,-
+	CDEF:spother=0,xspother,-
+	CDEF:missing=rpappletalk,UN,INF,UNKN,IF
+	'AREA:rpappletalk###COLOR1##:appletalk'
+	'STACK:rpdecnet###COLOR2##:decnet'
+	'STACK:rpicmp###COLOR3##:icmp'
+	'STACK:rpigmp###COLOR4##:igmp'
+	'STACK:rpipx###COLOR5##:ipx'
+	'STACK:rpnetbios###COLOR6##:netbios'
+	'STACK:rposi###COLOR1A##:osi'
+	'STACK:rpstp###COLOR2A##:stp'
+	'STACK:rptcp###COLOR3A##:tcp'
+	'STACK:rpudp###COLOR4A##:udp'
+	'STACK:rpother###COLOR5A##:other'
+	'AREA:rpappletalk###COLOR1##'
+	'STACK:spdecnet###COLOR2##'
+	'STACK:spicmp###COLOR3##'
+	'STACK:spigmp###COLOR4##'
+	'STACK:spipx###COLOR5##'
+	'STACK:spnetbios###COLOR6##'
+	'STACK:sposi###COLOR1A##'
+	'STACK:spstp###COLOR2A##'
+	'STACK:sptcp###COLOR3A##'
+	'STACK:spudp###COLOR4A##'
+	'STACK:spother###COLOR5A##'
+	'AREA:missing###MISSING##:missing'
+

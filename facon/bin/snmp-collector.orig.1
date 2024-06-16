@@ -1,0 +1,510 @@
+#!/usr/bin/perl -w
+
+# snmp-collector - a facon collector for SNMP data
+# $Id: snmp-collector.pl,v 1.28 2003/05/15 12:08:15 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'snmp-collector';
+# Which collector is this
+$main::collector = 'snmp';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.28 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use SNMP_util "0.69";
+use RRDs;
+require "snmpstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('c:d:f:FG:hH:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $main::community = $opt{'c'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } 
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; } 
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; } 
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+foreach my $name (keys %{$main::config{OID}}) {
+	$main::oidnames{$main::config{OID}{$name}} = $name;
+}
+&snmp_load_oids();
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $comhost, $first_rrd, $wildrrd, $wildpart, $realrrd, $fixedrrd, $now,
+	$start_time, $run_time);
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing host $host ".&timestamp) if ($main::debug);
+
+# FIXIT
+# need to make this an rrd-specified thing, not hard-coded
+	$comhost = &get_comhost( $host, undef, undef, $ip); 
+	&debug("using '$comhost' for $host") if ($main::debug>2);
+	unless (defined $comhost) {
+		&debug("can't get community for $host; skipped") if ($main::debug>1);
+		next;
+	}
+
+	undef %main::ifindices;
+	$main::data_from_host = 0;
+	&do_snmp_host($host, $comhost);
+	$main::no_interfaces = 0;
+	$first_rrd = 1;
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+		&debug("  doing rrd $realrrd($wildrrd)") if ($main::debug);
+
+		unless ($first_rrd or $main::data_from_host) {
+			&debug("  no SNMP data from host; skipping rest of SNMP rrds")
+				if ($main::debug);
+			last;
+		}
+		$first_rrd = 0;
+
+		if ($wildrrd eq 'snmpif-*') {
+			unless ($main::no_interfaces) {
+				&do_snmp_if( $host, $comhost, $realrrd, $wildrrd, $wildpart);
+			}
+		}
+		else {
+			$comhost = &get_comhost( $host, $realrrd, $wildrrd, $ip);
+			&debug("  using '$comhost' for $wildrrd") if ($main::debug>2);
+			next unless (defined $comhost);
+			&do_snmp_oids( $host, $comhost, $realrrd, $wildrrd, $wildpart);
+		}
+
+	}
+
+}
+
+# Now facon instrumentation info
+$now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#------------------------------------------------------------- do_snmp_host ---
+sub do_snmp_host {
+	my ($host, $comhost) = @_;
+	my ($now);
+
+	&debug("getting basic info for $host at ".&timestamp()) if ($main::debug>1);
+	my ($descr, $uptime) = &snmpget( $comhost, 'sysDescr', 'sysUptime');
+	++$main::requests;
+	unless (defined $descr) {
+		&debug("Can't get basic host info for $host; skipping") 
+			if ($main::debug);
+		return undef;
+	}
+	&debug("  got basic info for $host at ".&timestamp()) if ($main::debug>1);
+	$descr =~ tr/\015\012/  /;
+	$main::data_from_host++;
+	$now = time;
+	print "$host $now sysdescr $descr\n";
+	print TMP "$host $now sysdescr $descr\n";
+	++$main::entries_collected;
+	++$main::entries_used;
+	&put_status($host, 'SOFTWARE', $descr);
+
+	# unix-status-collector gets preference for uptime, as SNMP uptime restarts
+	# whenever the SNMP agent restarts.
+	return if( &host_collected_by( $host, 'unix-status'));
+
+	if (defined $uptime) {
+		$uptime = &timetosecs($uptime);
+		$now = time;
+		print "$host $now uptime $uptime\n";
+		print TMP "$host $now uptime $uptime\n";
+		&put_status($host, 'UPTIME', $uptime);
+		++$main::entries_collected;
+		++$main::entries_used;
+
+		&log_reboot($host, $uptime, 'SNMP');
+
+		if ($uptime < $main::config{MINUPTIME}) {
+			&put_status($host, 'UPTIMEFLAG.html', 
+				&make_uptime_flag( $uptime));
+		}
+		else { &put_status($host, 'UPTIMEFLAG.html', ''); }
+
+		&put_status($host, 'UPTIME.html', &show_uptime($uptime));
+	}
+
+	elsif (not defined $uptime) {
+		&put_status($host, 'UPTIMEFLAG.html', 'UNKNOWN');
+	}
+
+	else { &debug("uptime isn't defined?") if ($main::debug); }
+
+
+1;
+}
+
+#------------------------------------------------------------ do_snmp_if ---
+sub do_snmp_if {
+	my ($host, $comhost, $realrrd, $wildrrd, $wildpart) = @_;
+	my ($now);
+
+# Use the ifIndex cache
+	my $i = &get_ifindex ($host, $comhost, $wildpart);
+	return unless (defined $i);
+
+# Get interface info
+	my ($ifname, $iftype, $index, $inerrors, $outerrors, 
+		$inoctets, $outoctets, $inucastpkts, $outucastpkts, 
+		$innucastpkts, $outnucastpkts, $status, $speed, $ifalias,
+		$textstatus, $fixed_name);
+
+	$ifname = &get_ifname( $comhost, $i);
+	++$main::requests;
+	return unless (defined $ifname);
+	$main::data_from_host++;
+	($ifalias) = &snmpget($comhost, "ifAlias.$i");
+	if (defined $ifalias and $ifalias =~ /^\s*$/) { undef $ifalias; }
+	++$main::requests;
+
+	($iftype, $index, $inerrors, $outerrors, $inoctets,
+	$outoctets, $inucastpkts, $outucastpkts, $status, $speed) = 
+		&snmpget( $comhost,
+		"ifType.$i", "ifIndex.$i",
+		"ifInErrors.$i", "ifOutErrors.$i",
+		"ifInOctets.$i", "ifOutOctets.$i",
+		"ifInUcastPkts.$i", "ifOutUcastPkts.$i", 
+		"ifOperStatus.$i", "ifSpeed.$i");
+	$main::requests += 10;
+	($innucastpkts, $outnucastpkts) = &snmpget( $comhost,
+		"ifInNUcastPkts.$i", "ifOutNUcastPkts.$i");
+	$main::requests += 2;
+
+#	&debug( "  iftype", ((defined $iftype) ? '='. $iftype : ' UNDEFINED'), "\n") 
+#		if ($main::debug>1);
+#	&debug( "  index", ((defined $index) ? '='. $index : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  inerrors", ((defined $inerrors) ? '='. $inerrors : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outerrors", ((defined $outerrors) ? '='. $outerrors : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  inoctets", ((defined $inoctets) ? '='. $inoctets : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outoctets", ((defined $outoctets) ? '='. $outoctets : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  inucastpkts", ((defined $inucastpkts) ? '='. $inucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outucastpkts", ((defined $outucastpkts) ? '='. $outucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  innucastpkts", ((defined $innucastpkts) ? '='. $innucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outnucastpkts", ((defined $outnucastpkts) ? '='. $outnucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  status", ((defined $status) ? '='. $status : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  speed", ((defined $speed) ? '='. $speed : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+
+
+	if (defined $iftype) {
+		$iftype = &snmpiftype($iftype);
+		$now = time;
+		print "$host $now if-$ifname:type $iftype\n" if (defined $iftype);
+		print TMP "$host $now if-$ifname:type $iftype\n" if (defined $iftype);
+	}
+	$textstatus = uc &snmpifstatus($status);
+
+	$now = time;
+	print <<"EOD_IF" if (defined $inoctets);
+$host $now if-$ifname:status $status
+$host $now if-$ifname:speed $speed
+$host $now if-$ifname:inoctets $inoctets
+$host $now if-$ifname:outoctets $outoctets
+$host $now if-$ifname:inerrors $inerrors
+$host $now if-$ifname:outerrors $outerrors
+$host $now if-$ifname:inucastpkts $inucastpkts
+$host $now if-$ifname:outucastpkts $outucastpkts
+EOD_IF
+	print TMP <<"EOD_IF2" if (defined $inoctets);
+$host $now if-$ifname:status $status
+$host $now if-$ifname:speed $speed
+$host $now if-$ifname:inoctets $inoctets
+$host $now if-$ifname:outoctets $outoctets
+$host $now if-$ifname:inerrors $inerrors
+$host $now if-$ifname:outerrors $outerrors
+$host $now if-$ifname:inucastpkts $inucastpkts
+$host $now if-$ifname:outucastpkts $outucastpkts
+EOD_IF2
+	$main::entries_collected += 10;
+	$main::entries_used += 10;
+	if (defined $innucastpkts and defined $outnucastpkts) {
+		print <<"EOD_NUCAST";
+$host $now if-$ifname:innucastpkts $innucastpkts
+$host $now if-$ifname:outnucastpkts $outnucastpkts
+EOD_NUCAST
+		print TMP <<"EOD_NUCAST2";
+$host $now if-$ifname:innucastpkts $innucastpkts
+$host $now if-$ifname:outnucastpkts $outnucastpkts
+EOD_NUCAST2
+		$main::entries_collected += 2;
+		$main::entries_used += 2;
+	}
+
+	$fixed_name = &to_filename($ifname);
+	&put_status( $host, 'HARDWARE-snmpif-'.$fixed_name, 
+		$iftype .' '. &siunits($speed)) if (defined $iftype);
+	&put_status( $host, 'STATUS-snmpif-'.$fixed_name, $textstatus);
+
+# Store comment, and make sure that it's up to date
+	if (defined $ifalias) {
+		&put_status( $host, 'COMMENT-snmpif-'.$fixed_name, $ifalias);
+	}
+	else {
+		my $file = $main::config{DATADIR} .'/'. $host .'/COMMENT-snmpif-'.
+			$fixed_name;
+		if (-f $file) { unlink $file; }
+	}
+	
+}
+
+#------------------------------------------------------ do_snmp_oids ---
+sub do_snmp_oids {
+	my ($host, $comhost, $realrrd, $wildrrd, $wildpart) = @_;
+	my ($result, $i, @results, $oid, $added, $ifindex, $ifname, 
+		$now, $fulloid, $instance, $oidname );
+
+	unless (@{$main::config{RRD}{$wildrrd}{OIDS}}) {
+		&debug("don't know any OIDs for $wildrrd ($wildpart)")
+			if ($main::debug);
+		return;
+	}
+	my @oidnames = @{$main::config{RRD}{$wildrrd}{OIDS}};
+	my @oids = ();
+	my @realoidnames = ();
+
+# These (@oids) are the "real" names
+	foreach $fulloid (@oidnames) {
+		($oid, $instance) = split('\.', $fulloid, 2);
+
+# Defined OID plus number.number...
+		if (defined $instance and $instance eq '*' and 
+				defined $wildpart and $wildpart =~ /^\d+(\.\d+)*$/) {
+			$added = $oid .'.'. $wildpart;
+			$oidname = $main::config{OID}{$oid} .'.'. $wildpart;
+			&snmpmapOID( $added, $oidname);
+			$main::oidnames{$added} = $oidname;
+			push @realoidnames, $added;
+			push @oids, $oidname;
+			&debug("    added oid+numbers $added to query") if ($main::debug>1);
+			++$main::requests;
+		}
+
+# Defined OID plus non- number.number... (assumed to be interface name)
+		elsif (defined $instance and $instance eq '*' and 
+				defined $wildpart and $wildpart !~ /^\d+(\.\d+)*$/) {
+			$ifname = &to_ifname($wildpart);
+			$ifindex = &get_ifindex($host, $comhost, $ifname);
+			++$main::requests;
+			unless (defined $ifindex) {
+				&debug("can't get ifIndex for $host $ifname (oid=${oid}:$instance)") 
+					if ($main::debug);
+				next;
+			}
+			$added = $oid .'.'. $ifindex;
+			$main::oidnames{$added} = $oidname;
+			$oidname = $main::config{OID}{$oid} .'.'. $ifindex;
+			push @realoidnames, $added;
+			push @oids, $oidname;
+			&debug("    added oid+ifix $added ($ifname) to query") if ($main::debug>1);
+			++$main::requests;
+		}
+
+# Defined OID plus number
+		elsif (defined $instance) {
+			$added = $oid .'.'. $instance;
+			$oidname = $main::config{OID}{$oid} .'.'. $instance;
+			push @realoidnames, $added;
+			push @oids, $oidname;
+			$main::oidnames{$added} = $oidname;
+			&debug("    added oid+number $added to query") if ($main::debug>1);
+			++$main::requests;
+		}
+
+# It's just an OID name
+		else {
+			$added = $fulloid;
+			push @realoidnames, $added;
+			push @oids, $main::config{OID}{$fulloid};
+			&debug("    added oid $added to query") if ($main::debug>1);
+			++$main::requests;
+		}
+	}
+
+	if (@oids <= 0) {
+		&error("  no oids for $host $realrrd; skipped");
+	}
+	else {
+		@results = &snmpget( $comhost, @realoidnames);
+		&debug("  sending query for: ", join(' ', @realoidnames))
+			if ($main::debug>1);
+		for ($i = 0; $i <= $#oids; ++$i) {
+			$result = $results[$i];
+			&debug("  for result ${i}: oid=$oids[$i], name=$realoidnames[$i]")
+				if ($main::debug);
+			if (defined $result) {
+				$main::data_from_host++;
+				$oid = lc $realoidnames[$i];
+				if ($result =~ /\d:\d\d/) { $result = &timetosecs($result); }
+				$now = time;
+				print $host .' '. $now .' '. $oid .' '. $result ."\n";
+				print TMP $host .' '. $now .' '. $oid .' '. $result ."\n";
+				++$main::entries_collected;
+				++$main::entries_used;
+			}
+			else {
+				&debug('  no value for ', $host, ' ', $oids[$i], '(',
+					$main::oidnames{$oids[$i]}, '); skipped') 
+					if($main::debug);
+			}
+		}
+	}
+}
+
+#----------------------------------------------------------- timetosecs ---
+sub timetosecs {
+	my ($time) = @_;
+	my $secs;
+
+	if ($time =~ /^\s*(\d+)\s*days?,\s*(\d+):(\d+):(\d+)/) {
+		$secs = $1*24*60*60 + $2*60*60 + $3*60 + $4;
+	}
+	elsif ( $time =~ /^(\d+):(\d+):(\d+)$/) {
+		$secs = $1*3600 + $2*60 + $3;
+	}
+	elsif ( $time =~ /^(\d+):(\d+)$/) {
+		$secs = $1*60 + $2;
+	}
+	elsif ($time =~ /^(\d+)$/) {
+		$secs = $1;
+	}
+	else {
+		&error("timetosecs: unknown time display: $time");
+		$secs = 0;
+	}
+$secs;
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+    -c ccc  use 'ccc' for the read community string; overrides host
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it's not time
+	-G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+   	-K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#--------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::community = 0;
+	%main::ifindices = ();
+}

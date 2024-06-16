@@ -1,0 +1,23 @@
+# rrds/nmbdprocs - count of nmbd's running (part of Samba)
+# CVS $Id: nmbdprocs,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+data	nmbdprocs=ps:nmbdprocs GAUGE:1200:0:U ps count nmbd
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+graph	nmbdprocs
+	--title '##HOST## - NMBD processes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:nmbdprocs=##DB##:nmbdprocs:AVERAGE
+	CDEF:missing=nmbdprocs,UN,INF,UNKN,IF
+	'LINE2:nmbdprocs###COLOR1##:processes'
+	'GPRINT:nmbdprocs:AVERAGE:avg=%.0lf%s'
+	'GPRINT:nmbdprocs:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

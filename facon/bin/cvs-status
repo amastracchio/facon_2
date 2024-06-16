@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# cvs-status - make a compact CVS status display
+# $Id: cvs-status.sh,v 1.1 2003/03/13 14:12:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine
+#   <@@AUTHOREMAIL@@>
+# See the COPYRIGHT file with the distribution.
+
+cvs status 2>&1 |\
+awk '
+/^File:.*Up-to-date/		{next}
+/^cvs status: Examining/	{print "=== " $4 " ==="; next}
+/^File:/			{print}
+'

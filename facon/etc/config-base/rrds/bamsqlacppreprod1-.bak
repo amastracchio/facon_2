@@ -1,0 +1,60 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	referentiel=referentiel:* GAUGE:1800:0:U  bamsql *
+data	ibo=ibo:* GAUGE:1800:0:U  bamsql *
+data	mk1_temp=mk1_temp:* GAUGE:1800:0:U  bamsql *
+data	sysaux=sysaux:* GAUGE:1800:0:U  bamsql *
+data	mk1_index_ex=mk1_index_ex:* GAUGE:1800:0:U  bamsql *
+data	ireferentiel=ireferentiel:* GAUGE:1800:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1800:0:U  bamsql *
+data	neo_data=neo_data:* GAUGE:1800:0:U  bamsql *
+data	mk1_index=mk1_index:* GAUGE:1800:0:U  bamsql *
+data	neo_index=neo_index:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+	 DEF:ibo=##DB##:ibo:AVERAGE
+	 DEF:mk1_temp=##DB##:mk1_temp:AVERAGE
+	 DEF:sysaux=##DB##:sysaux:AVERAGE
+	 DEF:mk1_index_ex=##DB##:mk1_index_ex:AVERAGE
+	 DEF:ireferentiel=##DB##:ireferentiel:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:neo_data=##DB##:neo_data:AVERAGE
+	 DEF:mk1_index=##DB##:mk1_index:AVERAGE
+	 DEF:neo_index=##DB##:neo_index:AVERAGE
+      CDEF:missing=referentiel,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:referentiel###COLOR1##:referentiel'
+	'LINE2:ibo###COLOR2##:ibo'
+	'LINE2:mk1_temp###COLOR3##:mk1_temp'
+	'LINE2:sysaux###COLOR4##:sysaux'
+	'LINE2:mk1_index_ex###COLOR5##:mk1_index_ex'
+	'LINE2:ireferentiel###COLOR6##:ireferentiel'
+	'LINE2:rbs###COLOR7##:rbs'
+	'LINE2:neo_data###COLOR8##:neo_data'
+	'LINE2:mk1_index###COLOR9##:mk1_index'
+	'LINE2:neo_index###COLOR10##:neo_index'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'
+	'GPRINT:ibo:LAST:ibo         = %.2lf\l'
+	'GPRINT:mk1_temp:LAST:mk1_temp         = %.2lf\l'
+	'GPRINT:sysaux:LAST:sysaux         = %.2lf\l'
+	'GPRINT:mk1_index_ex:LAST:mk1_index_ex         = %.2lf\l'
+	'GPRINT:ireferentiel:LAST:ireferentiel         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:neo_data:LAST:neo_data         = %.2lf\l'
+	'GPRINT:mk1_index:LAST:mk1_index         = %.2lf\l'
+	'GPRINT:neo_index:LAST:neo_index         = %.2lf\l'

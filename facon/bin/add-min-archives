@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+
+# add-min-archives - dumps an rrd to xml and modifies it by copying everything
+#	beginning with the first RRA with a cf of MAX to the end, with a cf of
+#	MIN.  This is to accomodate the change to the ping RRD definition to add
+#	MIN RRAs.  Marek is right: these are interesting.  Used in upgrade-1.0.10b.
+# $Id: add-min-archives.pl,v 1.1 2002/06/28 18:50:25 facon Exp $
+
+# Copyright (c) 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+use strict;
+
+my( $line, $copying, $extra, $last_line, $extra_line, $rrdfile, $first_max);
+
+# "Parse" the command-line
+if( @ARGV == 1) {
+	$rrdfile = shift @ARGV;
+}
+else {
+	print STDERR "usage: $0 rrdfile\n";
+	exit 1;
+}
+
+$copying = 0;
+$extra = '';
+$first_max = 1;
+open( DUMP, "rrdtool dump $rrdfile|") or
+	die "can't open pipe from rrdtool for $rrdfile: $!\n";
+while( defined( $line = <DUMP>)) {
+
+	# Note the beginning of an archive (almost)
+	if( $line =~ /^\s+<cf> MAX/) {
+		$copying = 1;
+		($extra_line = $line) =~ s/MAX/MIN/;
+		if( $first_max) {
+			$extra .= $last_line;
+			$first_max = 0;
+		}
+		$extra .= $extra_line;
+	}
+
+	# Insert the modified copy
+	elsif( $line =~ m#</rrd>#) { print $extra; }
+
+	# Copy this line
+	elsif( $copying) { $extra .= $line; }
+
+	print $line;
+
+	$last_line = $line;
+}
+close(DUMP);

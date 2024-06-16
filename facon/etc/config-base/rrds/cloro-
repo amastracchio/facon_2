@@ -1,0 +1,80 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data46526=46526  GAUGE:1200:0:U
+data    ddata46526=46526  DERIVE:1200:0:U
+alert    data46526 delta< 10 10 10 
+data    data27922=27922  GAUGE:1200:0:U
+data    ddata27922=27922  DERIVE:1200:0:U
+alert    data27922 delta< 10 10 10 
+data    data34417=34417  GAUGE:1200:0:U
+data    ddata34417=34417  DERIVE:1200:0:U
+alert    data34417 delta< 10 10 10 
+data    data34418=34418  GAUGE:1200:0:U
+data    ddata34418=34418  DERIVE:1200:0:U
+alert    data34418 delta< 10 10 10 
+data    data29878=29878  GAUGE:1200:0:U
+data    ddata29878=29878  DERIVE:1200:0:U
+alert    data29878 delta< 10 10 10 
+data    data34420=34420  GAUGE:1200:0:U
+data    ddata34420=34420  DERIVE:1200:0:U
+alert    data34420 delta< 10 10 10 
+data    data29877=29877  GAUGE:1200:0:U
+data    ddata29877=29877  DERIVE:1200:0:U
+alert    data29877 delta< 10 10 10 
+data    data29876=29876  GAUGE:1200:0:U
+data    ddata29876=29876  DERIVE:1200:0:U
+alert    data29876 delta< 10 10 10 
+data    data29882=29882  GAUGE:1200:0:U
+data    ddata29882=29882  DERIVE:1200:0:U
+alert    data29882 delta< 10 10 10 
+data    responsetime=46526-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data46526=##DB##:data46526:AVERAGE
+      'LINE2:data46526###COLOR1##:Cloro Hth Clorotec Pastillas Triple Accion Pot 1 Kg SKU 46526 ' 
+      'GPRINT:data46526:LAST: last=%.1lf\n'
+      DEF:data27922=##DB##:data27922:AVERAGE
+      'LINE2:data27922###COLOR2##:Cloro Shock Instantaneo Fresh Clor Pot 1 Kg SKU 27922 ' 
+      'GPRINT:data27922:LAST: last=%.1lf\n'
+      DEF:data34417=##DB##:data34417:AVERAGE
+      'LINE2:data34417###COLOR3##:Cloro Fresh Clor Tecnico Granulado Pot 1 Kg SKU 34417 ' 
+      'GPRINT:data34417:LAST: last=%.1lf\n'
+      DEF:data34418=##DB##:data34418:AVERAGE
+      'LINE2:data34418###COLOR4##:Cloro Pastillas Grandes Fresh Clor X 1 Kg SKU 34418 ' 
+      'GPRINT:data34418:LAST: last=%.1lf\n'
+      DEF:data29878=##DB##:data29878:AVERAGE
+      'LINE2:data29878###COLOR5##:Cloro Hth Clorotec Tecnico Granulado Pot 1 Kg SKU 29878 ' 
+      'GPRINT:data29878:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data34420=##DB##:data34420:AVERAGE
+      'LINE2:data34420###COLOR1##:Clarificador Fresh Clor 1 Lt SKU 34420 ' 
+      'GPRINT:data34420:LAST: last=%.1lf\n'
+      DEF:data29877=##DB##:data29877:AVERAGE
+      'LINE2:data29877###COLOR2##:Cloro Hth Clorotec Shock Granuldo Dis Instanea Pot 1 Kg SKU 29877 ' 
+      'GPRINT:data29877:LAST: last=%.1lf\n'
+      DEF:data29876=##DB##:data29876:AVERAGE
+      'LINE2:data29876###COLOR3##:Cloro Hth Clorotec Pastillas Grandes Pot 1 Kg SKU 29876 ' 
+      'GPRINT:data29876:LAST: last=%.1lf\n'
+      DEF:data29882=##DB##:data29882:AVERAGE
+      'LINE2:data29882###COLOR4##:Clarificador Hth Clorotec Clasico Bot 1 Ltr SKU 29882 ' 
+      'GPRINT:data29882:LAST: last=%.1lf\n'
+

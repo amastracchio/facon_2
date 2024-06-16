@@ -1,0 +1,746 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1=1  GAUGE:1200:0:U
+data    ddata1=1  DERIVE:1200:0:U
+alert    data1 delta< 10 10 10 
+data    data25342=25342  GAUGE:1200:0:U
+data    ddata25342=25342  DERIVE:1200:0:U
+alert    data25342 delta< 10 10 10 
+data    data114325=114325  GAUGE:1200:0:U
+data    ddata114325=114325  DERIVE:1200:0:U
+alert    data114325 delta< 10 10 10 
+data    data258821=258821  GAUGE:1200:0:U
+data    ddata258821=258821  DERIVE:1200:0:U
+alert    data258821 delta< 10 10 10 
+data    data241118=241118  GAUGE:1200:0:U
+data    ddata241118=241118  DERIVE:1200:0:U
+alert    data241118 delta< 10 10 10 
+data    data288503=288503  GAUGE:1200:0:U
+data    ddata288503=288503  DERIVE:1200:0:U
+alert    data288503 delta< 10 10 10 
+data    data101106=101106  GAUGE:1200:0:U
+data    ddata101106=101106  DERIVE:1200:0:U
+alert    data101106 delta< 10 10 10 
+data    data266146=266146  GAUGE:1200:0:U
+data    ddata266146=266146  DERIVE:1200:0:U
+alert    data266146 delta< 10 10 10 
+data    data25339=25339  GAUGE:1200:0:U
+data    ddata25339=25339  DERIVE:1200:0:U
+alert    data25339 delta< 10 10 10 
+data    data35033=35033  GAUGE:1200:0:U
+data    ddata35033=35033  DERIVE:1200:0:U
+alert    data35033 delta< 10 10 10 
+data    data295464=295464  GAUGE:1200:0:U
+data    ddata295464=295464  DERIVE:1200:0:U
+alert    data295464 delta< 10 10 10 
+data    data286847=286847  GAUGE:1200:0:U
+data    ddata286847=286847  DERIVE:1200:0:U
+alert    data286847 delta< 10 10 10 
+data    data258818=258818  GAUGE:1200:0:U
+data    ddata258818=258818  DERIVE:1200:0:U
+alert    data258818 delta< 10 10 10 
+data    data258817=258817  GAUGE:1200:0:U
+data    ddata258817=258817  DERIVE:1200:0:U
+alert    data258817 delta< 10 10 10 
+data    data283847=283847  GAUGE:1200:0:U
+data    ddata283847=283847  DERIVE:1200:0:U
+alert    data283847 delta< 10 10 10 
+data    data472521=472521  GAUGE:1200:0:U
+data    ddata472521=472521  DERIVE:1200:0:U
+alert    data472521 delta< 10 10 10 
+data    data288505=288505  GAUGE:1200:0:U
+data    ddata288505=288505  DERIVE:1200:0:U
+alert    data288505 delta< 10 10 10 
+data    data39688=39688  GAUGE:1200:0:U
+data    ddata39688=39688  DERIVE:1200:0:U
+alert    data39688 delta< 10 10 10 
+data    data141355=141355  GAUGE:1200:0:U
+data    ddata141355=141355  DERIVE:1200:0:U
+alert    data141355 delta< 10 10 10 
+data    data460752=460752  GAUGE:1200:0:U
+data    ddata460752=460752  DERIVE:1200:0:U
+alert    data460752 delta< 10 10 10 
+data    data258822=258822  GAUGE:1200:0:U
+data    ddata258822=258822  DERIVE:1200:0:U
+alert    data258822 delta< 10 10 10 
+data    data55050=55050  GAUGE:1200:0:U
+data    ddata55050=55050  DERIVE:1200:0:U
+alert    data55050 delta< 10 10 10 
+data    data288723=288723  GAUGE:1200:0:U
+data    ddata288723=288723  DERIVE:1200:0:U
+alert    data288723 delta< 10 10 10 
+data    data261431=261431  GAUGE:1200:0:U
+data    ddata261431=261431  DERIVE:1200:0:U
+alert    data261431 delta< 10 10 10 
+data    data468093=468093  GAUGE:1200:0:U
+data    ddata468093=468093  DERIVE:1200:0:U
+alert    data468093 delta< 10 10 10 
+data    data166470=166470  GAUGE:1200:0:U
+data    ddata166470=166470  DERIVE:1200:0:U
+alert    data166470 delta< 10 10 10 
+data    data288499=288499  GAUGE:1200:0:U
+data    ddata288499=288499  DERIVE:1200:0:U
+alert    data288499 delta< 10 10 10 
+data    data286848=286848  GAUGE:1200:0:U
+data    ddata286848=286848  DERIVE:1200:0:U
+alert    data286848 delta< 10 10 10 
+data    data101105=101105  GAUGE:1200:0:U
+data    ddata101105=101105  DERIVE:1200:0:U
+alert    data101105 delta< 10 10 10 
+data    data258820=258820  GAUGE:1200:0:U
+data    ddata258820=258820  DERIVE:1200:0:U
+alert    data258820 delta< 10 10 10 
+data    data47459=47459  GAUGE:1200:0:U
+data    ddata47459=47459  DERIVE:1200:0:U
+alert    data47459 delta< 10 10 10 
+data    data265919=265919  GAUGE:1200:0:U
+data    ddata265919=265919  DERIVE:1200:0:U
+alert    data265919 delta< 10 10 10 
+data    data231382=231382  GAUGE:1200:0:U
+data    ddata231382=231382  DERIVE:1200:0:U
+alert    data231382 delta< 10 10 10 
+data    data42989=42989  GAUGE:1200:0:U
+data    ddata42989=42989  DERIVE:1200:0:U
+alert    data42989 delta< 10 10 10 
+data    data290728=290728  GAUGE:1200:0:U
+data    ddata290728=290728  DERIVE:1200:0:U
+alert    data290728 delta< 10 10 10 
+data    data53841=53841  GAUGE:1200:0:U
+data    ddata53841=53841  DERIVE:1200:0:U
+alert    data53841 delta< 10 10 10 
+data    data47461=47461  GAUGE:1200:0:U
+data    ddata47461=47461  DERIVE:1200:0:U
+alert    data47461 delta< 10 10 10 
+data    data469303=469303  GAUGE:1200:0:U
+data    ddata469303=469303  DERIVE:1200:0:U
+alert    data469303 delta< 10 10 10 
+data    data8728=8728  GAUGE:1200:0:U
+data    ddata8728=8728  DERIVE:1200:0:U
+alert    data8728 delta< 10 10 10 
+data    data258612=258612  GAUGE:1200:0:U
+data    ddata258612=258612  DERIVE:1200:0:U
+alert    data258612 delta< 10 10 10 
+data    data53845=53845  GAUGE:1200:0:U
+data    ddata53845=53845  DERIVE:1200:0:U
+alert    data53845 delta< 10 10 10 
+data    data470256=470256  GAUGE:1200:0:U
+data    ddata470256=470256  DERIVE:1200:0:U
+alert    data470256 delta< 10 10 10 
+data    data460773=460773  GAUGE:1200:0:U
+data    ddata460773=460773  DERIVE:1200:0:U
+alert    data460773 delta< 10 10 10 
+data    data460772=460772  GAUGE:1200:0:U
+data    ddata460772=460772  DERIVE:1200:0:U
+alert    data460772 delta< 10 10 10 
+data    data231388=231388  GAUGE:1200:0:U
+data    ddata231388=231388  DERIVE:1200:0:U
+alert    data231388 delta< 10 10 10 
+data    data66715=66715  GAUGE:1200:0:U
+data    ddata66715=66715  DERIVE:1200:0:U
+alert    data66715 delta< 10 10 10 
+data    data267365=267365  GAUGE:1200:0:U
+data    ddata267365=267365  DERIVE:1200:0:U
+alert    data267365 delta< 10 10 10 
+data    data261604=261604  GAUGE:1200:0:U
+data    ddata261604=261604  DERIVE:1200:0:U
+alert    data261604 delta< 10 10 10 
+data    data295465=295465  GAUGE:1200:0:U
+data    ddata295465=295465  DERIVE:1200:0:U
+alert    data295465 delta< 10 10 10 
+data    data55051=55051  GAUGE:1200:0:U
+data    ddata55051=55051  DERIVE:1200:0:U
+alert    data55051 delta< 10 10 10 
+data    data457298=457298  GAUGE:1200:0:U
+data    ddata457298=457298  DERIVE:1200:0:U
+alert    data457298 delta< 10 10 10 
+data    data265757=265757  GAUGE:1200:0:U
+data    ddata265757=265757  DERIVE:1200:0:U
+alert    data265757 delta< 10 10 10 
+data    data469302=469302  GAUGE:1200:0:U
+data    ddata469302=469302  DERIVE:1200:0:U
+alert    data469302 delta< 10 10 10 
+data    data468092=468092  GAUGE:1200:0:U
+data    ddata468092=468092  DERIVE:1200:0:U
+alert    data468092 delta< 10 10 10 
+data    data290730=290730  GAUGE:1200:0:U
+data    ddata290730=290730  DERIVE:1200:0:U
+alert    data290730 delta< 10 10 10 
+data    data258614=258614  GAUGE:1200:0:U
+data    ddata258614=258614  DERIVE:1200:0:U
+alert    data258614 delta< 10 10 10 
+data    data266149=266149  GAUGE:1200:0:U
+data    ddata266149=266149  DERIVE:1200:0:U
+alert    data266149 delta< 10 10 10 
+data    data231384=231384  GAUGE:1200:0:U
+data    ddata231384=231384  DERIVE:1200:0:U
+alert    data231384 delta< 10 10 10 
+data    data299523=299523  GAUGE:1200:0:U
+data    ddata299523=299523  DERIVE:1200:0:U
+alert    data299523 delta< 10 10 10 
+data    data266514=266514  GAUGE:1200:0:U
+data    ddata266514=266514  DERIVE:1200:0:U
+alert    data266514 delta< 10 10 10 
+data    data286844=286844  GAUGE:1200:0:U
+data    ddata286844=286844  DERIVE:1200:0:U
+alert    data286844 delta< 10 10 10 
+data    data258615=258615  GAUGE:1200:0:U
+data    ddata258615=258615  DERIVE:1200:0:U
+alert    data258615 delta< 10 10 10 
+data    data173670=173670  GAUGE:1200:0:U
+data    ddata173670=173670  DERIVE:1200:0:U
+alert    data173670 delta< 10 10 10 
+data    data258613=258613  GAUGE:1200:0:U
+data    ddata258613=258613  DERIVE:1200:0:U
+alert    data258613 delta< 10 10 10 
+data    data17934=17934  GAUGE:1200:0:U
+data    ddata17934=17934  DERIVE:1200:0:U
+alert    data17934 delta< 10 10 10 
+data    data287007=287007  GAUGE:1200:0:U
+data    ddata287007=287007  DERIVE:1200:0:U
+alert    data287007 delta< 10 10 10 
+data    data2969=2969  GAUGE:1200:0:U
+data    ddata2969=2969  DERIVE:1200:0:U
+alert    data2969 delta< 10 10 10 
+data    data264172=264172  GAUGE:1200:0:U
+data    ddata264172=264172  DERIVE:1200:0:U
+alert    data264172 delta< 10 10 10 
+data    data231383=231383  GAUGE:1200:0:U
+data    ddata231383=231383  DERIVE:1200:0:U
+alert    data231383 delta< 10 10 10 
+data    data231381=231381  GAUGE:1200:0:U
+data    ddata231381=231381  DERIVE:1200:0:U
+alert    data231381 delta< 10 10 10 
+data    data293786=293786  GAUGE:1200:0:U
+data    ddata293786=293786  DERIVE:1200:0:U
+alert    data293786 delta< 10 10 10 
+data    data289811=289811  GAUGE:1200:0:U
+data    ddata289811=289811  DERIVE:1200:0:U
+alert    data289811 delta< 10 10 10 
+data    data241422=241422  GAUGE:1200:0:U
+data    ddata241422=241422  DERIVE:1200:0:U
+alert    data241422 delta< 10 10 10 
+data    data477043=477043  GAUGE:1200:0:U
+data    ddata477043=477043  DERIVE:1200:0:U
+alert    data477043 delta< 10 10 10 
+data    data478620=478620  GAUGE:1200:0:U
+data    ddata478620=478620  DERIVE:1200:0:U
+alert    data478620 delta< 10 10 10 
+data    data25217=25217  GAUGE:1200:0:U
+data    ddata25217=25217  DERIVE:1200:0:U
+alert    data25217 delta< 10 10 10 
+data    data264109=264109  GAUGE:1200:0:U
+data    ddata264109=264109  DERIVE:1200:0:U
+alert    data264109 delta< 10 10 10 
+data    data266516=266516  GAUGE:1200:0:U
+data    ddata266516=266516  DERIVE:1200:0:U
+alert    data266516 delta< 10 10 10 
+data    data286842=286842  GAUGE:1200:0:U
+data    ddata286842=286842  DERIVE:1200:0:U
+alert    data286842 delta< 10 10 10 
+data    data257002=257002  GAUGE:1200:0:U
+data    ddata257002=257002  DERIVE:1200:0:U
+alert    data257002 delta< 10 10 10 
+data    data288724=288724  GAUGE:1200:0:U
+data    ddata288724=288724  DERIVE:1200:0:U
+alert    data288724 delta< 10 10 10 
+data    data191046=191046  GAUGE:1200:0:U
+data    ddata191046=191046  DERIVE:1200:0:U
+alert    data191046 delta< 10 10 10 
+data    data289810=289810  GAUGE:1200:0:U
+data    ddata289810=289810  DERIVE:1200:0:U
+alert    data289810 delta< 10 10 10 
+data    data286843=286843  GAUGE:1200:0:U
+data    ddata286843=286843  DERIVE:1200:0:U
+alert    data286843 delta< 10 10 10 
+data    data66713=66713  GAUGE:1200:0:U
+data    ddata66713=66713  DERIVE:1200:0:U
+alert    data66713 delta< 10 10 10 
+data    data47460=47460  GAUGE:1200:0:U
+data    ddata47460=47460  DERIVE:1200:0:U
+alert    data47460 delta< 10 10 10 
+data    data256598=256598  GAUGE:1200:0:U
+data    ddata256598=256598  DERIVE:1200:0:U
+alert    data256598 delta< 10 10 10 
+data    data299524=299524  GAUGE:1200:0:U
+data    ddata299524=299524  DERIVE:1200:0:U
+alert    data299524 delta< 10 10 10 
+data    data478619=478619  GAUGE:1200:0:U
+data    ddata478619=478619  DERIVE:1200:0:U
+alert    data478619 delta< 10 10 10 
+data    data286845=286845  GAUGE:1200:0:U
+data    ddata286845=286845  DERIVE:1200:0:U
+alert    data286845 delta< 10 10 10 
+data    data120548=120548  GAUGE:1200:0:U
+data    ddata120548=120548  DERIVE:1200:0:U
+alert    data120548 delta< 10 10 10 
+data    data14242=14242  GAUGE:1200:0:U
+data    ddata14242=14242  DERIVE:1200:0:U
+alert    data14242 delta< 10 10 10 
+data    data231386=231386  GAUGE:1200:0:U
+data    ddata231386=231386  DERIVE:1200:0:U
+alert    data231386 delta< 10 10 10 
+data    data293784=293784  GAUGE:1200:0:U
+data    ddata293784=293784  DERIVE:1200:0:U
+alert    data293784 delta< 10 10 10 
+data    data55052=55052  GAUGE:1200:0:U
+data    ddata55052=55052  DERIVE:1200:0:U
+alert    data55052 delta< 10 10 10 
+data    data284920=284920  GAUGE:1200:0:U
+data    ddata284920=284920  DERIVE:1200:0:U
+alert    data284920 delta< 10 10 10 
+data    data261436=261436  GAUGE:1200:0:U
+data    ddata261436=261436  DERIVE:1200:0:U
+alert    data261436 delta< 10 10 10 
+data    data42778=42778  GAUGE:1200:0:U
+data    ddata42778=42778  DERIVE:1200:0:U
+alert    data42778 delta< 10 10 10 
+data    data288497=288497  GAUGE:1200:0:U
+data    ddata288497=288497  DERIVE:1200:0:U
+alert    data288497 delta< 10 10 10 
+data    data478622=478622  GAUGE:1200:0:U
+data    ddata478622=478622  DERIVE:1200:0:U
+alert    data478622 delta< 10 10 10 
+data    data478797=478797  GAUGE:1200:0:U
+data    ddata478797=478797  DERIVE:1200:0:U
+alert    data478797 delta< 10 10 10 
+data    responsetime=1-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1=##DB##:data1:AVERAGE
+      'LINE2:data1###COLOR1##:Listado SKU 1 ' 
+      'GPRINT:data1:LAST: last=%.1lf\n'
+      DEF:data25342=##DB##:data25342:AVERAGE
+      'LINE2:data25342###COLOR2##:Espinaca ..... Granja Del Bsa 500 Grm SKU 25342 ' 
+      'GPRINT:data25342:LAST: last=%.1lf\n'
+      DEF:data114325=##DB##:data114325:AVERAGE
+      'LINE2:data114325###COLOR3##:Patitas Pollo . Granja Del Bsa 400 Grm SKU 114325 ' 
+      'GPRINT:data114325:LAST: last=%.1lf\n'
+      DEF:data258821=##DB##:data258821:AVERAGE
+      'LINE2:data258821###COLOR4##:Milanesa Soja Tipo Casero X Granja Del Paq 660 Grm SKU 258821 ' 
+      'GPRINT:data258821:LAST: last=%.1lf\n'
+      DEF:data241118=##DB##:data241118:AVERAGE
+      'LINE2:data241118###COLOR5##:Patitas Pollo . Granja Del . 1100 Grm SKU 241118 ' 
+      'GPRINT:data241118:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data288503=##DB##:data288503:AVERAGE
+      'LINE2:data288503###COLOR1##:Hamburguesa Clasica Paty Cja 320 Grm SKU 288503 ' 
+      'GPRINT:data288503:LAST: last=%.1lf\n'
+      DEF:data101106=##DB##:data101106:AVERAGE
+      'LINE2:data101106###COLOR2##:Papas Noisette Mc Cain Bsa 500 Grm SKU 101106 ' 
+      'GPRINT:data101106:LAST: last=%.1lf\n'
+      DEF:data266146=##DB##:data266146:AVERAGE
+      'LINE2:data266146###COLOR3##:Milanesas Soja+Fibra Vegetalex Bsa 340 Grm SKU 266146 ' 
+      'GPRINT:data266146:LAST: last=%.1lf\n'
+      DEF:data25339=##DB##:data25339:AVERAGE
+      'LINE2:data25339###COLOR4##:Brocoli .... Granja Del Bsa 400 Grm SKU 25339 ' 
+      'GPRINT:data25339:LAST: last=%.1lf\n'
+      DEF:data35033=##DB##:data35033:AVERAGE
+      'LINE2:data35033###COLOR5##:Papas Noisette Mc Cain Bsa 1 Kgm SKU 35033 ' 
+      'GPRINT:data35033:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data295464=##DB##:data295464:AVERAGE
+      'LINE2:data295464###COLOR1##:Bocadito Pollo Crocante Sadia Bsa 900 Grm SKU 295464 ' 
+      'GPRINT:data295464:LAST: last=%.1lf\n'
+      DEF:data286847=##DB##:data286847:AVERAGE
+      'LINE2:data286847###COLOR2##:Espinaca . Sadia Bol 500 Grm SKU 286847 ' 
+      'GPRINT:data286847:LAST: last=%.1lf\n'
+      DEF:data258818=##DB##:data258818:AVERAGE
+      'LINE2:data258818###COLOR3##:Milanesa Soja T.Casero Granja Del Paq 330 Grm SKU 258818 ' 
+      'GPRINT:data258818:LAST: last=%.1lf\n'
+      DEF:data258817=##DB##:data258817:AVERAGE
+      'LINE2:data258817###COLOR4##:Milanesa Soja C/Espinaca Granja Del Paq 330 Grm SKU 258817 ' 
+      'GPRINT:data258817:LAST: last=%.1lf\n'
+      DEF:data283847=##DB##:data283847:AVERAGE
+      'LINE2:data283847###COLOR5##:Papas Estilo Casero Mc Cain Bsa 1 Kgm SKU 283847 ' 
+      'GPRINT:data283847:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data472521=##DB##:data472521:AVERAGE
+      'LINE2:data472521###COLOR1##:Supremitas De Pollo Granja Del Paq 460 Grm SKU 472521 ' 
+      'GPRINT:data472521:LAST: last=%.1lf\n'
+      DEF:data288505=##DB##:data288505:AVERAGE
+      'LINE2:data288505###COLOR2##:Hamburguesa Clasica X12 Paty Cja 960 Grm SKU 288505 ' 
+      'GPRINT:data288505:LAST: last=%.1lf\n'
+      DEF:data39688=##DB##:data39688:AVERAGE
+      'LINE2:data39688###COLOR3##:Filete De Merluza Despinado Congelado X Kg SKU 39688 ' 
+      'GPRINT:data39688:LAST: last=%.1lf\n'
+      DEF:data141355=##DB##:data141355:AVERAGE
+      'LINE2:data141355###COLOR4##:Papas . Mc Cain Bsa 600 Grm SKU 141355 ' 
+      'GPRINT:data141355:LAST: last=%.1lf\n'
+      DEF:data460752=##DB##:data460752:AVERAGE
+      'LINE2:data460752###COLOR5##:Milanesa Soja Espinaca 320g Granja Del Pak 320 Grm SKU 460752 ' 
+      'GPRINT:data460752:LAST: last=%.1lf\n'
+
+graph   value5-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data258822=##DB##:data258822:AVERAGE
+      'LINE2:data258822###COLOR1##:Milanesa Soja Calabaza Granja Del Paq 330 Grm SKU 258822 ' 
+      'GPRINT:data258822:LAST: last=%.1lf\n'
+      DEF:data55050=##DB##:data55050:AVERAGE
+      'LINE2:data55050###COLOR2##:Choclos . Granja Del Bsa 300 Grm SKU 55050 ' 
+      'GPRINT:data55050:LAST: last=%.1lf\n'
+      DEF:data288723=##DB##:data288723:AVERAGE
+      'LINE2:data288723###COLOR3##:Milanesa De Arroz Con Vegetales Granja Del Fwp 330 Grm SKU 288723 ' 
+      'GPRINT:data288723:LAST: last=%.1lf\n'
+      DEF:data261431=##DB##:data261431:AVERAGE
+      'LINE2:data261431###COLOR4##:Salmon Rosado Ahumado Natural St. Andrews Pouch 100 Gr SKU 261431 ' 
+      'GPRINT:data261431:LAST: last=%.1lf\n'
+      DEF:data468093=##DB##:data468093:AVERAGE
+      'LINE2:data468093###COLOR5##:Nuggets Crocantes Granja Del Paq 300 Grm SKU 468093 ' 
+      'GPRINT:data468093:LAST: last=%.1lf\n'
+
+graph   value6-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #6 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data166470=##DB##:data166470:AVERAGE
+      'LINE2:data166470###COLOR1##:Hamburguesa . Swift X 4 276 Grm SKU 166470 ' 
+      'GPRINT:data166470:LAST: last=%.1lf\n'
+      DEF:data288499=##DB##:data288499:AVERAGE
+      'LINE2:data288499###COLOR2##:Medallon Light .. Paty Cja 320 Grm SKU 288499 ' 
+      'GPRINT:data288499:LAST: last=%.1lf\n'
+      DEF:data286848=##DB##:data286848:AVERAGE
+      'LINE2:data286848###COLOR3##:Choclo Sadia Iqf Bsa 300 Grs SKU 286848 ' 
+      'GPRINT:data286848:LAST: last=%.1lf\n'
+      DEF:data101105=##DB##:data101105:AVERAGE
+      'LINE2:data101105###COLOR4##:Papas Tradicional Mc Cain Bsa 720 Grm SKU 101105 ' 
+      'GPRINT:data101105:LAST: last=%.1lf\n'
+      DEF:data258820=##DB##:data258820:AVERAGE
+      'LINE2:data258820###COLOR5##:Medallones Empanad /Pollo Granja Del Paq 330 Grm SKU 258820 ' 
+      'GPRINT:data258820:LAST: last=%.1lf\n'
+
+graph   value7-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #7 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data47459=##DB##:data47459:AVERAGE
+      'LINE2:data47459###COLOR1##:Rebozado Nuggets Xkg 1 Kgm SKU 47459 ' 
+      'GPRINT:data47459:LAST: last=%.1lf\n'
+      DEF:data265919=##DB##:data265919:AVERAGE
+      'LINE2:data265919###COLOR2##:Espinaca .. Granja Del Bsa 1000 Grm SKU 265919 ' 
+      'GPRINT:data265919:LAST: last=%.1lf\n'
+      DEF:data231382=##DB##:data231382:AVERAGE
+      'LINE2:data231382###COLOR3##:Milanesa Ternera Cong X 500 Gr Coto Paq 500 Grm SKU 231382 ' 
+      'GPRINT:data231382:LAST: last=%.1lf\n'
+      DEF:data42989=##DB##:data42989:AVERAGE
+      'LINE2:data42989###COLOR4##:Pollo Congelado Selección X Kg SKU 42989 ' 
+      'GPRINT:data42989:LAST: last=%.1lf\n'
+      DEF:data290728=##DB##:data290728:AVERAGE
+      'LINE2:data290728###COLOR5##:Hamburguesa . Swift Cja 4 Uni SKU 290728 ' 
+      'GPRINT:data290728:LAST: last=%.1lf\n'
+
+graph   value8-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #8 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data53841=##DB##:data53841:AVERAGE
+      'LINE2:data53841###COLOR1##:Brocoli . Coto Bsa 300 Grm SKU 53841 ' 
+      'GPRINT:data53841:LAST: last=%.1lf\n'
+      DEF:data47461=##DB##:data47461:AVERAGE
+      'LINE2:data47461###COLOR2##:Rebozado Suprema Xkg 1 Kgm SKU 47461 ' 
+      'GPRINT:data47461:LAST: last=%.1lf\n'
+      DEF:data469303=##DB##:data469303:AVERAGE
+      'LINE2:data469303###COLOR3##:Hamburguesa Clasicas Paladini Cja 996 Grm SKU 469303 ' 
+      'GPRINT:data469303:LAST: last=%.1lf\n'
+      DEF:data8728=##DB##:data8728:AVERAGE
+      'LINE2:data8728###COLOR4##:Bastoncitos Pescado Granja Del Cja 300 Grm SKU 8728 ' 
+      'GPRINT:data8728:LAST: last=%.1lf\n'
+      DEF:data258612=##DB##:data258612:AVERAGE
+      'LINE2:data258612###COLOR5##:Supremas Espinaca Y Que Granja Del Cja 400 Grm SKU 258612 ' 
+      'GPRINT:data258612:LAST: last=%.1lf\n'
+
+graph   value9-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #9 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data53845=##DB##:data53845:AVERAGE
+      'LINE2:data53845###COLOR1##:Espinaca . Coto Bsa 400 Grm SKU 53845 ' 
+      'GPRINT:data53845:LAST: last=%.1lf\n'
+      DEF:data470256=##DB##:data470256:AVERAGE
+      'LINE2:data470256###COLOR2##:Medallones Empanad Pollo . Swift Fwp 320 Grm SKU 470256 ' 
+      'GPRINT:data470256:LAST: last=%.1lf\n'
+      DEF:data460773=##DB##:data460773:AVERAGE
+      'LINE2:data460773###COLOR3##:Patitas Pollo Patitas 250gr Patitas Bli 250 Grm SKU 460773 ' 
+      'GPRINT:data460773:LAST: last=%.1lf\n'
+      DEF:data460772=##DB##:data460772:AVERAGE
+      'LINE2:data460772###COLOR4##:Milanesa Soja Soja-Vegetales Granja Del Paq 320 Grm SKU 460772 ' 
+      'GPRINT:data460772:LAST: last=%.1lf\n'
+      DEF:data231388=##DB##:data231388:AVERAGE
+      'LINE2:data231388###COLOR5##:Hamburguesa Coto Cja 4 Uni SKU 231388 ' 
+      'GPRINT:data231388:LAST: last=%.1lf\n'
+
+graph   value10-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #10 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data66715=##DB##:data66715:AVERAGE
+      'LINE2:data66715###COLOR1##:Pizza Muzz/Dob Sibarita Cja 940 Grm SKU 66715 ' 
+      'GPRINT:data66715:LAST: last=%.1lf\n'
+      DEF:data267365=##DB##:data267365:AVERAGE
+      'LINE2:data267365###COLOR2##:Medallones Espinaca/Acelg Vegetalex Cja 300 Grm SKU 267365 ' 
+      'GPRINT:data267365:LAST: last=%.1lf\n'
+      DEF:data261604=##DB##:data261604:AVERAGE
+      'LINE2:data261604###COLOR3##:Milanesa Soja Clasicas X 8 U Lucchetti Fwp 580 Grm SKU 261604 ' 
+      'GPRINT:data261604:LAST: last=%.1lf\n'
+      DEF:data295465=##DB##:data295465:AVERAGE
+      'LINE2:data295465###COLOR4##:Bocadito Pollo Reboz Sadia Bsa 720 Grm SKU 295465 ' 
+      'GPRINT:data295465:LAST: last=%.1lf\n'
+      DEF:data55051=##DB##:data55051:AVERAGE
+      'LINE2:data55051###COLOR5##:Arvejas . Granja Del Bsa 300 Grm SKU 55051 ' 
+      'GPRINT:data55051:LAST: last=%.1lf\n'
+
+graph   value11-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #11 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data457298=##DB##:data457298:AVERAGE
+      'LINE2:data457298###COLOR1##:Papas Baston Sadia Bol 700 Gr SKU 457298 ' 
+      'GPRINT:data457298:LAST: last=%.1lf\n'
+      DEF:data265757=##DB##:data265757:AVERAGE
+      'LINE2:data265757###COLOR2##:Acelga . Granja Del Bsa 500 Grm SKU 265757 ' 
+      'GPRINT:data265757:LAST: last=%.1lf\n'
+      DEF:data469302=##DB##:data469302:AVERAGE
+      'LINE2:data469302###COLOR3##:Hamburguesa Clasicas Paladini Cja 332 Grm SKU 469302 ' 
+      'GPRINT:data469302:LAST: last=%.1lf\n'
+      DEF:data468092=##DB##:data468092:AVERAGE
+      'LINE2:data468092###COLOR4##:Nuggets Crocantes Granja Del Paq 900 Grm SKU 468092 ' 
+      'GPRINT:data468092:LAST: last=%.1lf\n'
+      DEF:data290730=##DB##:data290730:AVERAGE
+      'LINE2:data290730###COLOR5##:Hamburguesa T.Clasicas Swift Cja 12 Uni SKU 290730 ' 
+      'GPRINT:data290730:LAST: last=%.1lf\n'
+
+graph   value12-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #12 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data258614=##DB##:data258614:AVERAGE
+      'LINE2:data258614###COLOR1##:Supremas Pollo X 8 Granja Del Cja 720 Grm SKU 258614 ' 
+      'GPRINT:data258614:LAST: last=%.1lf\n'
+      DEF:data266149=##DB##:data266149:AVERAGE
+      'LINE2:data266149###COLOR2##:Hamburguesas Soja+Fibra Vegetalex Cja 300 Grm SKU 266149 ' 
+      'GPRINT:data266149:LAST: last=%.1lf\n'
+      DEF:data231384=##DB##:data231384:AVERAGE
+      'LINE2:data231384###COLOR3##:Empanadas J Y Q Cong X 6 Uni Coto Paq 500 Grm SKU 231384 ' 
+      'GPRINT:data231384:LAST: last=%.1lf\n'
+      DEF:data299523=##DB##:data299523:AVERAGE
+      'LINE2:data299523###COLOR4##:Milanesas Carne Vacuna Paty Paq 400 Grm SKU 299523 ' 
+      'GPRINT:data299523:LAST: last=%.1lf\n'
+      DEF:data266514=##DB##:data266514:AVERAGE
+      'LINE2:data266514###COLOR5##:Milanesas Soja Ceboll+Fi Vegetalex Bsa 340 Grm SKU 266514 ' 
+      'GPRINT:data266514:LAST: last=%.1lf\n'
+
+graph   value13-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #13 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data286844=##DB##:data286844:AVERAGE
+      'LINE2:data286844###COLOR1##:Arvejas Sadia Iqf Bsa 300 Grs SKU 286844 ' 
+      'GPRINT:data286844:LAST: last=%.1lf\n'
+      DEF:data258615=##DB##:data258615:AVERAGE
+      'LINE2:data258615###COLOR2##:Supremas Pollo X 4 Granja Del Cja 360 Grm SKU 258615 ' 
+      'GPRINT:data258615:LAST: last=%.1lf\n'
+      DEF:data173670=##DB##:data173670:AVERAGE
+      'LINE2:data173670###COLOR3##:Pizzeta Muzzarella X 3 Sibarita Cja 555 Grm SKU 173670 ' 
+      'GPRINT:data173670:LAST: last=%.1lf\n'
+      DEF:data258613=##DB##:data258613:AVERAGE
+      'LINE2:data258613###COLOR4##:Supremas Jamon Y Queso Granja Del Cja 400 Grm SKU 258613 ' 
+      'GPRINT:data258613:LAST: last=%.1lf\n'
+      DEF:data17934=##DB##:data17934:AVERAGE
+      'LINE2:data17934###COLOR5##:Salmon Rosado Filete Con Piel Despinado Congelado X Kg SKU 17934 ' 
+      'GPRINT:data17934:LAST: last=%.1lf\n'
+
+graph   value14-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #14 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data287007=##DB##:data287007:AVERAGE
+      'LINE2:data287007###COLOR1##:Ensalada Primavera Sadia Iqf Bsa 300 Grs SKU 287007 ' 
+      'GPRINT:data287007:LAST: last=%.1lf\n'
+      DEF:data2969=##DB##:data2969:AVERAGE
+      'LINE2:data2969###COLOR2##:Papas Baston Mc Cain Bsa 1 Kgm SKU 2969 ' 
+      'GPRINT:data2969:LAST: last=%.1lf\n'
+      DEF:data264172=##DB##:data264172:AVERAGE
+      'LINE2:data264172###COLOR3##:Vegetales Para Saltear Granja Del Fwp 400 Grm SKU 264172 ' 
+      'GPRINT:data264172:LAST: last=%.1lf\n'
+      DEF:data231383=##DB##:data231383:AVERAGE
+      'LINE2:data231383###COLOR4##:Suprema Rebozada Cong X 500 Gr Coto Paq 500 Grm SKU 231383 ' 
+      'GPRINT:data231383:LAST: last=%.1lf\n'
+      DEF:data231381=##DB##:data231381:AVERAGE
+      'LINE2:data231381###COLOR5##:Bocaditos De Pollo Congelados Coto Uni 400 Grm SKU 231381 ' 
+      'GPRINT:data231381:LAST: last=%.1lf\n'
+
+graph   value15-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #15 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data293786=##DB##:data293786:AVERAGE
+      'LINE2:data293786###COLOR1##:Hamburguesa Light X4 Good Mark Cja 332 Grm SKU 293786 ' 
+      'GPRINT:data293786:LAST: last=%.1lf\n'
+      DEF:data289811=##DB##:data289811:AVERAGE
+      'LINE2:data289811###COLOR2##:Helado Torpedo Frutilla Torpedo Cja 300 Grm SKU 289811 ' 
+      'GPRINT:data289811:LAST: last=%.1lf\n'
+      DEF:data241422=##DB##:data241422:AVERAGE
+      'LINE2:data241422###COLOR3##:Medallones Empanad /Pollo Granja Del Cja 360 Grm SKU 241422 ' 
+      'GPRINT:data241422:LAST: last=%.1lf\n'
+      DEF:data477043=##DB##:data477043:AVERAGE
+      'LINE2:data477043###COLOR4##:Hamburguesa Tipo Casera Swift Fwp 240 Grm SKU 477043 ' 
+      'GPRINT:data477043:LAST: last=%.1lf\n'
+      DEF:data478620=##DB##:data478620:AVERAGE
+      'LINE2:data478620###COLOR5##:Medallon Con Queso Paty Fwp 200 Grm SKU 478620 ' 
+      'GPRINT:data478620:LAST: last=%.1lf\n'
+
+graph   value16-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #16 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data25217=##DB##:data25217:AVERAGE
+      'LINE2:data25217###COLOR1##:Patitas Pollo . Granja Del S Bol 800 Grm SKU 25217 ' 
+      'GPRINT:data25217:LAST: last=%.1lf\n'
+      DEF:data264109=##DB##:data264109:AVERAGE
+      'LINE2:data264109###COLOR2##:Croquetas Espinaca Granja Del Fwp 400 Grm SKU 264109 ' 
+      'GPRINT:data264109:LAST: last=%.1lf\n'
+      DEF:data266516=##DB##:data266516:AVERAGE
+      'LINE2:data266516###COLOR3##:Milanesas Soja Espin+Fib Vegetalex Bsa 340 Grm SKU 266516 ' 
+      'GPRINT:data266516:LAST: last=%.1lf\n'
+      DEF:data286842=##DB##:data286842:AVERAGE
+      'LINE2:data286842###COLOR4##:Acelga Sadia Iqf Bsa 300 Grs SKU 286842 ' 
+      'GPRINT:data286842:LAST: last=%.1lf\n'
+      DEF:data257002=##DB##:data257002:AVERAGE
+      'LINE2:data257002###COLOR5##:Formitas Pollo Formitas Bsa 350 Grm SKU 257002 ' 
+      'GPRINT:data257002:LAST: last=%.1lf\n'
+
+graph   value17-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #17 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data288724=##DB##:data288724:AVERAGE
+      'LINE2:data288724###COLOR1##:Milanesa De Arroz Clasica Granja Del Fwp 330 Grm SKU 288724 ' 
+      'GPRINT:data288724:LAST: last=%.1lf\n'
+      DEF:data191046=##DB##:data191046:AVERAGE
+      'LINE2:data191046###COLOR2##:Patitas Pollo De Queso Y Jam Granja Del Bsa 400 Grm SKU 191046 ' 
+      'GPRINT:data191046:LAST: last=%.1lf\n'
+      DEF:data289810=##DB##:data289810:AVERAGE
+      'LINE2:data289810###COLOR3##:Medallon Carne Vacuna Paty Cja 276 Grm SKU 289810 ' 
+      'GPRINT:data289810:LAST: last=%.1lf\n'
+      DEF:data286843=##DB##:data286843:AVERAGE
+      'LINE2:data286843###COLOR4##:Chaucha Sadia Iqf Bsa 300 Grm SKU 286843 ' 
+      'GPRINT:data286843:LAST: last=%.1lf\n'
+      DEF:data66713=##DB##:data66713:AVERAGE
+      'LINE2:data66713###COLOR5##:Pizza Muzz/Simpl Sibarita Cja 470 Grm SKU 66713 ' 
+      'GPRINT:data66713:LAST: last=%.1lf\n'
+
+graph   value18-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #18 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data47460=##DB##:data47460:AVERAGE
+      'LINE2:data47460###COLOR1##:Rebozado Medallon Xkg 1 Kgm SKU 47460 ' 
+      'GPRINT:data47460:LAST: last=%.1lf\n'
+      DEF:data256598=##DB##:data256598:AVERAGE
+      'LINE2:data256598###COLOR2##:Milanesas Soja Lucchetti X 290 Grm SKU 256598 ' 
+      'GPRINT:data256598:LAST: last=%.1lf\n'
+      DEF:data299524=##DB##:data299524:AVERAGE
+      'LINE2:data299524###COLOR3##:Milanesas Carne Vacuna Paty Bsa 180 Grm SKU 299524 ' 
+      'GPRINT:data299524:LAST: last=%.1lf\n'
+      DEF:data478619=##DB##:data478619:AVERAGE
+      'LINE2:data478619###COLOR4##:Cebolla Picada Granja Del Fwp 300 Grm SKU 478619 ' 
+      'GPRINT:data478619:LAST: last=%.1lf\n'
+      DEF:data286845=##DB##:data286845:AVERAGE
+      'LINE2:data286845###COLOR5##:Acelga Sadia Iqf Bsa 500 Grs SKU 286845 ' 
+      'GPRINT:data286845:LAST: last=%.1lf\n'
+
+graph   value19-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #19 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data120548=##DB##:data120548:AVERAGE
+      'LINE2:data120548###COLOR1##:Papas Baston Mc Cain Bsa 15 Kgm SKU 120548 ' 
+      'GPRINT:data120548:LAST: last=%.1lf\n'
+      DEF:data14242=##DB##:data14242:AVERAGE
+      'LINE2:data14242###COLOR2##:Filet Merluza Reboza Granja Del Bsa 500 Grm SKU 14242 ' 
+      'GPRINT:data14242:LAST: last=%.1lf\n'
+      DEF:data231386=##DB##:data231386:AVERAGE
+      'LINE2:data231386###COLOR3##:Empanadas Carne Cong X 6 Uni Coto Paq 500 Grm SKU 231386 ' 
+      'GPRINT:data231386:LAST: last=%.1lf\n'
+      DEF:data293784=##DB##:data293784:AVERAGE
+      'LINE2:data293784###COLOR4##:Hamburguesa Trad X 12 Good Mark Cja 996 Grm SKU 293784 ' 
+      'GPRINT:data293784:LAST: last=%.1lf\n'
+      DEF:data55052=##DB##:data55052:AVERAGE
+      'LINE2:data55052###COLOR5##:Ensalada Primave Granja Del Bsa 400 Grm SKU 55052 ' 
+      'GPRINT:data55052:LAST: last=%.1lf\n'
+
+graph   value20-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #20 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data284920=##DB##:data284920:AVERAGE
+      'LINE2:data284920###COLOR1##:Salchichas Soja Vegetalex Paq 5 Uni SKU 284920 ' 
+      'GPRINT:data284920:LAST: last=%.1lf\n'
+      DEF:data261436=##DB##:data261436:AVERAGE
+      'LINE2:data261436###COLOR2##:Croquetas Papa Y Mozzare Granja Del Fwp 400 Grm SKU 261436 ' 
+      'GPRINT:data261436:LAST: last=%.1lf\n'
+      DEF:data42778=##DB##:data42778:AVERAGE
+      'LINE2:data42778###COLOR3##:Helado Coto Dulce De Leche Granizado Pot 500 Grm SKU 42778 ' 
+      'GPRINT:data42778:LAST: last=%.1lf\n'
+      DEF:data288497=##DB##:data288497:AVERAGE
+      'LINE2:data288497###COLOR4##:Paty X4 Grande Paty Cja 480 Grm SKU 288497 ' 
+      'GPRINT:data288497:LAST: last=%.1lf\n'
+      DEF:data478622=##DB##:data478622:AVERAGE
+      'LINE2:data478622###COLOR5##:Medallon Con Cebolla Paty Fwp 200 Grm SKU 478622 ' 
+      'GPRINT:data478622:LAST: last=%.1lf\n'
+
+graph   value21-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #21 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data478797=##DB##:data478797:AVERAGE
+      'LINE2:data478797###COLOR1##:Empanadas Jamon Y Queso El Noble Cja 320 Grm SKU 478797 ' 
+      'GPRINT:data478797:LAST: last=%.1lf\n'
+

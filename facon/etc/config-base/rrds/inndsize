@@ -1,0 +1,24 @@
+# rrds/inndsize - How big has INNd grown to?
+# CVS $Id: inndsize,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month month 3month year
+
+data	size=ps:size GAUGE:1200:0:100000
+
+graph	inndsize desc="This is collected by the unix-status-collector.  It works by running the <B>ps</B> command on the remote host and parsing the output to look for the specified program by name."
+	--title "##HOST## - Size of innd (##GRAPHTIME##)"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'Kbytes'
+	DEF:size=##DB##:size:MAX
+	CDEF:missing=size,UN,INF,UNKN,IF
+	'LINE1:size###COLOR1##:size'
+	'GPRINT:size:MIN:min=%.1lf%s'
+	'GPRINT:size:AVERAGE:avg=%.1lf%s'
+	'GPRINT:size:MAX:max=%.1lf%s'
+	'AREA:missing###MISSING##:missing'

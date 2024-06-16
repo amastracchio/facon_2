@@ -1,0 +1,61 @@
+# rrds/df-* - disk space available via the unix-status-collector
+# CVS $Id: df-,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Disk space available, including inodes, if the file-system has them.
+# Percent looks redundant, as it can be calculated, however, I can only
+# generate alerts on variables, not on calculations, so I really do need it.
+
+source		snmp
+step		300
+
+data		size=dsk-*:dsktotal GAUGE:600:0:U
+data		used=dsk-*:dskused GAUGE:600:0:U
+data		free=dsk-*:dskavail GAUGE:600:0:U
+data		percent=dsk-*:dskpercent GAUGE:600:0:100
+data		inodes=inodessize:* GAUGE:600:0:U
+data		inodeuse=inodesused:* GAUGE:600:0:U
+data		inodepct=inodespercent:* GAUGE:600:0:100
+
+alert		percent < 90 95 98
+alert		inodepct < 90 95 98
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times		day yesterday week month 3month year
+
+graph		df-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Disk Usage - ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:size=##DB##:size:AVERAGE
+		DEF:used=##DB##:used:AVERAGE
+		DEF:free=##DB##:free:AVERAGE
+
+                CDEF:bsize=size,1024,*
+                CDEF:bused=used,1024,*
+                CDEF:bfree=free,1024,*
+
+
+#		CDEF:free=size,used,-
+		CDEF:missing=bsize,UN,INF,UNKN,IF
+		'AREA:bsize###TOTALCOLOR##:Disk Size'
+		'LINE3:bused###USEDCOLOR##:Disk Used'
+		'GPRINT:bfree:LAST:free=%.1lf%s\g'
+		'GPRINT:bsize:LAST: of %.1lf%s'
+		'AREA:missing###MISSING##:missing'
+
+#graph		dfi-* desc="This is collected by the unix-status-collector.  It works by running the <B>df</B> command on the remote host and parsing the output.  Inodes are used in many unix file-systems and contain the information about a single file or directory entry.  Most file-systems are created with a fixed number of inodes and if they are exhausted, then no new files or directories can be created on that file-system."
+#		--title '##HOST## - Inode Usage - ##WILDPART## (##GRAPHTIME##)'
+#		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+#		--vertical-label 'inodes'
+#		DEF:inodes=##DB##:inodes:AVERAGE
+#		DEF:inodeuse=##DB##:inodeuse:AVERAGE
+#		CDEF:free=inodes,inodeuse,-
+#		CDEF:missing=inodes,UN,INF,UNKN,IF
+#		'AREA:inodes###TOTALCOLOR##:Inodes'
+#		'LINE3:inodeuse###USEDCOLOR##:Inodes Used'
+#		'GPRINT:free:LAST:free=%.0lf%s'
+#		'AREA:missing###MISSING##:missing'
+

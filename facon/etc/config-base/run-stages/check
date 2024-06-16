@@ -1,0 +1,11 @@
+# run-stages/check - check the configuration
+# $Id: check,v 1.2 2002/07/11 11:59:41 remstats Exp $
+#
+# Note: we are chdir'd to @@TMPDIR@@ first
+# Note2: stderr will be sent to NAME.$$
+#
+# NAME ASYNC FREQ COMMAND
+#
+# If check-config's basic checks fail, nothing else will be able to run
+# successfully.  Also, it creates missing directories and RRD files.
+check-config no 300 check-config

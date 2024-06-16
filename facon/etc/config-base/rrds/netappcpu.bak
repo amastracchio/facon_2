@@ -1,0 +1,36 @@
+# rrds/netappcpu - CPU usage for Network Appliance filers
+# CVS $Id: netappcpu,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Note: Have to do some different calculations to work around NetApp's
+# broken implementation.  Thanks to Ecaroh.
+
+source	snmp
+step	300
+data	up=netappcpuuptime COUNTER:600:0:300
+data	busy=netappcpubusytime COUNTER:600:0:300
+data	idle=netappcpuidletime COUNTER:600:0:300
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+oid	NetappCpuBusyTime
+oid	NetappCpuUpTime
+oid	NetappCpuIdleTime
+
+graph	netappcpu
+	--title '##HOST## - CPU Usage (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP' --upper-limit 100 --rigid
+	--vertical-label '%'
+	DEF:up=##DB##:up:AVERAGE
+	DEF:busy=##DB##:busy:AVERAGE
+	DEF:idle=##DB##:idle:AVERAGE
+	CDEF:cpu=busy,busy,idle,+,/,100,*
+	CDEF:missing=up,UN,INF,UNKN,IF
+	'LINE1:cpu###COLOR1##:CPU Load'
+	'GPRINT:cpu:MIN:(min,avg,max) = (%lf%s,'
+	'GPRINT:cpu:AVERAGE:%lf%s,'
+	'GPRINT:cpu:MAX:%lf%s)'
+	'AREA:missing###MISSING##:missing'
+

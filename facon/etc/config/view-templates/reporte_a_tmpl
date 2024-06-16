@@ -1,0 +1,86 @@
+
+<VIEW::HEADER Bamac Status>
+
+<P>
+<h1>Reporte A </h1>
+<UL>
+
+
+<h2>YVASB460</h2>
+
+<h3> UNXENVOI </h3>
+
+<VIEW::GRAPH yvasb460 dirsize--users-syz00-envoi dirsizec-* day>
+<VIEW::GRAPH yvasb460 dirsize--users-syz00-envoi dirsizec-* yesterday>
+<VIEW::GRAPH yvasb460 dirsize--users-syz00-envoi dirsizec-* week>
+<IFRAME src="http://yvas6120:8900/pdg-yvasb460.html" width=497 height=267>
+</IFRAME>
+
+
+
+<hr/>
+
+<h3> CFTENVOI </h3>
+
+<VIEW::GRAPH yvasb460 dirsize--users-cft00-envoi dirsizec-* day>
+<VIEW::GRAPH yvasb460 dirsize--users-cft00-envoi dirsizec-* yesterday>
+<VIEW::GRAPH yvasb460 dirsize--users-cft00-envoi dirsizec-* week>
+
+<hr/>
+
+<h3> CFTRECEPT </h3>
+
+<VIEW::GRAPH yvasb460 dirsize--users-cft00-recept dirsizec-* day>
+<VIEW::GRAPH yvasb460 dirsize--users-cft00-recept dirsizec-* yesterday>
+<VIEW::GRAPH yvasb460 dirsize--users-cft00-recept dirsizec-* week>
+
+<hr/>
+
+
+
+<h2>YVASB430</h3>
+
+<h3> UNXENVOI </h2>
+
+<VIEW::GRAPH yvasb430 dirsize--users-syr00-envoi dirsizec-* day>
+<VIEW::GRAPH yvasb430 dirsize--users-syr00-envoi dirsizec-* yesterday>
+<VIEW::GRAPH yvasb430 dirsize--users-syr00-envoi dirsizec-* week>
+<IFRAME src="http://yvas6120:8900/pdg-yvasb460.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+<h3> CFTRECEPT </h3>
+
+<VIEW::GRAPH yvasb430 dirsize--users-cft00-recept dirsizec-* day>
+<VIEW::GRAPH yvasb430 dirsize--users-cft00-recept dirsizec-* yesterday>
+<VIEW::GRAPH yvasb430 dirsize--users-cft00-recept dirsizec-* week>
+
+<hr/>
+
+
+
+<h2>YVASB440</h2>
+
+<h3> CFTRECEPT </h3>
+
+<VIEW::GRAPH yvasb440 dirsize--users-cft00-recept dirsizec-* day>
+<VIEW::GRAPH yvasb440 dirsize--users-cft00-recept dirsizec-* yesterday>
+<VIEW::GRAPH yvasb440 dirsize--users-cft00-recept dirsizec-* week>
+<IFRAME src="http://yvas6120:8900/pdg-yvasb460.html" width=497 height=267>
+</IFRAME>
+
+<hr/>
+
+
+
+
+
+</P>
+
+<P>
+<UL>
+</UL>
+
+<VIEW::FOOTER>
+

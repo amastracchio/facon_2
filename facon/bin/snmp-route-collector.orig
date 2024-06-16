@@ -1,0 +1,238 @@
+#!/usr/bin/perl -w
+
+# snmp-route-collector - a facon collector for BGP4 routing info via SNMP
+# $Id: snmp-route-collector.pl,v 1.22 2003/05/15 12:08:32 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'snmp-route-collector';
+# Which collector is this
+$main::collector = 'snmp-route';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.22 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use SNMP_util "0.69";
+use RRDs;
+require "snmpstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('c:d:f:FG:hH:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $main::community = $opt{'c'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'groups', 
+	'times', 'rrds', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+&snmp_load_oids;
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $start_time, 
+	$run_time);
+
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing host $host ".&timestamp) if ($main::debug);
+
+	$main::data_from_host = 0;
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+		&debug("  doing rrd $realrrd($wildrrd)") if ($main::debug);
+
+# Collect it
+		&collect_host( $host, $ip, $realrrd, $wildrrd, $wildpart);
+	}
+}
+
+# Now facon instrumentation info
+my $now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#----------------------------------------------------------- collect_host ---
+sub collect_host {
+	my ($host, $ip, $realrrd, $wildrrd, $wildpart) = @_;
+	my ($comhost, $routeinfo, $prefix, $prefixlen, $peer, $best, $now);
+
+	$comhost = &get_comhost($host, $realrrd, $wildrrd, $ip);
+	return unless (defined $comhost);
+	&debug("  using $comhost for $host") if ($main::debug);
+
+# Only walk a given host once, since the info for all peers is intermixed.
+	unless (defined $main::route_host and $main::route_host eq $host and 
+			@main::routes) {
+		$main::route_host = $host;
+		@main::routes = snmpwalk( $comhost, 'bgp4PathAttrBest');
+		++$main::requests;
+		undef %main::routes;
+		undef %main::best;
+		&debug("  read ". $#main::routes ." routes from $host")
+			if ($main::debug);
+	}
+	unless (defined $main::routes[0]) {
+		&debug("  no data for bgp4PathAttrBest; skipped") if ($main::debug);
+		return;
+	}
+	
+# Count all the info into hashes 
+	unless (defined %main::routes) {
+		$main::entries_collected += $#main::routes + 1;
+		foreach $routeinfo (@main::routes) {
+			if ($routeinfo =~ /^(\d+\.\d+\.\d+\.\d+)\.(\d+)\.(\d+\.\d+\.\d+\.\d+):(\d+)$/) {
+				$prefix = $1;
+				$prefixlen = $2;
+				$peer = $3;
+				$best = $4;
+				&debug("  collected $peer($best) for $prefix/$prefixlen")
+					if ($main::debug>2);
+				if (defined $main::routes{$peer}) { $main::routes{$peer}++; }
+				else { $main::routes{$peer} = 1; $main::best{$peer} = 0; }
+				$main::best{$peer}++ if ($best == 2);
+			}
+			else {
+				&error("unknown routing info for $host: $routeinfo; skipped");
+			}
+		}
+		if ($main::debug) {
+			foreach $peer (keys %main::routes) {
+				&debug("$peer: $main::routes{$peer}, best $main::best{$peer}");
+			}
+		}
+	}
+
+# Now say what we've got for this one
+	if (defined $main::routes{$wildpart}) {
+		$now = time;
+		print <<"EOD_ROUTES";
+$host $now routes-$wildpart $main::routes{$wildpart}
+$host $now routes-best-$wildpart $main::best{$wildpart}
+EOD_ROUTES
+		$main::entries_used += 2;
+		print TMP <<"EOD_ROUTES2";
+$host $now routes-$wildpart $main::routes{$wildpart}
+$host $now routes-best-$wildpart $main::best{$wildpart}
+EOD_ROUTES2
+		$main::data_from_host = 1;
+	}
+	else {
+		&debug("no routes for $host $realrrd") if ($main::debug);
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+    -c ccc  use 'ccc' for the read community string; overrides host
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it's not time
+	-G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+	-K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::community = 0;
+}

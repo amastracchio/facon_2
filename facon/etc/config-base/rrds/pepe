@@ -1,0 +1,46 @@
+
+	DEF:65-1-13=##DB##:65-1-13:AVERAGE
+	DEF:65-1-13uno=##DB##:65-1-13uno:AVERAGE
+	DEF:65-1-13dos=##DB##:65-1-13dos:AVERAGE
+
+	DEF:9-3-138=##DB##:9-3-138:AVERAGE
+	DEF:9-3-138uno=##DB##:9-3-138uno:AVERAGE
+	DEF:9-3-138dos=##DB##:9-3-138dos:AVERAGE
+
+	DEF:10-1-183=##DB##:10-1-183:AVERAGE
+	DEF:10-1-183uno=##DB##:10-1-183uno:AVERAGE
+	DEF:10-1-183dos=##DB##:10-1-183dos:AVERAGE
+
+        DEF:12-1-197=##DB##:12-1-197:AVERAGE
+        DEF:12-1-197uno=##DB##:12-1-197uno:AVERAGE
+        DEF:12-1-197dos=##DB##:12-1-197dos:AVERAGE
+
+
+        DEF:64-1-19=##DB##:64-1-19:AVERAGE
+        DEF:64-1-19uno=##DB##:64-1-19uno:AVERAGE
+        DEF:64-1-19dos=##DB##:64-1-19dos:AVERAGE
+
+
+        'LINE2:12-1-197###COLOR4##:Coto' 
+	'LINE2:12-1-197uno###COLOR5##:Coto puno'
+        'LINE2:12-1-197dos###COLOR6##:Coto pdos'
+
+
+        'LINE2:65-1-13###COLOR1##:Diarco Pilar'
+        'LINE2:65-1-13uno###COLOR2##:Diarco Pilar puno'
+        'LINE2:65-1-13dos###COLOR3##:Diarco Pilar pdos'
+
+        'LINE2:9-3-138###COLOR4##:Jumbo Nordelta'
+        'LINE2:9-3-138uno###COLOR5##:Jumbo Nordelta puno'
+        'LINE2:9-3-138dos###COLOR6##:Jumbo Nordelta pdos'
+
+        'LINE2:10-1-183###COLOR7##:Carrefour Maschwitz'
+        'LINE2:10-1-183uno###COLOR8##:Carrefour puno'
+        'LINE2:10-1-183dos###COLOR9##:Carrefour pdos:STACK'
+
+
+        'LINE2:64-1-19###COLOR10##:Yaguar'
+        'LINE2:64-1-19uno###COLOR11##:Yaguar puno'
+        'LINE2:64-1-19dos###COLOR12##:Yaguar pdos'
+
+        'AREA:missing###MISSING##:missing'

@@ -1,0 +1,230 @@
+#!/usr/bin/perl -w
+
+# snmpif-description-updater - reads all the host config-files
+#	(specified on the command-line) and does SNMP queries for
+#	ifAlias for each snmpif-* rrd and updates the description for
+#	the RRD if it's different.
+# $Id: snmpif-description-updater.pl,v 1.11 2002/08/19 18:43:06 facon Exp $
+# from facon 1.0.13a
+
+# XXX Copyright 1999, 2000, 2001, 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What's this program called?
+$main::prog = 'snmpif-description-updater';
+# Where's the configdir?
+$main::config_dir = '/root/3p/facon/etc/config';
+# Which collector is this related to?
+$main::collector = 'snmp';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.11 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "snmpstuff.pl";
+use Getopt::Std;
+# XXX use \%opt
+getopts("d:f:h");
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+
+&read_config_dir( $main::config_dir, 'general', 'oids',
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+&snmp_load_oids();
+
+# - - -   Mainline   - - -
+
+foreach my $host (keys %{$main::config{HOST}}) {
+	next unless( &host_collected_by( $host, $main::collector));
+	&process($host);
+}
+exit 0;
+
+#---------------------------------------------------- process ---
+sub process {
+	my ($host) = @_;
+	my $changed = 0;
+	my $file = $main::config_dir .'/hosts/'. $host;
+
+	&debug("file $file for host $host") if ($main::debug);
+
+# Make sure the named file exists
+	unless (-f $file) {
+		&error("no such file as $file; skipped");
+		return 1;
+	}
+	my $ip = $main::config{HOST}{$host}{IP};
+
+# Open or else ...
+	open (IN, "<$file") or do {
+		&error("can't open $file: $!; skipped");
+		return 1;
+	};
+
+# Collect the old version and create the new version
+	my ($old, $new) = ('', '');
+	my ($realrrd, $extra, $desc, $string, $wildrrd, $wildpart, 
+		$fixedrrd, $comhost, $ifname, $ifindex, $ifalias);
+	while (<IN>) {
+		$old .= $_;
+		chomp;
+
+# Have to check all the snmpif-* RRDs
+		if (/^rrd\s+(snmpif-\S+)/i) {
+			$realrrd = $1;
+			($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+			unless (defined $wildrrd) {
+				&error("can't find rrd $realrrd; skipped lookup");
+				$new .= $_ ."\n";
+				next;
+			}
+			&debug("  rrd $realrrd") if ($main::debug);
+
+# Pull out the old description
+			$desc = $main::config{HOST}{$host}{RRDDESC}{$realrrd};
+			$extra = $main::config{HOST}{$host}{EXTRA}{$realrrd};
+			if (defined $desc) {
+				&debug("    old desc '$desc'") if ($main::debug);
+			}
+			else {
+				$desc='';
+				&debug("    no old description") if ($main::debug);
+			}
+			if (defined $extra) { $extra = ' '. $extra; }
+			else { $extra = ''; }
+
+# We need an SNMP community
+			$comhost = &get_comhost( $host, $realrrd, $wildrrd, $ip);
+			unless (defined $comhost) {
+				&error("no community for $host; skipped");
+				return 1;
+			}
+
+# Query this one
+			$ifname = &to_ifname( $wildpart);
+			&debug("    ifname=$ifname") if ($main::debug);
+			$ifindex = &get_ifindex( $host, $comhost, $ifname);
+			if (defined $ifindex) {
+				&debug("    ifindex=$ifindex") if ($main::debug);
+			}
+			else {
+				&error("can't get ifindex for $ifname; skipped");
+				$new .= $_ ."\n";
+				next;
+			}
+			($ifalias) = &snmpget( $comhost, 'ifAlias.'.$ifindex);
+
+			if (defined $ifalias) {
+				$ifalias =~ tr/ -~/ /c;
+				$ifalias =~ tr/'"//d;
+				if ($ifalias ne $desc) {
+					$changed++;
+					$new .= "rrd\t${realrrd}${extra} desc='$ifalias'\n";
+					&debug("    desc changed to '$ifalias'") if ($main::debug);
+				}
+				else {
+					&debug("    no change in desc") if ($main::debug);
+				}
+			}
+			else {
+				&debug("    no ifalias returned for $realrrd (ifn=$ifname, ifx=$ifindex)")
+					if ($main::debug);
+				$new .= $_ ."\n";
+			}
+		}
+
+# Just copy the rest
+		else { $new .= $_ ."\n"; }
+	}
+	close (IN);
+
+# Did anything get changed?
+	unless ($changed) {
+		&debug("  no changes; not re-written") if ($main::debug);
+		return 0;
+	}
+
+# Write changed version to temp
+	my $newfile = $main::config_dir .'/hosts/IGNORE-'. $main::prog;
+	open (OUT, ">$newfile") or do {
+		&error("can't open $newfile for $host: $!; skipped");
+		return 1;
+	};
+	print OUT $new or do {
+		&error("can't write $newfile for $host: $!; skipped");
+		return 1;
+	};
+	close (OUT);
+	&debug("new version written as $newfile") if ($main::debug);
+
+# Write old version to ~ file
+	open (OUT, ">$file~") or do {
+		&error("can't open $file~ for $host: $!; skipped");
+		return 1;
+	};
+	print OUT $old or do {
+		&error("can't write $file~ for $host: $!; skipped");
+		return 1;
+	};
+	close (OUT);
+	&debug("old version saved as $file~") if ($main::debug);
+
+# Swap in the new version
+	rename $newfile, $file or do {
+		&error("can't rename $newfile as $file: $!; reverting...");
+		open (OUT, ">$file") or
+			&abort("now I can't open $file for re-write: $!; I give up");
+		print OUT $old or 
+			&abort("now I can't re-write $file: $!; I give up");
+		close (OUT);
+		&abort("let's stop now before I really get confused.");
+	};
+	&debug("renamed $newfile as $file; done $host") if ($main::debug);
+
+0;
+}
+
+#----------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+	-d ddd  set debugging level to 'ddd'
+	-f fff  use 'fff' for config-dir [$main::config_dir]
+	-h      show this help message
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#--------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

@@ -1,0 +1,62 @@
+#!/usr/bin/perl -w
+
+# clean-config - do a bit of editing on my config so as not to
+#	expose anything sensitive.
+# $Id: clean-config.pl,v 1.8 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Change History   - - -
+
+# $Revision: 1.8 $
+
+# - - -   Mainline   - - -
+
+my $community = $alerts_fixed = $alerts_skipped = $general = $proxy = $send = 0;
+OuterLoop:
+while (<>) {
+	if (/^(warn|error|critical)\s+\*\s+\*\s+\*\s+/i) {
+		$alerts_fixed += s#^(.*alert-email)\s+.*#$1 FIXME#i;
+	}
+	elsif (/^(warn|error|critical)\s+/i) { $alerts_skipped++; next; }
+
+	$community += s#^(\#?\s?)community\s+\S+#${1}community  public#i;
+
+	$general += s#^datadir\s+(.*)$#datadir \@\@DATADIR\@\@#i;
+	$general += s#^htmldir\s+(.*)$#htmldir \@\@HTMLDIR\@\@#i;
+	$general += s#^logdir\s+(.*)$#logdir \@\@DATADIR\@\@/LOGS#i;
+	$general += s#^htmlurl\s+(.*)$#htmlurl \@\@HTMLURL\@\@#i;
+	$general += s#^datapagedir\s+(.*)$#datapagedir \@\@INSTALLDIR\@\@/datapage#i;
+	$general += s#^webmaster\s+(.*)$#webmaster \@\@WEBMASTER\@\@#i;
+	$general += s#^groups\s+(.*)$#groups FIXME#i;
+	$general += s#^homeurl\s+(.*)$#homeurl \@\@HTMLURL\@\@/#i;
+	$general += s#^logourl\s+(.*)$#logourl \@\@HTMLURL\@\@/IMAGES/logo.png#i;
+	$general += s#^background\s+(.*)$#background \@\@HTMLURL\@\@/IMAGES/background.jpg#i;
+	$general += s#^topurl\s+(.*)$#topurl \@\@HTMLURL\@\@/quick-index.cgi#i;
+	$general += s#^srcourl\s+(.*)$#srcourl \@\@SRCURL\@\@/#i;
+	$general += s#^trapignore\s+(.*)$#\#trapignore FIXME#i;
+
+	$proxy += s#^proxy\s+(.*)$#proxy FIXME#i;
+
+	if (m#^send\s+GET\s+(http:|/)#i) {
+		$send += s#\bRemstats/[0-9.]+#Remstats/\@\@VERSION\@\@#i;
+	}
+
+# Just comment out these sections as examples
+	if (/^\[(links|remoteping|customgraph)\]\s*$/i) {
+		print $_;
+		while (<>) {
+			redo OuterLoop if (/^\[/o);
+			if (/^#/ or /^\s*\n?$/) { print $_; }
+			else { print '#'.$_; }
+		}
+	}
+
+	print;
+}
+
+	print STDERR <<"EOD_REPORT";
+community=$community, general=$general, alerts=$alerts_fixed(fixed), $alerts_skipped(skipped), proxy=$proxy, send=$send
+EOD_REPORT

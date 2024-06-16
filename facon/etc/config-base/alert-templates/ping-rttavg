@@ -1,0 +1,3 @@
+It's slow getting to ##HOST##(##IP##).  
+On average it takes ##VALUE## milliseconds
+to send a ping request and receive a response.

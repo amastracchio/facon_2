@@ -1,0 +1,25 @@
+# rrds/httpdlog - This looks at a standard web-server log-file, rather sloppily.
+# CVS $Id: httpdlog,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	log
+step	300
+
+
+data	maquina=maquina-* GAUGE:600:0:U	average (\d+)
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	httpreq desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it reads from a standard web-server log-file and counts the number of requests and successful requests, as determined by the HTTP response code.  I.E. if it begins with a 2, it is considered to be successful"
+	--title '##HOST## - LOG-(##WILDPART## ##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'  --rigid
+	--vertical-label lines
+        DEF:maquina=##DB##:maquina:AVERAGE
+	CDEF:missing=maquina,UN,INF,UNKN,IF
+	'LINE2:maquina###COLOR2##:Maquina'
+	'AREA:missing###MISSING##:missing'
+
+

@@ -1,0 +1,7 @@
+# host-templates/ping-host - ping-only host
+# $Id: ping-host,v 1.2 2002/04/16 15:25:24 remstats Exp $
+
+desc	MISSING DESCRIPTION
+tools	ping traceroute availability
+
+rrd	ping

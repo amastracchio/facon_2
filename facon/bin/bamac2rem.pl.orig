@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+
+use Data::Dumper;
+
+my $in;
+my @a;
+my %s;
+my $rep;
+
+
+
+my $prd = $ARGV[0];
+
+
+
+# La columna 4 es la que tiene el estado
+# estados pueden ser INCIDENTE TERMINE HORAIRE_DEPASSE EXECUTION_EN_COURS
+
+<STDIN>;
+while ($in = <STDIN>) {
+	@a = split(/\s+/, $in);
+	$s{$a[4]}++;
+	$, = ',';
+	unless ($in =~ /TERMINE/) {
+		$rep = $rep . $in;
+        }
+	
+}
+
+my @columns = qw(INCIDENTE HORAIRE_DEPASSE EXECUTION_EN_COURS TERMINE ATTENTE_EVENEMENT);
+
+#
+# El orden es importante!!
+#
+
+
+foreach (@columns) {
+     print (defined $s{$_} ? $s{$_} : 0) ;
+     print "\n";
+}
+
+
+if ($prd) {
+
+		open (FILE, ">/tmp/$prd.html") || die "no se puede escribir /tmp/$prd.html";
+
+		if ($s{INCIDENTE} || $s{HORAIRE_DEPASSE} || $s{EXECUTION_EN_COURS} || $s{ATTENTE_EVENEMENT}){
+
+			print FILE "<h2>Reporte de eventos no terminados:</h2>";
+			print FILE "<pre>";
+			print FILE $rep;
+			print FILE "</pre>";
+		} else {
+
+			# pisamos los datos
+		}
+
+		close FILE;
+
+} else {
+
+
+
+}
+
+

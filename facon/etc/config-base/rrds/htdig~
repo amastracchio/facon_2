@@ -1,0 +1,111 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	cont=cont DERIVE:1200:0:U
+data	contx=contx GAUGE:1200:0:U
+data	runtime=runtime DERIVE:1200:0:U
+data	noespanol=noespanol DERIVE:1200:0:U
+data	sizeacc=sizeacc DERIVE:1200:0:U
+data	dos=dos DERIVE:1200:0:U
+data	noespanolx=noespanolx GAUGE:1200:0:U
+data	noespadel=noespadel GAUGE:1200:0:U
+
+
+
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	cont desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## EJECUCIONES HANDLER (##GRAPHTIME##)'
+	--watermark 'ariel mastracchio' 
+	--vertical-label 'cont'
+	DEF:cont=##DB##:cont:AVERAGE
+	CDEF:missing=cont,UN,INF,UNKN,IF
+	'LINE2:cont###COLOR1##:cont'
+	'GPRINT:cont:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:cont:AVERAGE:%.0lf%s,'
+	'GPRINT:cont:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	dos desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'codigo 200 (##GRAPHTIME##)'
+	--vertical-label 'cont'
+	--watermark 'ariel mastracchio' 
+	DEF:dos=##DB##:dos:AVERAGE
+	CDEF:missing=dos,UN,INF,UNKN,IF
+	'AREA:dos###COLOR1##:dos'
+	'GPRINT:dos:MIN:dos\: min=%.1lf'
+	'GPRINT:dos:AVERAGE:avg=%.1lf'
+	'GPRINT:dos:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+
+graph	runtime desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Runtime (##GRAPHTIME##)'
+	--vertical-label 'seg'
+	--watermark 'ariel mastracchio' 
+	DEF:runtime=##DB##:runtime:AVERAGE
+	CDEF:missing=runtime,UN,INF,UNKN,IF
+	'AREA:runtime###COLOR1##:runtime'
+	'GPRINT:runtime:MIN:runtime\: min=%.1lf'
+	'GPRINT:runtime:AVERAGE:avg=%.1lf'
+	'GPRINT:runtime:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	noespanol desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Paginas no espanol (##GRAPHTIME##)'
+	--vertical-label 'cont'
+	--watermark 'ariel mastracchio' 
+	DEF:noespanol=##DB##:noespanol:AVERAGE
+	CDEF:missing=noespanol,UN,INF,UNKN,IF
+	'AREA:noespanol###COLOR1##:noespanol'
+	'GPRINT:noespanol:MIN:noespanol\: min=%.1lf'
+	'GPRINT:noespanol:AVERAGE:avg=%.1lf'
+	'GPRINT:noespanol:MAX:max=%.1lf\l'
+
+graph	noespanolx desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Paginas no espanol (##GRAPHTIME##)'
+	--vertical-label 'cont'
+	--watermark 'ariel mastracchio' 
+	DEF:noespanolx=##DB##:noespanolx:AVERAGE
+	DEF:noespadel=##DB##:noespadel:AVERAGE
+	CDEF:missing=noespanolx,UN,INF,UNKN,IF
+	'AREA:noespanolx###COLOR1##:noespanolx'
+        'LINE3:noespadel###USEDCOLOR##:Ignorada'
+	'GPRINT:noespanolx:MIN:noespanolx\: min=%.1lf'
+	'GPRINT:noespanolx:AVERAGE:avg=%.1lf'
+	'GPRINT:noespanolx:MAX:max=%.1lf\l'
+
+graph	contx desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## EJECUCIONES HANDLER (##GRAPHTIME##)'
+	--watermark 'ariel mastracchio' 
+	--vertical-label 'cont'
+	DEF:contx=##DB##:contx:AVERAGE
+	CDEF:missing=contx,UN,INF,UNKN,IF
+	'LINE2:contx###COLOR1##:contx'
+	'GPRINT:contx:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:contx:AVERAGE:%.0lf%s,'
+	'GPRINT:contx:MAX:%.0lf%s)'
+
+graph	sizeacc  desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Transferidos (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'ariel mastracchio' 
+	--vertical-label 'bytes'
+	DEF:sizeacc=##DB##:sizeacc:AVERAGE
+	CDEF:missing=sizeacc,UN,INF,UNKN,IF
+	'LINE2:sizeacc###COLOR1##:sizeacc'
+	'GPRINT:sizeacc:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:sizeacc:AVERAGE:%.0lf%s,'

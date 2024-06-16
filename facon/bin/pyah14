@@ -1,0 +1,280 @@
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             bamac-PDG
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             bamac-UK
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             bamac-PPA
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             df-/users
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             load
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             df-/users2
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/cft00/recept
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/cft00/envoi
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/bmd00/recept
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/bmd00/envoi
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/bmk00/recept
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/bmk00/envoi
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/bml00/recept
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             du-/users/bml00/envoi
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             fileage-/users2/bmd00/exploit/data/bmdevtdu.lst
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             fileage-/users2/bmk00/exploit/data/bmkevtdu.lst
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             fileage-/users2/bml00/exploit/data/bmlevtdu.lst
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             dirsize-/users/bmd00/log
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             dirsize-/users/bmk00/log
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyah14
+        service_description             dirsize-/users/bml00/log
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+

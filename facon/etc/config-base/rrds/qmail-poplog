@@ -1,0 +1,44 @@
+# rrds/qmail-poplog - info from logs of qmail-pop3d
+# CVS $Id: qmail-poplog,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Note: these logs are actually from tcpserver
+
+source	log
+step 	300
+
+data	concurrency	GAUGE:600:0:U	max : status: (\d+)
+data	sessions	DERIVE:600:0:U	count : pid
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	concurrency desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it is examining the records from an instance of tcpserver (see <A HREF="http://cr.yp.to/ucspi-tcp.html">UCSPI-TCP</A>), which is providing pop3 service by running qmail-pop3d from <A HREF="http://cr.yp.to/qmail.html">qmail</A> to find the maximum number of sessions running concurrently.  This tells how many clients were checking for email simultaneously.'
+	--title "##HOST## - POP3 concurrency (##GRAPHTIME##)"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'sessions'
+	DEF:concurrency=##DB##:concurrency:MAX
+	CDEF:missing=concurrency,UN,INF,UNKN,IF
+	'LINE2:concurrency###COLOR1##:sessions'
+	'GPRINT:concurrency:MIN:min=%.0lf'
+	'GPRINT:concurrency:AVERAGE:avg=%.0lf'
+	'GPRINT:concurrency:MAX:max=%.0lf'
+	'GPRINT:concurrency:LAST:cur=%.0lf'
+	'AREA:missing###MISSING##:missing'
+
+
+graph	sessions desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it is examining the records from an instance of tcpserver (see <A HREF="http://cr.yp.to/ucspi-tcp.html">UCSPI-TCP</A>), which is providing pop3 service by running qmail-pop3d from <A HREF="http://cr.yp.to/qmail.html">qmail</A> to count POP sessions.  Each session represents a POP client checking for email on the server.'
+	--title "##HOST## - POP3 sessions (##GRAPHTIME##)"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'sessions/s'
+	DEF:sessions=##DB##:sessions:AVERAGE
+	CDEF:missing=sessions,UN,INF,UNKN,IF
+	'LINE2:sessions###COLOR1##:sessions'
+	'GPRINT:sessions:MIN:min=%.0lf'
+	'GPRINT:sessions:AVERAGE:avg=%.0lf'
+	'GPRINT:sessions:MAX:max=%.0lf'
+	'GPRINT:sessions:LAST:cur=%.0lf'
+	'AREA:missing###MISSING##:missing'

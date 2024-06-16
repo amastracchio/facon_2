@@ -1,0 +1,8 @@
+1292345653 bo_install:pai 0
+1292345653 bo:pai 35
+Use of uninitialized value in subtraction (-) at /users/login/bampiti/3p/bin/unix-status-server line 880.
+1292345653 machine unknown
+1292345653 os_name HP-UX
+1292345653 os_release B.11.11
+1292345653 os_version U
+1292345653 memory_size unknown

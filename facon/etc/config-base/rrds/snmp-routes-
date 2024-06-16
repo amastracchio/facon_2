@@ -1,0 +1,35 @@
+# rrds/snmp-routes-* - route counts by BGP peer
+# CVS $Id: snmp-routes-,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Unfortunately, it doesn't scale to Internet size routing tables.  
+# I estimate that our Internet router at CRC, with 2 peers (full Internet
+# routing table from each), would take about 45 minutes to fetch 
+# this information.  It may be useful to someone else with smaller requirements
+
+source	snmp-route
+step 	300
+
+data	routes=routes-* GAUGE:1200:0:80000
+data	bestroutes=routes-best-* GAUGE:1200:0:80000
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month month 3month year
+
+graph	routes-* desc="This is collected by the snmp-route-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs are from the BGP (Border Gateway Protocol) MIB.  We extract the count of routes and best routes for a given interface address."
+	--title "##HOST## - Routes from peer ##WILDPART## (##GRAPHTIME##)"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'routes'
+	DEF:routes=##DB##:routes:AVERAGE
+	DEF:bestroutes=##DB##:bestroutes:AVERAGE
+	CDEF:missing=routes,UN,INF,UNKN,IF
+	'LINE1:routes###COLOR1##:total routes'
+	'LINE1:bestroutes###COLOR2##:best routes\l'
+	'GPRINT:routes:AVERAGE:total avg=%.1lf%s'
+	'GPRINT:routes:MAX:max=%.1lf%s\r'
+	'GPRINT:bestroutes:AVERAGE:best avg=%.1lf%s'
+	'GPRINT:bestroutes:MAX:max=%.1lf%s\r'
+	'AREA:missing###MISSING##:missing'
+

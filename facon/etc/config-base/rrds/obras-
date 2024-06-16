@@ -1,0 +1,296 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1169324=1169324  GAUGE:1200:0:U
+data    ddata1169324=1169324  DERIVE:1200:0:U
+alert    data1169324 delta< 10 10 10 
+data    data1169323=1169323  GAUGE:1200:0:U
+data    ddata1169323=1169323  DERIVE:1200:0:U
+alert    data1169323 delta< 10 10 10 
+data    data1169322=1169322  GAUGE:1200:0:U
+data    ddata1169322=1169322  DERIVE:1200:0:U
+alert    data1169322 delta< 10 10 10 
+data    data1169321=1169321  GAUGE:1200:0:U
+data    ddata1169321=1169321  DERIVE:1200:0:U
+alert    data1169321 delta< 10 10 10 
+data    data1169313=1169313  GAUGE:1200:0:U
+data    ddata1169313=1169313  DERIVE:1200:0:U
+alert    data1169313 delta< 10 10 10 
+data    data1169311=1169311  GAUGE:1200:0:U
+data    ddata1169311=1169311  DERIVE:1200:0:U
+alert    data1169311 delta< 10 10 10 
+data    data1169310=1169310  GAUGE:1200:0:U
+data    ddata1169310=1169310  DERIVE:1200:0:U
+alert    data1169310 delta< 10 10 10 
+data    data1169309=1169309  GAUGE:1200:0:U
+data    ddata1169309=1169309  DERIVE:1200:0:U
+alert    data1169309 delta< 10 10 10 
+data    data1169307=1169307  GAUGE:1200:0:U
+data    ddata1169307=1169307  DERIVE:1200:0:U
+alert    data1169307 delta< 10 10 10 
+data    data1162173=1162173  GAUGE:1200:0:U
+data    ddata1162173=1162173  DERIVE:1200:0:U
+alert    data1162173 delta< 10 10 10 
+data    data1097819=1097819  GAUGE:1200:0:U
+data    ddata1097819=1097819  DERIVE:1200:0:U
+alert    data1097819 delta< 10 10 10 
+data    data1097820=1097820  GAUGE:1200:0:U
+data    ddata1097820=1097820  DERIVE:1200:0:U
+alert    data1097820 delta< 10 10 10 
+data    data1097821=1097821  GAUGE:1200:0:U
+data    ddata1097821=1097821  DERIVE:1200:0:U
+alert    data1097821 delta< 10 10 10 
+data    data1097822=1097822  GAUGE:1200:0:U
+data    ddata1097822=1097822  DERIVE:1200:0:U
+alert    data1097822 delta< 10 10 10 
+data    data1097823=1097823  GAUGE:1200:0:U
+data    ddata1097823=1097823  DERIVE:1200:0:U
+alert    data1097823 delta< 10 10 10 
+data    data1097824=1097824  GAUGE:1200:0:U
+data    ddata1097824=1097824  DERIVE:1200:0:U
+alert    data1097824 delta< 10 10 10 
+data    data1097825=1097825  GAUGE:1200:0:U
+data    ddata1097825=1097825  DERIVE:1200:0:U
+alert    data1097825 delta< 10 10 10 
+data    data1097826=1097826  GAUGE:1200:0:U
+data    ddata1097826=1097826  DERIVE:1200:0:U
+alert    data1097826 delta< 10 10 10 
+data    data1097827=1097827  GAUGE:1200:0:U
+data    ddata1097827=1097827  DERIVE:1200:0:U
+alert    data1097827 delta< 10 10 10 
+data    data1097828=1097828  GAUGE:1200:0:U
+data    ddata1097828=1097828  DERIVE:1200:0:U
+alert    data1097828 delta< 10 10 10 
+data    data1160925=1160925  GAUGE:1200:0:U
+data    ddata1160925=1160925  DERIVE:1200:0:U
+alert    data1160925 delta< 10 10 10 
+data    data1160924=1160924  GAUGE:1200:0:U
+data    ddata1160924=1160924  DERIVE:1200:0:U
+alert    data1160924 delta< 10 10 10 
+data    data1167234=1167234  GAUGE:1200:0:U
+data    ddata1167234=1167234  DERIVE:1200:0:U
+alert    data1167234 delta< 10 10 10 
+data    data1167063=1167063  GAUGE:1200:0:U
+data    ddata1167063=1167063  DERIVE:1200:0:U
+alert    data1167063 delta< 10 10 10 
+data    data1167062=1167062  GAUGE:1200:0:U
+data    ddata1167062=1167062  DERIVE:1200:0:U
+alert    data1167062 delta< 10 10 10 
+data    data1167060=1167060  GAUGE:1200:0:U
+data    ddata1167060=1167060  DERIVE:1200:0:U
+alert    data1167060 delta< 10 10 10 
+data    data1167044=1167044  GAUGE:1200:0:U
+data    ddata1167044=1167044  DERIVE:1200:0:U
+alert    data1167044 delta< 10 10 10 
+data    data1425582=1425582  GAUGE:1200:0:U
+data    ddata1425582=1425582  DERIVE:1200:0:U
+alert    data1425582 delta< 10 10 10 
+data    data1425570=1425570  GAUGE:1200:0:U
+data    ddata1425570=1425570  DERIVE:1200:0:U
+alert    data1425570 delta< 10 10 10 
+data    data1426342=1426342  GAUGE:1200:0:U
+data    ddata1426342=1426342  DERIVE:1200:0:U
+alert    data1426342 delta< 10 10 10 
+data    data1426343=1426343  GAUGE:1200:0:U
+data    ddata1426343=1426343  DERIVE:1200:0:U
+alert    data1426343 delta< 10 10 10 
+data    data1426339=1426339  GAUGE:1200:0:U
+data    ddata1426339=1426339  DERIVE:1200:0:U
+alert    data1426339 delta< 10 10 10 
+data    data1426331=1426331  GAUGE:1200:0:U
+data    ddata1426331=1426331  DERIVE:1200:0:U
+alert    data1426331 delta< 10 10 10 
+data    data1426328=1426328  GAUGE:1200:0:U
+data    ddata1426328=1426328  DERIVE:1200:0:U
+alert    data1426328 delta< 10 10 10 
+data    data1426325=1426325  GAUGE:1200:0:U
+data    ddata1426325=1426325  DERIVE:1200:0:U
+alert    data1426325 delta< 10 10 10 
+data    data1426322=1426322  GAUGE:1200:0:U
+data    ddata1426322=1426322  DERIVE:1200:0:U
+alert    data1426322 delta< 10 10 10 
+data    data1426319=1426319  GAUGE:1200:0:U
+data    ddata1426319=1426319  DERIVE:1200:0:U
+alert    data1426319 delta< 10 10 10 
+data    data1015774=1015774  GAUGE:1200:0:U
+data    ddata1015774=1015774  DERIVE:1200:0:U
+alert    data1015774 delta< 10 10 10 
+data    data1615783=1615783  GAUGE:1200:0:U
+data    ddata1615783=1615783  DERIVE:1200:0:U
+alert    data1615783 delta< 10 10 10 
+data    responsetime=1169324-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1169324=##DB##:data1169324:AVERAGE
+      'LINE2:data1169324###COLOR1##:Tabla Aserrada Seca En Horno 1x3x2.44 SKU 1169324 ' 
+      'GPRINT:data1169324:LAST: last=%.1lf\n'
+      DEF:data1169323=##DB##:data1169323:AVERAGE
+      'LINE2:data1169323###COLOR2##:Tabla Aserrada Seca En Horno 1x4x2.44 SKU 1169323 ' 
+      'GPRINT:data1169323:LAST: last=%.1lf\n'
+      DEF:data1169322=##DB##:data1169322:AVERAGE
+      'LINE2:data1169322###COLOR3##:Tabla Aserrada Seca En Horno 1x5x2.44 SKU 1169322 ' 
+      'GPRINT:data1169322:LAST: last=%.1lf\n'
+      DEF:data1169321=##DB##:data1169321:AVERAGE
+      'LINE2:data1169321###COLOR4##:Tabla Aserrada Seca En Horno 1x6x2.44 SKU 1169321 ' 
+      'GPRINT:data1169321:LAST: last=%.1lf\n'
+      DEF:data1169313=##DB##:data1169313:AVERAGE
+      'LINE2:data1169313###COLOR5##:Tabla Aserrada Seca En Horno G-2 1x5x1.5 SKU 1169313 ' 
+      'GPRINT:data1169313:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1169311=##DB##:data1169311:AVERAGE
+      'LINE2:data1169311###COLOR1##:Tabla Aserrada Seca En Horno G-2 1x4x1.2 SKU 1169311 ' 
+      'GPRINT:data1169311:LAST: last=%.1lf\n'
+      DEF:data1169310=##DB##:data1169310:AVERAGE
+      'LINE2:data1169310###COLOR2##:Tabla Aserrada Seca En Horno G-2 1x4x1.5 SKU 1169310 ' 
+      'GPRINT:data1169310:LAST: last=%.1lf\n'
+      DEF:data1169309=##DB##:data1169309:AVERAGE
+      'LINE2:data1169309###COLOR3##:Tabla Aserrada Seca En Horno G-2 1x4x1.8 SKU 1169309 ' 
+      'GPRINT:data1169309:LAST: last=%.1lf\n'
+      DEF:data1169307=##DB##:data1169307:AVERAGE
+      'LINE2:data1169307###COLOR4##:Tabla Aserrada Seca En Horno 1x3x1.52 SKU 1169307 ' 
+      'GPRINT:data1169307:LAST: last=%.1lf\n'
+      DEF:data1162173=##DB##:data1162173:AVERAGE
+      'LINE2:data1162173###COLOR5##:Tabla Rustica Seco En Horno 2x3x1.52 SKU 1162173 ' 
+      'GPRINT:data1162173:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1097819=##DB##:data1097819:AVERAGE
+      'LINE2:data1097819###COLOR1##:Euca Obra 1/2X1 Paq X 20Ml SKU 1097819 ' 
+      'GPRINT:data1097819:LAST: last=%.1lf\n'
+      DEF:data1097820=##DB##:data1097820:AVERAGE
+      'LINE2:data1097820###COLOR2##:Euca Obra 1/2X1 1/2 Paq X 20Ml SKU 1097820 ' 
+      'GPRINT:data1097820:LAST: last=%.1lf\n'
+      DEF:data1097821=##DB##:data1097821:AVERAGE
+      'LINE2:data1097821###COLOR3##:Euca Obra 1X1X3.66M Paq X 12 Un SKU 1097821 ' 
+      'GPRINT:data1097821:LAST: last=%.1lf\n'
+      DEF:data1097822=##DB##:data1097822:AVERAGE
+      'LINE2:data1097822###COLOR4##:Euca Obra 1X2X3.66M Paq X 6 Un SKU 1097822 ' 
+      'GPRINT:data1097822:LAST: last=%.1lf\n'
+      DEF:data1097823=##DB##:data1097823:AVERAGE
+      'LINE2:data1097823###COLOR5##:Euca Obra 1X3X3.66M SKU 1097823 ' 
+      'GPRINT:data1097823:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1097824=##DB##:data1097824:AVERAGE
+      'LINE2:data1097824###COLOR1##:Euca Obra 1X4X3.66M SKU 1097824 ' 
+      'GPRINT:data1097824:LAST: last=%.1lf\n'
+      DEF:data1097825=##DB##:data1097825:AVERAGE
+      'LINE2:data1097825###COLOR2##:Euca Obra 1X5X3.66M SKU 1097825 ' 
+      'GPRINT:data1097825:LAST: last=%.1lf\n'
+      DEF:data1097826=##DB##:data1097826:AVERAGE
+      'LINE2:data1097826###COLOR3##:Euca Obra 1X6X3.66M SKU 1097826 ' 
+      'GPRINT:data1097826:LAST: last=%.1lf\n'
+      DEF:data1097827=##DB##:data1097827:AVERAGE
+      'LINE2:data1097827###COLOR4##:Euca Obra 2X2X3.66M Paq X 3 Un SKU 1097827 ' 
+      'GPRINT:data1097827:LAST: last=%.1lf\n'
+      DEF:data1097828=##DB##:data1097828:AVERAGE
+      'LINE2:data1097828###COLOR5##:Euca Obra 3X3X3.66M SKU 1097828 ' 
+      'GPRINT:data1097828:LAST: last=%.1lf\n'
+
+graph   value5-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1160925=##DB##:data1160925:AVERAGE
+      'LINE2:data1160925###COLOR1##:Poste Perimetral 3X3X1.80M SKU 1160925 ' 
+      'GPRINT:data1160925:LAST: last=%.1lf\n'
+      DEF:data1160924=##DB##:data1160924:AVERAGE
+      'LINE2:data1160924###COLOR2##:Poste Perimetral 3X3X2.40M SKU 1160924 ' 
+      'GPRINT:data1160924:LAST: last=%.1lf\n'
+      DEF:data1167234=##DB##:data1167234:AVERAGE
+      'LINE2:data1167234###COLOR3##:E116-155 Alamo Bruto 1x4x2.2 Mts (Mc) SKU 1167234 ' 
+      'GPRINT:data1167234:LAST: last=%.1lf\n'
+      DEF:data1167063=##DB##:data1167063:AVERAGE
+      'LINE2:data1167063###COLOR4##:E122 Alamo Bruto 1/2x2x2.2 Mts SKU 1167063 ' 
+      'GPRINT:data1167063:LAST: last=%.1lf\n'
+      DEF:data1167062=##DB##:data1167062:AVERAGE
+      'LINE2:data1167062###COLOR5##:E122 Alamo Bruto 1x1x2.2 Mts (Mc) SKU 1167062 ' 
+      'GPRINT:data1167062:LAST: last=%.1lf\n'
+
+graph   value6-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #6 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1167060=##DB##:data1167060:AVERAGE
+      'LINE2:data1167060###COLOR1##:E122 Alamo Bruto 11/2x2x2.2 Mts SKU 1167060 ' 
+      'GPRINT:data1167060:LAST: last=%.1lf\n'
+      DEF:data1167044=##DB##:data1167044:AVERAGE
+      'LINE2:data1167044###COLOR2##:E122 Alamo Bruto 1x6x2.2 Mts SKU 1167044 ' 
+      'GPRINT:data1167044:LAST: last=%.1lf\n'
+      DEF:data1425582=##DB##:data1425582:AVERAGE
+      'LINE2:data1425582###COLOR3##:Euca Obra 1X2X3.36M Paq X 6 Un SKU 1425582 ' 
+      'GPRINT:data1425582:LAST: last=%.1lf\n'
+      DEF:data1425570=##DB##:data1425570:AVERAGE
+      'LINE2:data1425570###COLOR4##:Euca Obra 1X1X3.36M Paq X 12 Un SKU 1425570 ' 
+      'GPRINT:data1425570:LAST: last=%.1lf\n'
+      DEF:data1426342=##DB##:data1426342:AVERAGE
+      'LINE2:data1426342###COLOR5##:Euca Obra 1/2X1 Paq X 20Ml SKU 1426342 ' 
+      'GPRINT:data1426342:LAST: last=%.1lf\n'
+
+graph   value7-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #7 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1426343=##DB##:data1426343:AVERAGE
+      'LINE2:data1426343###COLOR1##:Euca Obra 1/2X1 1/2 Paq X 20Ml SKU 1426343 ' 
+      'GPRINT:data1426343:LAST: last=%.1lf\n'
+      DEF:data1426339=##DB##:data1426339:AVERAGE
+      'LINE2:data1426339###COLOR2##:Euca Obra 3X3X3.36M SKU 1426339 ' 
+      'GPRINT:data1426339:LAST: last=%.1lf\n'
+      DEF:data1426331=##DB##:data1426331:AVERAGE
+      'LINE2:data1426331###COLOR3##:Euca Obra 2X2X3.36M Paq X 3 Un SKU 1426331 ' 
+      'GPRINT:data1426331:LAST: last=%.1lf\n'
+      DEF:data1426328=##DB##:data1426328:AVERAGE
+      'LINE2:data1426328###COLOR4##:Euca Obra 1X6X3.36M SKU 1426328 ' 
+      'GPRINT:data1426328:LAST: last=%.1lf\n'
+      DEF:data1426325=##DB##:data1426325:AVERAGE
+      'LINE2:data1426325###COLOR5##:Euca Obra 1X5X3.36M SKU 1426325 ' 
+      'GPRINT:data1426325:LAST: last=%.1lf\n'
+
+graph   value8-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15529&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #8 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1426322=##DB##:data1426322:AVERAGE
+      'LINE2:data1426322###COLOR1##:Euca Obra 1X4X3.36M SKU 1426322 ' 
+      'GPRINT:data1426322:LAST: last=%.1lf\n'
+      DEF:data1426319=##DB##:data1426319:AVERAGE
+      'LINE2:data1426319###COLOR2##:Euca Obra 1X3X3.36M SKU 1426319 ' 
+      'GPRINT:data1426319:LAST: last=%.1lf\n'
+      DEF:data1015774=##DB##:data1015774:AVERAGE
+      'LINE2:data1015774###COLOR3##:Tabla Saligna 1x8x336cm SKU 1015774 ' 
+      'GPRINT:data1015774:LAST: last=%.1lf\n'
+      DEF:data1615783=##DB##:data1615783:AVERAGE
+      'LINE2:data1615783###COLOR4##:Poste Impregnado 90Mmx2.20 Mts SKU 1615783 ' 
+      'GPRINT:data1615783:LAST: last=%.1lf\n'
+

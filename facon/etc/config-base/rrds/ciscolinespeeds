@@ -1,0 +1,65 @@
+# rrds/ciscolinespeeds - speed distributions for Cisco Access Servers
+# CVS $Id: ciscolinespeeds,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+#	Note: this is collected via SNMP, though not the snmp-collector.
+
+source	cisco-access-server
+step	300
+
+data	b1200 COUNTER:600:0:100
+data	b2400 COUNTER:600:0:100
+data	b9600 COUNTER:600:0:100
+data	b14400 COUNTER:600:0:100
+data	b19200 COUNTER:600:0:100
+data	b24000 COUNTER:600:0:100
+data	b28800 COUNTER:600:0:100
+data	b33600 COUNTER:600:0:100
+data	b40000 COUNTER:600:0:100
+data	b45000 COUNTER:600:0:100
+data	b50000 COUNTER:600:0:100
+data	b56000 COUNTER:600:0:100
+data	bmore COUNTER:600:0:100
+data	utilization GAUGE:600:0:100
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month month 3month year
+
+graph	speed desc='This is collected by the cisco-access-server-collector.  It works by sending SNMP queries to the host for certain RRD-specified OIDs.  In this case, the OIDS are only implemented in <A HREF="http://www.cisco.com">Cisco</A> Access servers.  They were ugly enough that the regular snmp-collector could not cope with them, so I had to write a special-purpose collector.  Modem Carrier Speeds show the percentage of the time that various baud-rates were achieved in connecting to the Access Server.  The Utilization shows what percent of the available bandwidth was in use.'
+	--title "##HOST## - Modem Carrier Speeds (##GRAPHTIME##)"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 100 --rigid
+	--vertical-label "Percent (%)"
+	DEF:b1200=##DB##:b1200:AVERAGE
+	DEF:b2400=##DB##:b2400:AVERAGE
+	DEF:b9600=##DB##:b9600:AVERAGE
+	DEF:b14400=##DB##:b14400:AVERAGE
+	DEF:b19200=##DB##:b19200:AVERAGE
+	DEF:b24000=##DB##:b24000:AVERAGE
+	DEF:b28800=##DB##:b28800:AVERAGE
+	DEF:b33600=##DB##:b33600:AVERAGE
+	DEF:b40000=##DB##:b40000:AVERAGE
+	DEF:b45000=##DB##:b45000:AVERAGE
+	DEF:b50000=##DB##:b50000:AVERAGE
+	DEF:b56000=##DB##:b56000:AVERAGE
+	DEF:bmore=##DB##:bmore:AVERAGE
+	DEF:utilization=##DB##:utilization:AVERAGE
+	CDEF:missing=bmore,UN,INF,UNKN,IF
+	'AREA:b1200###COLOR1##:    1- 1200'
+	'STACK:b2400###COLOR2##: 1201- 2400'
+	'STACK:b9600###COLOR3##: 2401- 9600'
+	'STACK:b14400###COLOR4##: 9601-14400'
+	'STACK:b19200###COLOR5##:14401-19200'
+	'STACK:b24000###COLOR6##:19201-24000'
+	'STACK:b28800###COLOR1a##:24001-28800'
+	'STACK:b33600###COLOR2a##:28801-33600'
+	'STACK:b40000###COLOR3a##:33601-40000'
+	'STACK:b45000###COLOR4a##:40001-45000'
+	'STACK:b50000###COLOR5a##:45001-50000'
+	'STACK:b50000###COLOR6a##:45001-50000'
+	'STACK:b56000###COLOR1##:50001-56000'
+	'STACK:bmore###COLOR2##:56001+'
+	'LINE1:utilization###LINECOLOR##:utilization'
+	'AREA:missing###MISSING##:missing'
+

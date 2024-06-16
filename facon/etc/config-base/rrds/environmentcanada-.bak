@@ -1,0 +1,95 @@
+# rrds/environmentcanada-* - parse Environment Canada's weather web-page
+# CVS $Id: environmentcanada-,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	port
+step	300
+port	80
+
+data	status=environmentcanada-* GAUGE:1200:0:U
+data	response=environmentcanada-*-response GAUGE:1200:0:U
+data	temperature=environmentcanada-*:value1 GAUGE:1200:-60:40
+data	pressure=environmentcanada-*:value2 GAUGE:1200:80:130
+data	windspeed=environmentcanada-*:value9 GAUGE:1200:-80:60
+data	windchill=environmentcanada-*:value10 GAUGE:1200:-80:60
+data	dewpoint=environmentcanada-*:value7 GAUGE:1200:90:120
+data	humidity=environmentcanada-*:value6 GAUGE:1200:0:100
+data	visibility=&m_or_km_to_km(environmentcanada-*:value9) GAUGE:1200:0:100
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	response-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, measuring the time that the service takes to respond.  The Response Time is how long it took the Environment Canada web-server to respond with the web-page."
+	--title '##RRD## Response for ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:response:AVERAGE:%.0lf%s,'
+	'GPRINT:response:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	temperatures-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response."
+	--title 'Temperatures for ##WILDPART## (##GRAPHTIME##)'
+	--vertical-label 'degrees C'
+	DEF:temperature=##DB##:temperature:AVERAGE
+	DEF:dewpoint=##DB##:dewpoint:AVERAGE
+	DEF:windchill=##DB##:windchill:AVERAGE
+	CDEF:missing=temperature,UN,INF,UNKN,IF
+	'LINE2:temperature###COLOR1##:temperature'
+	'LINE2:dewpoint###COLOR2##:dewpoint'
+	'LINE2:windchill###COLOR3##:windchill'
+	'GPRINT:temperature:MIN:temperature\: min=%.1lf'
+	'GPRINT:temperature:AVERAGE:avg=%.1lf'
+	'GPRINT:temperature:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	humidity-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response."
+	--title 'Humidity for ##WILDPART## (##GRAPHTIME##)'
+	--vertical-label '%'
+	DEF:humidity=##DB##:humidity:AVERAGE
+	CDEF:missing=humidity,UN,INF,UNKN,IF
+	'LINE2:humidity###COLOR1##:humidity'
+	'GPRINT:humidity:MIN:min=%.1lf'
+	'GPRINT:humidity:AVERAGE:avg=%.1lf'
+	'GPRINT:humidity:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	pressure-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response."
+	--title 'Pressure for ##WILDPART## (##GRAPHTIME##)'
+	--upper-limit 103 --lower-limit 99
+	--vertical-label 'kPa'
+	DEF:pressure=##DB##:pressure:AVERAGE
+	CDEF:missing=pressure,UN,INF,UNKN,IF
+	'LINE2:pressure###COLOR1##:pressure'
+	'GPRINT:pressure:MIN:min=%.1lf'
+	'GPRINT:pressure:AVERAGE:avg=%.1lf'
+	'GPRINT:pressure:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	windspeed-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response."
+	--title 'Wind-Speed for ##WILDPART## (##GRAPHTIME##)'
+	--vertical-label 'km/h'
+	DEF:windspeed=##DB##:windspeed:AVERAGE
+	CDEF:missing=windspeed,UN,INF,UNKN,IF
+	'LINE2:windspeed###COLOR1##:windspeed'
+	'GPRINT:windspeed:MIN:min=%.1lf'
+	'GPRINT:windspeed:AVERAGE:avg=%.1lf'
+	'GPRINT:windspeed:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	visibility-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response."
+	--title 'Visibility for ##WILDPART## (##GRAPHTIME##)'
+	--vertical-label 'km/h'
+	DEF:visibility=##DB##:visibility:AVERAGE
+	CDEF:missing=visibility,UN,INF,UNKN,IF
+	'LINE2:visibility###COLOR1##:visibility'
+	'GPRINT:visibility:MIN:min=%.1lf'
+	'GPRINT:visibility:AVERAGE:avg=%.1lf'
+	'GPRINT:visibility:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,34 @@
+# general - overall configuration stuff for remstats
+# $Id: general,v 1.10 2002/08/14 16:50:14 remstats Exp $
+#
+# The data for a given host is stored under "DATADIR/$hostname/xxx.rrd"
+datadir /var/remstats/data
+# where to put the datapage scripts
+datapagedir /var/remstats/data/DATAPAGES
+# How long before we count status as stale
+staletime	1800
+# How long a machine must be up before it stops being flagged as recently up
+minuptime	86400
+# Do we want uptime alerts?  Trigger it if uptime is less than this (in seconds)
+uptimealert	3600
+# Where are log-files stored (long-term records of alerts)
+logdir /var/remstats/data/LOGS
+# Some SNMP traps are boring (most of them).  Ignore the ones which
+# match this pattern
+#trapignore FIXME
+# How long to let a collector run before assuming that it's hung.
+watchdogtimer	500
+# Pre-collector ping pass
+# pinger ping-collector
+# Collectors to run
+collectors log nt-status ping port snmp snmp-route unix-status 
+# Other collectors: cisco-access nt-status 
+# Monitors to run
+# monitors ping alert
+# Pagemakers to run
+# pagemakers graph-writer snmpif-setspeed datapage-alert-writer 
+#	datapage-interfaces datapage-inventory datapage-status
+# How many patterns can the port-collector find for a given rrd
+max-port-patterns 15
+# Force collection of data
+force-collection yes

@@ -1,0 +1,4 @@
+# views/sample-with-template 
+
+desc	a sample view using a template
+template sample-template

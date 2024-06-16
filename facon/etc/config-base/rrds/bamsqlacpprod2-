@@ -1,0 +1,36 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	interfaces=interfaces:* GAUGE:1800:0:U  bamsql *
+data	mk1_index_tmp=mk1_index_tmp:* GAUGE:1800:0:U  bamsql *
+data	neo_temp=neo_temp:* GAUGE:1800:0:U  bamsql *
+data	bo=bo:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:interfaces=##DB##:interfaces:AVERAGE
+	 DEF:mk1_index_tmp=##DB##:mk1_index_tmp:AVERAGE
+	 DEF:neo_temp=##DB##:neo_temp:AVERAGE
+	 DEF:bo=##DB##:bo:AVERAGE
+      CDEF:missing=interfaces,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:interfaces###COLOR1##:interfaces'
+	'LINE2:mk1_index_tmp###COLOR2##:mk1_index_tmp'
+	'LINE2:neo_temp###COLOR3##:neo_temp'
+	'LINE2:bo###COLOR4##:bo'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:interfaces:LAST:interfaces         = %.2lf\l'
+	'GPRINT:mk1_index_tmp:LAST:mk1_index_tmp         = %.2lf\l'
+	'GPRINT:neo_temp:LAST:neo_temp         = %.2lf\l'
+	'GPRINT:bo:LAST:bo         = %.2lf\l'

@@ -1,0 +1,12 @@
+# alerts - what to do for various levels of alert
+# $Id: alerts,v 1.4 2002/05/28 15:54:51 remstats Exp $
+
+# N.B. Only the first matched alert is triggered, so put the wild-cards LAST
+# for each level.
+
+# level	host realrrd var mintime interval adresses
+# If interval is zero, you get only one alert, no repeats
+
+# warn	* MISC UPTIME 0 0 alerts
+error	* * * 600 0 alerts
+critical * * * 600 0 alerts

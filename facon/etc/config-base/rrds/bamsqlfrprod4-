@@ -1,0 +1,56 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	temp_mv_4=temp_mv_4:* GAUGE:1200:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1200:0:U  bamsql *
+data	neo_index=neo_index:* GAUGE:1200:0:U  bamsql *
+data	temp_mv=temp_mv:* GAUGE:1200:0:U  bamsql *
+data	bamac2=bamac2:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_10=temp_mv_10:* GAUGE:1200:0:U  bamsql *
+data	neo_temp=neo_temp:* GAUGE:1200:0:U  bamsql *
+data	bamac_10m=bamac_10m:* GAUGE:1200:0:U  bamsql *
+data	ibamac1=ibamac1:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:temp_mv_4=##DB##:temp_mv_4:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:neo_index=##DB##:neo_index:AVERAGE
+	 DEF:temp_mv=##DB##:temp_mv:AVERAGE
+	 DEF:bamac2=##DB##:bamac2:AVERAGE
+	 DEF:temp_mv_10=##DB##:temp_mv_10:AVERAGE
+	 DEF:neo_temp=##DB##:neo_temp:AVERAGE
+	 DEF:bamac_10m=##DB##:bamac_10m:AVERAGE
+	 DEF:ibamac1=##DB##:ibamac1:AVERAGE
+      CDEF:missing=temp_mv_4,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:temp_mv_4###COLOR1##:temp_mv_4'
+	'LINE2:rbs###COLOR2##:rbs'
+	'LINE2:neo_index###COLOR3##:neo_index'
+	'LINE2:temp_mv###COLOR4##:temp_mv'
+	'LINE2:bamac2###COLOR5##:bamac2'
+	'LINE2:temp_mv_10###COLOR6##:temp_mv_10'
+	'LINE2:neo_temp###COLOR7##:neo_temp'
+	'LINE2:bamac_10m###COLOR8##:bamac_10m'
+	'LINE2:ibamac1###COLOR9##:ibamac1'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:temp_mv_4:LAST:temp_mv_4         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:neo_index:LAST:neo_index         = %.2lf\l'
+	'GPRINT:temp_mv:LAST:temp_mv         = %.2lf\l'
+	'GPRINT:bamac2:LAST:bamac2         = %.2lf\l'
+	'GPRINT:temp_mv_10:LAST:temp_mv_10         = %.2lf\l'
+	'GPRINT:neo_temp:LAST:neo_temp         = %.2lf\l'
+	'GPRINT:bamac_10m:LAST:bamac_10m         = %.2lf\l'
+	'GPRINT:ibamac1:LAST:ibamac1         = %.2lf\l'

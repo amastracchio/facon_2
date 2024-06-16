@@ -1,0 +1,204 @@
+# oids - names for OIDs so we don't need a MIB parser
+# $Id: oids,v 1.8 2002/08/14 11:41:30 facon Exp $
+
+# system OIDs
+sysDescr	1.3.6.1.2.1.1.1.0
+sysUptime	1.3.6.1.2.1.1.3.0
+ifNumber	1.3.6.1.2.1.2.1.0
+
+
+# interface OIDs
+ifDescr		1.3.6.1.2.1.2.2.1.2
+ifType		1.3.6.1.2.1.2.2.1.3
+ifInErrors	1.3.6.1.2.1.2.2.1.14
+ifOutErrors	1.3.6.1.2.1.2.2.1.20
+ifInOctets	1.3.6.1.2.1.2.2.1.10
+ifOutOctets	1.3.6.1.2.1.2.2.1.16
+ifInDiscards	1.3.6.1.2.1.2.2.1.13
+ifOutDiscards	1.3.6.1.2.1.2.2.1.19
+ifInUcastPkts	1.3.6.1.2.1.2.2.1.11
+ifOutUcastPkts	1.3.6.1.2.1.2.2.1.17
+ifInNUcastPkts	1.3.6.1.2.1.2.2.1.12
+ifOutNUcastPkts	1.3.6.1.2.1.2.2.1.18
+ifSpeed		1.3.6.1.2.1.2.2.1.5
+ifOperStatus	1.3.6.1.2.1.2.2.1.8
+ifAdminStatus	1.3.6.1.2.1.2.2.1.7
+ifName		1.3.6.1.2.1.31.1.1.1.1
+ifAlias		1.3.6.1.2.1.31.1.1.1.18
+
+# IP
+ipForwarding	1.3.6.1.2.1.4.1.0
+DefaultIpRouteIfIndex	1.3.6.1.2.1.4.21.1.2.0.0.0.0
+DefaultIpRouteNextHop	1.3.6.1.2.1.4.21.1.7.0.0.0.0
+
+# ARI
+laLoadInt1	1.3.6.1.4.1.2021.10.1.5.1
+laLoadInt2	1.3.6.1.4.1.2021.10.1.5.2
+laLoadInt3	1.3.6.1.4.1.2021.10.1.5.3
+#dfsize		UCD-SNMP-MIB::dskTotal.1 
+dfsize		1.3.6.1.4.1.2021.9.1.6.1
+dffree		1.3.6.1.4.1.2021.9.1.7.1
+#dffree		UCD-SNMP-MIB::dskAvail.1 
+#dfused		UCD-SNMP-MIB::dskUsed.1 
+dfused		1.3.6.1.4.1.2021.9.1.8.1
+
+dskDevice	1.3.6.1.4.1.2021.9.1.3
+dskMinium	1.3.6.1.4.1.2021.9.1.4
+dskMinPercent	1.3.6.1.4.1.2021.9.1.5
+dskTotal	1.3.6.1.4.1.2021.9.1.6
+dskAvail	1.3.6.1.4.1.2021.9.1.7
+dskUsed	1.3.6.1.4.1.2021.9.1.8
+dskPercent	1.3.6.1.4.1.2021.9.1.9
+dskPercentNode	1.3.6.1.4.1.2021.9.1.10
+dskTotalLow	1.3.6.1.4.1.2021.9.1.11
+dskTotalHigh	1.3.6.1.4.1.2021.9.1.12
+dskAvailLow	1.3.6.1.4.1.2021.9.1.13
+dskAvailHigh	1.3.6.1.4.1.2021.9.1.14
+dskUsedLow	1.3.6.1.4.1.2021.9.1.15
+dskUsedHigh	1.3.6.1.4.1.2021.9.1.16
+dskErrorFlag	1.3.6.1.4.1.2021.9.1.100
+
+
+# Cisco router OIDs
+CiscoCpuLoad	1.3.6.1.4.1.9.2.1.58.0
+CiscoFreeMem	1.3.6.1.4.1.9.2.1.8.0
+CiscoTotalMem	1.3.6.1.4.1.9.3.6.6.0
+CiscoCpmActiveDS0s	1.3.6.1.4.1.9.10.19.1.1.4.0
+CiscoCpmDS0CallType	1.3.6.1.4.1.9.10.19.1.1.1.1.5.0.0
+# Temperature monitoring OIDs (only on high-end routers)
+CiscoTempInlet		1.3.6.1.4.1.9.9.13.1.3.1.3.1
+CiscoTempOutlet		1.3.6.1.4.1.9.9.13.1.3.1.3.3
+
+# Can't find a MIB for this one
+CiscoComment	1.3.6.1.4.1.9.2.2.1.1.28
+# These are for pre IOS 5.0
+#PixTotalMem	1.3.6.1.4.1.9.10.99999.1.2.3.1.1.6.13.1.3.6.1.4.1.9.10.999999.1.1.22.1.0.0.15
+#PixFreeMem	1.3.6.1.4.1.9.10.99999.1.2.3.1.1.6.13.1.3.6.1.4.1.9.10.999999.1.1.22.1.0.0.20
+#PixSessions	1.3.6.1.4.1.9.10.99999.1.2.3.2.1.5.12.1.3.6.1.4.1.9.10.999999.1.1.1.0.1108
+# These are for IOS 5.1
+PixUsedMem		1.3.6.1.4.1.9.9.48.1.1.1.5.1
+PixFreeMem		1.3.6.1.4.1.9.9.48.1.1.1.6.1
+PixSessions		1.3.6.1.4.1.9.9.147.1.2.2.2.1.5.40.6
+PixMaxSessions	1.3.6.1.4.1.9.9.147.1.2.2.2.1.5.40.7
+
+
+# Cisco 5300 Access Server line-status
+cmCallDuration		1.3.6.1.4.1.9.9.47.1.3.1.1.9
+cmCallPhoneNumber	1.3.6.1.4.1.9.9.47.1.3.1.1.10
+cmCallerID		1.3.6.1.4.1.9.9.47.1.3.1.1.11
+cmInterface		1.3.6.1.4.1.9.9.47.1.3.1.1.1
+cmManufacturerID	1.3.6.1.4.1.9.9.47.1.3.1.1.3
+cmModulationSchemeUsed	1.3.6.1.4.1.9.9.47.1.3.1.1.12
+cmProductDetails	1.3.6.1.4.1.9.9.47.1.3.1.1.4
+cmProtocolUsed		1.3.6.1.4.1.9.9.47.1.3.1.1.13
+cmRXAnalogSignalLevel	1.3.6.1.4.1.9.9.47.1.3.1.1.17
+cmRXRate		1.3.6.1.4.1.9.9.47.1.3.1.1.15
+cmState			1.3.6.1.4.1.9.9.47.1.3.1.1.6
+cmTXAnalogSignalLevel	1.3.6.1.4.1.9.9.47.1.3.1.1.16
+cmTXRate		1.3.6.1.4.1.9.9.47.1.3.1.1.14
+
+# APC Uninterruptable-Power-Supply
+APCUpsBasicIdentModel			1.3.6.1.4.1.318.1.1.1.1.1.1.0
+APCUpsAdvIdentFirmwareRevision		1.3.6.1.4.1.318.1.1.1.1.2.1.0
+APCUpsAdvIdentSerialNumber		1.3.6.1.4.1.318.1.1.1.1.2.3.0
+APCUpsAdvBatteryReplaceIndicator	1.3.6.1.4.1.318.1.1.1.2.2.4.0
+APCUpsBasicBatteryStatus		1.3.6.1.4.1.318.1.1.1.2.1.1.0
+APCUpsBasicBatteryTimeOnBattery		1.3.6.1.4.1.318.1.1.1.2.1.2.0
+APCUpsAdvBatteryCapacity		1.3.6.1.4.1.318.1.1.1.2.2.1.0
+APCUpsAdvBatteryTemperature		1.3.6.1.4.1.318.1.1.1.2.2.2.0
+APCUpsAdvBatteryRunTimeRemaining	1.3.6.1.4.1.318.1.1.1.2.2.3.0
+APCUpsBasicInputPhase			1.3.6.1.4.1.318.1.1.1.3.1.1.0
+APCUpsAdvInputLineVoltage		1.3.6.1.4.1.318.1.1.1.3.2.1.0
+APCUpsAdvInputMaxLineVoltage		1.3.6.1.4.1.318.1.1.1.3.2.2.0
+APCUpsAdvInputMinLineVoltage		1.3.6.1.4.1.318.1.1.1.3.2.3.0
+APCUpsAdvInputFrequency			1.3.6.1.4.1.318.1.1.1.3.2.4.0
+APCUpsBasicOutputStatus			1.3.6.1.4.1.318.1.1.1.4.1.1.0
+APCUpsAdvOutputVoltage			1.3.6.1.4.1.318.1.1.1.4.2.1.0
+APCUpsAdvOutputFrequency		1.3.6.1.4.1.318.1.1.1.4.2.2.0
+APCUpsAdvOutputLoad			1.3.6.1.4.1.318.1.1.1.4.2.3.0
+APCUpsAdvOutputCurrent			1.3.6.1.4.1.318.1.1.1.4.2.4.0
+
+#enterprises.apc.products.hardware.measureUps.mUpsEnviron.mUpsEnvironAmbientTemperature.0
+APCmUpsEnvironAmbientTemperature	1.3.6.1.4.1.318.1.1.2.1.1.0
+#enterprises.apc.products.hardware.measureUps.mUpsEnviron.mUpsEnvironRelativeHumidity.0
+APCmUpsEnvironRelativeHumidity		1.3.6.1.4.1.318.1.1.2.1.2.0
+
+# NetworkAppliance CPU time
+NetappCpuBusyTime			1.3.6.1.4.1.789.1.2.1.2.0
+NetappCpuUpTime				1.3.6.1.4.1.789.1.2.1.1.0
+NetappCpuIdleTime			1.3.6.1.4.1.789.1.2.1.4.0
+
+
+# Squid stats
+cacheSysVMsize			1.3.6.1.4.1.3495.1.1.1.0
+cacheSysStorage			1.3.6.1.4.1.3495.1.1.2.0
+cacheMemUsage			1.3.6.1.4.1.3495.1.3.1.4.0
+cacheCpuUsage			1.3.6.1.4.1.3495.1.3.1.5.0
+cacheNumObjCount		1.3.6.1.4.1.3495.1.3.1.7.0
+cacheClientHttpRequests		1.3.6.1.4.1.3495.1.3.2.1.1.0
+cacheHttpHits			1.3.6.1.4.1.3495.1.3.2.1.2.0
+cacheHttpInKb			1.3.6.1.4.1.3495.1.3.2.1.4.0
+cacheHttpOutKb			1.3.6.1.4.1.3495.1.3.2.1.5.0
+cacheClients			1.3.6.1.4.1.3495.1.3.2.1.15.0
+
+# BGP4 OIDS, for peer status-report
+bgpLocalAs			1.3.6.1.2.1.15.2.0
+# add IP address for peer to each of the rest
+bgpPeerState			1.3.6.1.2.1.15.3.1.2
+bgpPeerRemoteAs			1.3.6.1.2.1.15.3.1.9
+bgpPeerInUpdates		1.3.6.1.2.1.15.3.1.10
+bgpPeerOutUpdates		1.3.6.1.2.1.15.3.1.11
+bgpPeerInTotalMessages		1.3.6.1.2.1.15.3.1.12
+bgpPeerOutTotalMessages		1.3.6.1.2.1.15.3.1.13
+bgpPeerFsmEstablishedTransitions 1.3.6.1.2.1.15.3.1.15
+bgpPeerFsmEstablishedTime	1.3.6.1.2.1.15.3.1.16
+bgpPeerInUpdateElapsedTime	1.3.6.1.2.1.15.3.1.24
+bgpPeerLastError		1.3.6.1.2.1.15.3.1.14
+
+bgp4PathAttrBest		1.3.6.1.2.1.15.6.1.13
+
+# HP Jetdirect printer status
+HPgdStatusPaperOut.0		1.3.6.1.4.1.11.2.3.9.1.1.2.8.0
+HPgdStatusPaperJam.0		1.3.6.1.4.1.11.2.3.9.1.1.2.9.0
+HPgdStatusTonerLow.0		1.3.6.1.4.1.11.2.3.9.1.1.2.10.0
+HPgdStatusIoActive.0		1.3.6.1.4.1.11.2.3.9.1.1.2.13.0
+HPgdStatusBusy.0		1.3.6.1.4.1.11.2.3.9.1.1.2.14.0
+HPgdStatusInitialize.0		1.3.6.1.4.1.11.2.3.9.1.1.2.16.0
+HPgdStatusDoorOpen.0		1.3.6.1.4.1.11.2.3.9.1.1.2.17.0
+HPgdStatusPrinting.0		1.3.6.1.4.1.11.2.3.9.1.1.2.18.0
+HPgdStatusDisplay.0		1.3.6.1.4.1.11.2.3.9.1.1.3.0
+HPgdStatusJobName.0		1.3.6.1.4.1.11.2.3.9.1.1.4.0
+HPgdStatusSource.0		1.3.6.1.4.1.11.2.3.9.1.1.5.0
+
+# Frame-relay OIDs
+#frCircuitIfIndex		1.3.6.1.2.1.10.32.2.1.1
+frCircuitState			1.3.6.1.2.1.10.32.2.1.3
+frCircuitSentFrames		1.3.6.1.2.1.10.32.2.1.6
+frCircuitSentOctets		1.3.6.1.2.1.10.32.2.1.7
+frCircuitReceivedFrames		1.3.6.1.2.1.10.32.2.1.8
+frCircuitReceivedOctets		1.3.6.1.2.1.10.32.2.1.9
+frCircuitCommittedBurst		1.3.6.1.2.1.10.32.2.1.12
+frCircuitExcessBurst		1.3.6.1.2.1.10.32.2.1.13
+
+# From the host MIB
+hrSystemProcesses		1.3.6.1.2.1.25.1.6.0
+hrMemorySize			1.3.6.1.2.1.25.2.2.0
+# These are indexed by hrStorageIndex
+hrStorageIndex			1.3.6.1.2.1.25.2.3.1.1
+hrStorageDescr			1.3.6.1.2.1.25.2.3.1.3
+hrStorageAllocationUnits	1.3.6.1.2.1.25.2.3.1.4
+hrStorageSize			1.3.6.1.2.1.25.2.3.1.5
+hrStorageUsed			1.3.6.1.2.1.25.2.3.1.6
+# These are indexed by pid
+hrSWRunIndex			1.3.6.1.2.1.25.4.2.1.1
+hrSWRunName			1.3.6.1.2.1.25.4.2.1.2
+
+# from the ucd-snmp MIB
+ucdSsSysInterrupts		1.3.6.1.4.1.2021.11.7.0
+ucdSsSysContext			1.3.6.1.4.1.2021.11.8.0
+ucdSsCpuUser			1.3.6.1.4.1.2021.11.9.0
+ucdMemTotalSwap			1.3.6.1.4.1.2021.4.3.0
+ucdMemAvailSwap			1.3.6.1.4.1.2021.4.4.0
+ucdMemTotalReal			1.3.6.1.4.1.2021.4.5.0
+ucdMemAvailReal			1.3.6.1.4.1.2021.4.6.0
+ucdMemTotalFree			1.3.6.1.4.1.2021.4.11.0

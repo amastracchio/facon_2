@@ -1,0 +1,39 @@
+# rrds/bpgpeer-* - Info about BGP4 peers
+# CVS $Id: bgppeer-,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	snmp
+step	300
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+data	state=bgppeerstate.* GAUGE:1200:1:6
+data	inupdates=bgppeerinupdates.* COUNTER:1200:0:U
+data	outupdates=bgppeeroutupdates.* COUNTER:1200:0:U
+data	sessions=bgppeerfsmestablishedtransitions.* GAUGE:1200:0:U
+data	start=bgppeerfsmestablishedtime.* GAUGE:1200:0:U
+data	updatetime=bgpPeerInUpdateElapsedTime.* GAUGE:1200:0:U
+
+oid	bgpPeerState.*
+oid	bgpPeerInUpdates.*
+oid	bgpPeerOutUpdates.*
+oid	bgpPeerFsmEstablishedTransitions.*
+oid	bgpPeerFsmEstablishedTime.*
+oid	bgpPeerInUpdateElapsedTime.*
+alert	state = 6 6
+#alert	inupdates < 100 200 300
+alert	sessions delta< 1 2 3
+alert	start > 600 600
+
+graph	peerstate-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  The BGP Peer State is defined in the BGP MIB.  The only interesting state is 6, which means that the peer is up and properly connected."
+	--title '##HOST## - BGP Peer State'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'state'
+	--units-exponent 0
+	DEF:state=##DB##:state:AVERAGE
+	CDEF:missing=state,UN,INF,UNKN,IF
+	'LINE2:state###COLOR1##:state (1=begining, 2-5=connecting, 6=established)'
+	'AREA:missing###MISSING##:missing'
+

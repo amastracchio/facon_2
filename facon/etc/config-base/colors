@@ -1,0 +1,89 @@
+# colors - specified by function
+# $Id: colors,v 1.3 2003/03/20 18:09:11 remstats Exp $
+
+# These aren't magic, but the default graph definitions 
+# expect them to exist, so make sure you change them 
+# here and there, if you do change them.
+
+# These are used for graphing how much of something is used,
+# e.g. disk space.  The totalcolor is used to graph the total
+# amount (e.g. disk size) as an AREA, and the usedcolor is
+# used to graph how much is used, as a LINE2.
+totalcolor	00a000
+usedcolor	a00000
+
+# The downcolor is used to color the background of the
+# ping thumbnail graphs on the ping-index.
+downcolor	a07777
+
+# This is for making missing data more noticable, without hiding everything
+missing		dddddd
+# This is for shading behind error conditions
+warning		ffdddd
+
+# Problemcolor is used for graphing things which are 
+# expected to be zero and are alarming when they're not.
+problemcolor ff0000
+
+# The linecolor is used to draw a horizontal line at T1
+# level of bps (bits-per-second) on the interface bps
+# graphs.
+linecolor	000000
+
+# These are used to draw the good-old interface graphs,
+# both bps and pps.
+incolor		00a000
+incolor2	00ff00
+outcolor	4444ff
+outcolor2	8888ff
+
+# These are generic colors for drawing graphs.
+color1		0000a0
+color1a		0000ff
+color2		00a000
+color2a		00ff00
+color3		a00000
+color3a		ff0000
+color4		a0a000
+color4a		ffff00
+color5		a000a0
+color5a		ff00ff
+color6		00a0a0
+color6a		00ffff
+color7		aaaaaa
+color7a		777777
+color8		0000ff
+color9		00ff00
+color10		ff0000
+color11		ffff00
+color12		ff00ff
+color13		00ffff
+color14		777777
+
+# And for people who prefer color-names
+red			ff0000
+dullred		7f0000
+lightred	ff7f7f
+green		00ff00
+dullgreen	007f00
+lightgreen	7fff7f
+blue		0000ff
+dullblue	00007f
+lightblue	7f7fff
+cyan		00ffff
+dullcyan	007f7f
+lightcyan	7fffff
+magenta		ff00ff
+dullmagenta	7f007f
+lightmagenta ff7fff
+yellow		ffff00
+dullyellow	7f7f00
+lightyellow	ffff7f
+white		ffffff
+grey		7f7f7f
+lightgrey	a7a7a7
+dullgrey	373737
+gray		7f7f7f
+lightgray	a7a7a7
+dullgray	373737
+black		000000

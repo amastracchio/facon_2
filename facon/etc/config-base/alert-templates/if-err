@@ -1,0 +1,3 @@
+The error(##VAR##) rate for interface ##WILDPART## on 
+##HOST##(##IP##) has reached ##VALUE## errors-per-second.  
+This is bad.

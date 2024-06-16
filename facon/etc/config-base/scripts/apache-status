@@ -1,0 +1,10 @@
+# scripts/apache-status - parse extended status page from Apache web-server
+# $Id: apache-status,v 1.1 2002/05/08 12:28:19 remstats Exp $
+
+port	1954
+timeout	10
+send	GET http://##HOST##/server-status HTTP/1.1\nUser-Agent: Remstats/1.0.7a\nHost: ##HOST##\nConnection: close\n\n
+
+valuepattern	^([0-9\.]+)\s+requests/sec - ([0-9\.]+\s+.?)B/second - ([0-9\.]+\s+.?)B/request.*?^(\d+) requests currently being processed,\s+(\d+)\s+idle
+
+OK	</HTML>

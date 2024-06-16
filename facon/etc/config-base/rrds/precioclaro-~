@@ -1,0 +1,65 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	status=precioclaro GAUGE:1200:0:U
+data	response=precioclaro-response GAUGE:1200:0:U
+data	7792360071525=*:7792360071525:preclista GAUGE:1200:0:U
+data	7792360071525puno=*:7792360071525:precpromouno GAUGE:1200:0:U
+data	7792360071525pdos=*:7792360071525:precpromodos GAUGE:1200:0:U
+
+data	7793940448003=*:7793940448003:preclista GAUGE:1200:0:U
+data	7793940448003puno=*:7793940448003:precpromouno GAUGE:1200:0:U
+data	7793940448003pdos=*:7793940448003:precpromodos GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Precios  COTO (##GRAPHTIME##)'
+	--vertical-label 'pesos'
+	--watermark 'ariel mastracchio' 
+	DEF:data=##DB##:7792360071525:AVERAGE
+	DEF:datapuno=##DB##:7792360071525puno:AVERAGE
+	DEF:datapdos=##DB##:7792360071525pdos:AVERAGE
+	CDEF:missing=data,UN,INF,UNKN,IF
+
+	DEF:datados=##DB##:7793940448003:AVERAGE
+	DEF:datadospuno=##DB##:7793940448003puno:AVERAGE
+	DEF:datadospdos=##DB##:7793940448003pdos:AVERAGE
+
+        'LINE2:data###COLOR1##:Donas choc blanc'
+        'LINE2:datapuno###COLOR2##:Donas prom. uno'
+        'LINE2:datapdos###COLOR3##:Donas prom. dos'
+
+        'LINE2:datados###COLOR4##:Leche sachet'
+        'LINE2:datadospuno###COLOR5##:Leche prom. uno'
+        'LINE2:datadospdos###COLOR6##:Leche prom. dos'
+
+        'GPRINT:data:MIN:donas\: min=%.1lf'
+        'GPRINT:data:AVERAGE:avg=%.1lf'
+        'GPRINT:data:MAX:max=%.1lf'
+        'GPRINT:datapuno:AVERAGE:prouno max=%.1lf'
+        'GPRINT:datapdos:AVERAGE:prodos max=%.1lf\l'
+
+        'GPRINT:datados:MIN:leche\: min=%.1lf'
+        'GPRINT:datados:AVERAGE:avg=%.1lf'
+        'GPRINT:datados:MAX:max=%.1lf'
+        'GPRINT:datadospuno:AVERAGE:prouno max=%.1lf'
+        'GPRINT:datadospdos:AVERAGE:prodos max=%.1lf\l'
+
+        'AREA:missing###MISSING##:missing'
+
+
+

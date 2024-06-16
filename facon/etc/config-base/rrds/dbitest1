@@ -1,0 +1,46 @@
+# rrds/dbitest1 - testing the dbi-collector
+# CVS $Id: dbitest1,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source		dbi
+step		300
+connect		dbitest1
+select		dbitest1
+
+data		thing=dbitest1:thing GAUGE:600:0:U COL=1
+data		status=dbitest1:status GAUGE:600:1:6 COL=STATUS
+data		response=dbitest1:response GAUGE:600:0:U COL=RESPONSE
+
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		thumb day yesterday week 3month year
+
+graph	thing desc="This is collected by the dbi-collector.  It connects to the specified database and executes the requested SQL select statement.  The results are parsed and labeled as the requested variables.  This thing simply shows a count of rows in a certain table.  It is only an example and only useful as such."
+		--title '##HOST## - dbitest (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'arbitrary'
+		DEF:thing=##DB##:thing:AVERAGE
+		CDEF:missing=thing,UN,INF,UNKN,IF
+		'LINE2:thing###COLOR1##:things'
+		'AREA:missing###MISSING##:missing'
+
+graph	status desc="This is collected by the dbi-collector.  The possible status values are: 1(OK), 2(OK, but select returned more than one row; the first was used), 3(no error except that the select returned no rows), 4(error on the select), 5(error on the connect), 6(error in the configuration file)."
+	--title '##HOST## - dbitest status (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 7 --rigid
+	--vertical-label 'status'
+	DEF:status=##DB##:status:AVERAGE
+	CDEF:missing=status,UN,INF,UNKN,IF
+	'LINE2:status###COLOR1##:status'
+	'AREA:missing###MISSING##:missing'
+
+graph	response desc="This is collected by the dbi-collector.  The response time is how long it took the dbi-collector to fetch and process the values."
+	--title '##HOST## - dbitest response (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'response'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'AREA:missing###MISSING##:missing'

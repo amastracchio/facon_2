@@ -1,0 +1,94 @@
+#!/usr/bin/perl -w
+
+# pattern-query - pull strings out of a stream according to a perl-style regex
+# $Id: pattern-query.pl,v 1.2 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright (c) 1999, 2000, 2001, 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called?
+$main::prog = 'pattern-query';
+# How many (strings) there may be in a pattern
+$main::max_strings = 10;
+# Debugging anyone?
+$main::debug = 0;
+
+# - - -   Version   - - -
+
+$main::version = (split(' ', '$Revision: 1.2 $'))[1];
+
+# - - -   Setup   - - -
+
+# Parse the command-line
+use Getopt::Std;
+my %opt = ();
+getopts( 'd:hm:', \%opt);
+if( defined $opt{'h'}) { &usage; }
+if( defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+if( defined $opt{'m'}) { $main::max_strings = $opt{'m'}+0; }
+
+my $pattern_file = shift @ARGV;
+unless (defined $pattern_file) { &usage(); } # no return
+
+my $data_file = shift @ARGV;
+unless (defined $data_file) { $data_file = '-'; }
+
+open (PATTERN, "<$pattern_file") or die "can't open $pattern_file: $!\n";
+my @patterns = <PATTERN> or die "can't read $pattern_file: $!\n";
+close (PATTERN) or die "can't close $pattern_file: $!\n";
+&debug("read $pattern_file for patterns") if( $main::debug);
+
+open (DATA, "<$data_file") or die "can't open $data_file: $!\n";
+my $data = join('', <DATA>) or die "can't read $data_file: $!\n";
+close (DATA) or die "can't close $data_file: $!\n";
+&debug("read $data_file for data") if( $main::debug);
+
+# - - -   Mainline   - - -
+
+my( $pattern, $i, $string, @matches);
+
+foreach $pattern (@patterns) {
+	$pattern =~ tr/\012\015//d;
+	&debug("looking for pattern: $pattern") if( $main::debug);
+	if (@matches = $data =~ /$pattern/sim) {
+		&debug("  matched ", scalar(@matches), ' strings') if( $main::debug);
+		for ($i=0; $i < scalar(@matches); ++$i) {
+			$string = $matches[$i];
+			if (defined $string) { print $i, ': ', $string, "\n"; }
+			else { print $i, "-UNKNOWN-\n"; }
+		}
+	}
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------------- usage ---
+sub usage {
+	print <<"EOD_USAGE";
+$main::prog  version $main::version from facon 1.0.13a
+usage: $0 [options] pattern-file [file-to-search]
+where options are:
+  -h      show this help
+  -m mmm  check 'mmm' matches at most [$main::max_strings]
+EOD_USAGE
+	exit 0;
+}
+
+#-------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}

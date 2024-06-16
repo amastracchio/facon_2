@@ -1,0 +1,147 @@
+#!/usr/bin/perl -w
+
+# alert-yahoo - send an alert via Yahoo Messenger
+# $Id: alert-yahoo.pl,v 1.1 2002/07/11 15:57:16 facon Exp $
+# from facon 1.0.13a
+
+# Copyright (c) 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::program = 'alert-yahoo';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# Default Yahoo login info
+$main::login_host = 'cs.yahoo.com';
+$main::login_url = 'http://msg.edit.yahoo.com/config/';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.1 $'))[1];
+
+# - - -   Setup   - - -
+
+use Net::YahooMessenger;
+
+&parse_command_line();
+
+# Read the Yahoo login info
+&read_yahoo_config();
+
+# Read the template
+my @temp = <STDIN>;
+my $template = join('', @temp);
+
+# Login to Yahoo
+$main::yahoo = Net::YahooMessenger->new(
+	id				=> $main::login_name,
+	password		=> $main::login_password,
+	pre_login_url	=> $main::login_url,
+	hostname		=> $main::login_host,
+);
+
+$main::yahoo->login() or &abort("can't login to yahoo");
+
+# - - -   Mainline   - - -
+
+# Send it.  This is easy.
+$main::yahoo->send( $main::towho, $template);
+
+exit 0;
+
+#------------------------------------------------------------ usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::program version $main::version from facon 1.0.13a
+usage: $main::program [options] addr
+Where options are:
+    -d ddd  set debugging output to level 'ddd'
+    -f fff  set config-dir to 'fff' [$main::config_dir]
+    -h      show this help
+	
+EOD_USAGE
+	exit 0;
+}
+
+#---------------------------------------------------------- abort ---
+sub abort {
+	my $msg = join('', @_);
+	print STDERR "ABORT: $msg\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------------- oneof ---
+# Looks for a file in the list, and returns the first one it finds
+sub oneof {
+	my @files = @_;
+	my $file;
+	local ($_);
+	foreach (@files) {
+		if ( -f $_ or -l $_) {
+			$file = $_;
+			last;
+		}
+	}
+$file;
+}
+
+#------------------------------------------------------ parse_command_line ---
+sub parse_command_line {
+
+	use Getopt::Std;
+	my %opt;
+	getopts('d:f:h', \%opt);
+
+	if (defined $opt{'h'}) { &usage; } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+	if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+
+	unless (@ARGV == 1) { &usage(); }
+	$main::towho = shift @ARGV;
+}
+
+#------------------------------------------------------- read_yahoo_config ---
+sub read_yahoo_config {
+	my( $file, $line);
+
+	# Make sure we have a file to get
+	$file = $main::config_dir . '/yahoo';
+	unless( -f $file) { &abort("missing Yahoo config-file $file"); }
+
+	open( YAHOO, "<$file") or &abort("can't open $file: $!");
+	while(defined($line = <YAHOO>)) {
+		chomp $line;
+		next if( $line =~ /^#/ or $line =~ /^\s*$/); # no comments
+		
+		if( $line =~ /^name\s*(\S+)\s*$/i) {
+			$main::login_name = $1;
+		}
+		elsif( $line =~ /^password\s*(\S+)\s*$/i) {
+			$main::login_password = $1;
+		}
+		elsif( $line =~ /^host\s*(\S+)\s*$/i) {
+			$main::login_host = $1;
+		}
+		elsif( $line =~ /^url\s*(\S+)\s*$/i) {
+			$main::login_url = $1;
+		}
+		else {
+			&abort("unknown yahoo configuration line: $line");
+		}
+	}
+	close(YAHOO);
+
+	unless( defined $main::login_name and defined $main::login_password) {
+		&abort("yahoo login name and password must be defined");
+	}
+}
+

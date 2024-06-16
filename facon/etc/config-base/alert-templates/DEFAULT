@@ -1,0 +1,21 @@
+[This is the default alert message for things which don't specify a
+special template.]
+
+       Host: ##HOST## ##HOSTDESC##
+         IP: ##IP##
+        RRD: ##REALRRD## ##RRDDESC##
+   Variable: ##VAR##
+      Value: ##VALUE##
+   Relation: ##RELATION##
+  Threshold: ##THRESHOLD##
+      Start: ##START##
+   Duration: ##DURATION##
+
+Please fix it.
+
+The status (##STATUS##) was defined in the alert definition for
+this type of event.  This alert was triggered because the
+variable (##VAR##) in the RRD-database (##REALRRD##) attained
+the relation (##RELATION##) with the threshold (##THRESHOLD##).
+This started at ##START## and has been in this state
+for ##DURATION##.

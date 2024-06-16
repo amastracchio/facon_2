@@ -1,0 +1,10 @@
+# scripts/telnet - check on telnet service, not that we use it.
+# $Id: telnet,v 1.2 2002/04/16 15:21:27 remstats Exp $
+
+# I've never been able to figure out a script that would match the login
+# prompt, so I just make sure that it has at least a newline.
+
+send	\n\n
+timeout	5
+ok      \n
+

@@ -1,0 +1,36 @@
+# rrds/ciscotemperatures - temperatures for high-end Cisco routers
+# CVS $Id: ciscotemperatures,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	snmp
+step 300
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max
+times	day yesterday week month 3month year
+
+data	inlet=tempInlet GAUGE:1200:0:250
+data	outlet=tempOutlet GAUGE:1200:0:250
+
+alert	inlet < 30 42 50
+alert	outlet < 30 42 50
+oid		CiscoTempInlet
+oid		CiscoTempOutlet
+
+graph	ciscotemperatures desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a <A HREF="http://www.cisco.com/">Cisco</A> router.  They give the temperature of the air entering and leaving the chassis.'
+	--title '##HOST## - Temperatures (##GRAPHTIME##)'
+	--vertical-label 'Degrees C'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:inlet=##DB##:inlet:MAX
+	DEF:outlet=##DB##:outlet:MAX
+	CDEF:missing=inlet,UN,INF,UNKN,IF
+	'AREA:outlet###USEDCOLOR##:Outlet'
+	'LINE2:inlet###YELLOW##:Inlet'
+	'GPRINT:inlet:AVERAGE:Inlet (avg,max,now)=(%.0lf,\g'
+	'GPRINT:inlet:MAX:%.0lf,\g'
+	'GPRINT:inlet:LAST:%.0lf)'
+	'GPRINT:outlet:AVERAGE:Outlet (avg,max,now)=(%.0lf,\g'
+	'GPRINT:outlet:MAX:%.0lf,\g'
+	'GPRINT:outlet:LAST:%.0lf)'
+	'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,10 @@
+# scripts/smtp - check on mail server
+# $Id: smtp,v 1.2 2002/04/16 15:21:26 remstats Exp $
+
+# Some SMTP servers may complain of the non-existent domain-name on the HELO.
+# So, UTSL.
+
+send	HELO remstats.testing\nQUIT\n
+timeout	5
+ok      ^250
+

@@ -1,0 +1,172 @@
+#!/usr/bin/perl -w
+
+# ping-monitor - a facon status evaluator (ping quality)
+# $Id: ping-monitor.pl,v 1.10 2002/08/14 11:33:17 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'ping-monitor';
+# Which collector is this tied to
+$main::collector = 'ping';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# How many samples to consider
+$main::samples = 5;
+# How many pings were sent?
+$main::pings_sent = 10;
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.10 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+
+# Parse the command-line
+getopts('d:f:hs:');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+if (defined $main::opt_s) { $main::samples = $main::opt_s+0; }
+
+&read_config_dir($main::config_dir, 'general', 'colors', 'html', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+# %main::status = ( UP=>1, UPUNSTABLE=>2, DOWNUNSTABLE=>3, DOWN=>4);
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $fixedrrd);
+foreach $host (keys %{$main::config{HOST}}) {
+	$ip = &get_ip($host);
+	next unless (defined $ip);
+	next unless( &host_collected_by( $host, $main::collector));
+	&debug("doing host $host") if ($main::debug);
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, undef, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+		&make_status($host, $realrrd, $fixedrrd, $main::samples);
+	}
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h      show this help
+    -s sss  examine 'sss' samples [$main::samples]
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------- make_status ---
+sub make_status {
+	my ($host, $realrrd, $fixedrrd, $samples) = @_;
+	my ($start, $step, $names, $data, $line, $rrdfile);
+	my ($last, $min, $max, @raw, $ping, $status);
+
+	return undef unless ($realrrd eq 'ping');
+
+# Where is the data
+	$rrdfile = "$main::config{DATADIR}/$host/ping.rrd";
+	unless (-f $rrdfile) {
+		&error("make_status: missing rrd $rrdfile; skipped");
+		return;
+	}
+
+# get the last few samples
+	($start, $step, $names, $data) = RRDs::fetch $rrdfile, 'AVERAGE', 
+		'--start', 
+		(time - $main::config{RRD}{$realrrd}{STEP}*($samples-1));
+	unless (defined $start) {
+		&error("make_status: fetch failed for $rrdfile: " . RRDs::error);
+		return;
+	}
+	$min = 99999; $max = -1;
+	@raw = ();
+	pop @$data; # the last value is always missing
+	foreach $line (@$data) {
+		(undef, $ping) = @$line;
+		next unless (defined $ping);
+		next if ($ping eq 'NaN');
+		if ($ping > $main::pings_sent or $ping < 0) {
+			&debug("  bad data ignored ($ping)") if ($main::debug);
+			next;
+		}
+		if ($ping < $min) { $min = $ping; }
+		if ($ping > $max) { $max = $ping; }
+		$last = $ping;
+		push @raw, $ping;
+	}
+	&debug('  raw data = (' . join(', ', @raw) . ')') if ($main::debug);
+	unless (defined $last) {
+		&debug("  no data for $host; skipped") if ($main::debug);
+		return;
+	}
+
+# Figure out what it's status is
+	if ($min > 0) { $status = 'UP'; }
+	elsif ($max == 0) { $status = 'DOWN'; }
+	elsif ($last > 0 and $min == 0) { $status = 'UPUNSTABLE'; }
+	elsif ($last == 0 and $max > 0) { $status = 'DOWNUNSTABLE'; }
+	else { $status = 'CONFUSED'; }
+	&debug("  min=$min, max=$max, last=$last, status=$status")
+		if ($main::debug);
+
+	&put_status( $host, 'STATUS', $status);
+	if (defined $main::config{$status.'STATUS'}) {
+		&put_status( $host, 'STATUS.html', $main::config{$status.'STATUS'});
+	}
+	else {
+		&put_status( $host, 'STATUS.html', $status);
+	}
+	if ($status =~ /^UP/) {
+		&put_status( $host, 'STATUS-BACKGROUND.html', '');
+	}
+	else {
+		&put_status( $host, 'STATUS-BACKGROUND.html', 
+			' --color BACK#'. $main::config{COLOR}{DOWNCOLOR} .' ');
+	}
+
+}
+
+#-------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

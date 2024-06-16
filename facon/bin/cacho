@@ -1,0 +1,125 @@
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-PDG
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-UK
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-PPA
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-PAI
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-PNE
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-PSU
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-FR
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-ACP
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             bamac-ACE
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+

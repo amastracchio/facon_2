@@ -1,0 +1,123 @@
+#!/usr/bin/perl -w
+# colors2image - make a dataimage showing all the colors
+# CVS $Id: colors2image.pl,v 1.6 2003/05/20 19:28:05 facon Exp $
+# from facon 1.0.13a
+# Copyright (c) 1999 - 2003 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'colors2image';
+# Where is the config-dir?
+$main::config_dir = '/var/facon/etc/config';
+# What to call the page?
+$main::imagename = 'colors';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.6 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+&getopts('f:h');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+
+&read_config_dir($main::config_dir, 'general', 'colors', 'html');
+
+# - - -   Mainline   - - -
+
+my $now = localtime();
+my $imagefile = $main::config{DATAPAGEDIR} .'/'. $main::imagename .'.image';
+open (IMAGE, ">$imagefile") or die "$main::prog: can't open $imagefile: $!\n";
+print IMAGE <<"EOD_IMAGEHEADER";
+# This simply shows the colors in the default configuration
+# It was made at $now by $main::prog version $main::version
+EOD_IMAGEHEADER
+print IMAGE <<'EOD_IMAGEHEADER2';
+eval xsize 800
+eval ysize 600
+eval xoffset 100
+eval yoffset 100
+eval step 20
+eval barheight 15
+eval barlength 50
+eval textxoffset ${xoffset} + ${barlength} + 5
+eval textyoffset 3
+
+image ${xsize} ${ysize}
+
+eval bar 0
+
+macro bar COLOR
+eval x1 ${xoffset}
+eval y1 ${yoffset} + ${step} * ${bar}
+eval x2 ${xoffset} + ${barlength}
+eval y2 ${yoffset} + ${step} * ${bar} + ${barheight}
+color ${COLOR}
+rectangle ${x1} ${y1} ${x2} ${y2} filled
+eval y ${y1} + ${textyoffset}
+color black
+text ${textxoffset} ${y} ${COLOR}
+eval bar ${bar} + 1
+macroend
+
+# Now define all the colors
+EOD_IMAGEHEADER2
+
+# Now define all the colors
+
+my ($r, $g, $b, $draw);
+$draw = "\n# Now draw the bars\n";
+foreach my $color (sort keys %{$main::config{COLOR}}) {
+	&debug("doing color $color") if ($main::debug);
+	$r = hex(substr($main::config{COLOR}{$color},0,2));
+	$g = hex(substr($main::config{COLOR}{$color},2,2));
+	$b = hex(substr($main::config{COLOR}{$color},4,2));
+	print IMAGE 'colordef '. lc($color) ." $r $g $b\n";
+	$draw .= '%bar '. lc($color) ."\n";
+}
+print IMAGE $draw;
+close (IMAGE);
+exit 0;
+
+#------------------------------------------------ usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+	-f fff  use 'fff' for config-dir [$main::config_dir]
+	-h      give this help
+EOD_USAGE
+	exit 1;
+}
+
+#------------------------------------------------- debug ---
+sub debug {
+	my ($msg) = @_;
+	print STDERR "DEBUG: $msg\n" if ($main::debug);
+}
+
+#----------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

@@ -1,0 +1,71 @@
+# rrds/ntnetworkinterface - network stats on NT boxen
+# CVS $Id: ntnetworkinterface-,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+data	inbytes=network_interface:bytes_received-sec:* COUNTER:600:0:U perfcounters
+data	outbytes=network_interface:bytes_sent-sec:* COUNTER:600:0:U perfcounters
+data	inucastpkts=network_interface:packets_received_unicast-sec:* COUNTER:600:0:U perfcounters
+data	innucastpkts=network_interface:packets_received_non-unicast-sec:* COUNTER:600:0:U perfcounters
+data	outucastpkts=network_interface:packets_sent_unicast-sec:* COUNTER:600:0:U perfcounters
+data	outnucastpkts=network_interface:packets_sent_non-unicast-sec:* COUNTER:600:0:U perfcounters
+data	inerrors=network_interface:packets_received_errors:* COUNTER:600:0:U perfcounters
+data	inunknown=network_interface:packets_received_unknown:* COUNTER:600:0:U perfcounters
+data	indiscards=network_interface:packets_received_discarded:* COUNTER:600:0:U perfcounters
+data	outerrors=network_interface:packets_outbound_errors:* COUNTER:600:0:U perfcounters
+data	outdiscards=network_interface:packets_outbound_discarded:* COUNTER:600:0:U perfcounters
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	bytes-*
+	--title '##HOST## - bits/s interface ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'bits/s'
+	DEF:inbytes=##DB##:inbytes:AVERAGE
+	DEF:outbytes=##DB##:outbytes:AVERAGE
+	CDEF:inbits=inbytes,8,*
+	CDEF:outbits=outbytes,8,*
+	CDEF:missing=inbytes,UN,INF,UNKN,IF
+	HRULE:1540000###LINECOLOR##:T1
+	'AREA:inbits###INCOLOR##:bps in'
+	'LINE2:outbits###OUTCOLOR##:bps out'
+	'GPRINT:inbits:AVERAGE:in avg=%.0lf%s'
+	'GPRINT:outbits:AVERAGE:out avg=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	packets-*
+	--title '##HOST## packets/s interface ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'packets/s'
+	DEF:inucastpkts=##DB##:inucastpkts:AVERAGE
+	DEF:outucastpkts=##DB##:outucastpkts:AVERAGE
+	DEF:innucastpkts=##DB##:innucastpkts:AVERAGE
+	DEF:outnucastpkts=##DB##:outnucastpkts:AVERAGE
+	CDEF:missing=inucastpkts,UN,INF,UNKN,IF
+	'AREA:inucastpkts###INCOLOR##:unicast in'
+	'STACK:innucastpkts###INCOLOR2##:(broad/multi)cast in'
+	'LINE2:outnucastpkts###OUTCOLOR##:(broad/multi)cast out'
+	'STACK:outucastpkts###OUTCOLOR2##:unicast out' 
+	'AREA:missing###MISSING##:missing'
+
+graph	errors-*
+	--title '##HOST## - errors interface ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'errors'
+	DEF:inerrors=##DB##:inerrors:AVERAGE
+	DEF:outerrors=##DB##:outerrors:AVERAGE
+	DEF:indiscards=##DB##:indiscards:AVERAGE
+	DEF:outdiscards=##DB##:outdiscards:AVERAGE
+	CDEF:missing=inerrors,UN,INF,UNKN,IF
+	'LINE2:inerrors###INCOLOR##:errors in'
+	'LINE2:outerrors###INCOLOR2##:errors out'
+	'LINE2:indiscards###INCOLOR##:discards in'
+	'LINE2:outdiscards###INCOLOR2##:discards out'
+	'AREA:missing###MISSING##:missing'
+

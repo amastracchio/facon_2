@@ -1,0 +1,25 @@
+1291396973 ano:acp 0
+1291396973 mk1_data_ex:acp 1
+1291396973 ibamac:acp 0
+1291396973 iano:acp 0
+1291396973 iinterfaces:acp 1
+1291396973 temp:acp 30
+1291396973 mk1_data:acp 0
+1291396973 bamac:acp 38
+1291396973 exploit:acp 15
+1291396973 system:acp 25
+1291396973 referentiel:acp 46
+1291396973 ibo:acp 2
+1291396973 mk1_temp:acp 10
+1291396973 sysaux:acp 34
+1291396973 mk1_index_ex:acp 1
+1291396973 ireferentiel:acp 1
+1291396973 rbs:acp 40
+1291396973 neo_data:acp 4
+1291396973 mk1_index:acp 0
+1291396973 neo_index:acp 32
+1291396973 interfaces:acp 1
+1291396973 mk1_index_tmp:acp 1
+1291396973 neo_temp:acp 15
+1291396973 bo:acp 8
+

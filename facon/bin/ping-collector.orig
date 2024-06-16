@@ -1,0 +1,318 @@
+#!/usr/bin/perl -w
+
+# ping-collector - a facon collector for ping info
+# $Id: ping-collector.pl,v 1.25 2002/06/18 15:18:18 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'ping-collector';
+# Which collector is this
+$main::collector = 'ping';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Where is multiping
+$main::multiping = '/var/facon/bin/multiping';
+# How many pings to send
+$main::pings = 10;
+# Options to use
+$main::multiping_opts = "-n -t -c $main::pings -i 1";
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.25 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+
+# Parse the command-line
+&parse_command_line();
+use RRDs;
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'times', 'rrds',
+	'groups', 'host-templates', 'hosts');
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+# Wipe the ip-cache so that it's not polluted by changes
+my $cache_file = $main::config{DATADIR} . '/IP_CACHE';
+unlink $cache_file; # ignore it if it's not there
+undef %main::ip_cache;
+
+@main::hosts = &select_hosts( \@main::hosts, \@main::groups, \@main::keys);
+
+# No buffering when debugging, it screws up the order of output
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+# Collect the list of hosts to ping
+my ($ip, $host, $realrrd, $wildrrd, $wildpart, %ifip, %ip, $fixedrrd, $hosts, 
+	@up, $tmpfile, $lastfile, $start_time, $run_time);
+$start_time = time();
+$hosts = '';
+@up = ();
+%ip = %ifip = ();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+$tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+$lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@main::hosts) {
+	next if ($host eq '_facon_');
+
+	# Ignore this host if we can't get an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("can't get IP number for $host; skipped") if ($main::debug);
+		next;
+	}
+	++$main::requests;
+
+	# Save the hosts which aren't pinged for the uphosts list, and pretend
+	# that they're up so that the other collectors don't skip them.
+	if( !&host_collected_by( $host, $main::collector)) {
+		push @up, $host;
+		next;
+	}
+	$hosts .= ' '. $ip;
+	&debug("doing host $host($ip)") if ($main::debug);
+
+	# May have two names for the same IP number.  I've dealt with this
+	# here as a test, but it may break elsewhere.
+	if (defined $ip{$ip}) {
+		&debug("  $ip is already use by $ip{$ip}; adding $host")
+			if ($main::debug);
+		$ip{$ip} = $ip{$ip} . ',' . $host;
+	}
+	else {
+		$ip{$ip} = $host;
+		&debug("  adding $host for $ip") if ($main::debug>1);
+	}
+
+	# Now we want to make sure that there aren't any ping-IP# rrds
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		unless ($main::collector eq $main::config{RRD}{$wildrrd}{SOURCE}) {
+			&debug("  $wildrrd isn't collected by $main::collector")
+				if ($main::debug);
+			next;
+		}
+
+	# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+
+	# It's an interface ping
+		if ($wildrrd eq 'ping-*') {
+			$ip = $wildpart;
+			if (defined $ifip{$ip}) {
+				&debug("  $ip is already use by $ifip{$ip}; adding $host") 
+					if ($main::debug);
+				$ifip{$ip} = $ifip{$ip} .','. $host;
+			}
+			else {
+				$ifip{$ip} = $host;
+				&debug("  adding $host for interface $ip") if ($main::debug>1);
+			}
+			$hosts .= ' '. $ip;
+			++$main::requests;
+		}
+		elsif( $wildrrd eq 'ping') { next; }
+		else {
+			next if ($host eq '_facon_');
+			&error('rrd ', $realrrd, ' maps to ', $wildrrd,
+				' which is not known to ', $main::collector, '; skipped');
+			next;
+		}
+	}
+}
+&debug("hosts are: $hosts\n") if ($main::debug>1);
+
+# Ping them
+open (PIPE, "$main::multiping $main::multiping_opts $hosts 2>&1 |") or
+	&abort("can't open pipe to $main::multiping: $!");
+
+# Ignore the stuff at the beginning of the output
+while (<PIPE>) {
+	chomp;
+	&debug("RAW: $_") if ($main::debug>1);
+	last if(/^-----/);
+}
+
+# Here's the good stuff
+my ($sent, $rcvd, $min, $avg, $max, $now, %found, %iffound, $hostup, $hostifup);
+%found = %iffound = ();
+$hostup = $hostifup = 0;
+while (<PIPE>) {
+	chomp;
+	last if (/^-----/);
+	&debug("RAW TOTALS: $_") if( $main::debug>1);
+	($ip, $sent, $rcvd, undef, undef, $min, $avg, $max) =
+		split(' ',$_);
+
+# Is it a host ping?
+	if (defined $ip{$ip}) {
+		$hosts = $ip{$ip};
+		$found{$ip} = 1;
+		$iffound{$ip} = 1; # lie to avoid complaints later
+		++$hostup;
+	}
+	else {
+		&debug("couldn't find hostname for $ip") if ($main::debug);
+		$hosts = '';
+	}
+
+# Attribute the data to all the host-names
+	foreach $host (split(',', $hosts)) {
+		$now = time;
+		push @up, $host if ($rcvd > 0);
+		$main::entries_collected += 5;
+		$main::entries_used += 5;
+		print <<"EOD_STATS";
+$host $now ping-sent $sent
+$host $now ping-rcvd $rcvd
+$host $now pingrtt-min $min
+$host $now pingrtt-avg $avg
+$host $now pingrtt-max $max
+EOD_STATS
+		print TMP <<"EOD_STATS2";
+$host $now ping-sent $sent
+$host $now ping-rcvd $rcvd
+$host $now pingrtt-min $min
+$host $now pingrtt-avg $avg
+$host $now pingrtt-max $max
+EOD_STATS2
+	}
+
+# Now interface pings
+	if (defined $ifip{$ip}) {
+		$hosts = $ifip{$ip};
+		$iffound{$ip} = 1;
+		$found{$ip} = 1; # lie to avoid complaints later
+		++$hostifup;
+	}
+	else {
+		&debug("couldn't find interface hostname for $ip") if ($main::debug);
+		next;
+	}
+
+# Attribute the data to all the host-names
+	foreach $host (split(',', $hosts)) {
+		$now = time;
+		$main::entries_collected += 5;
+		$main::entries_used += 5;
+		print <<"EOD_STATS";
+$host $now ping-sent-$ip $sent
+$host $now ping-rcvd-$ip $rcvd
+$host $now pingrtt-min-$ip $min
+$host $now pingrtt-avg-$ip $avg
+$host $now pingrtt-max-$ip $max
+EOD_STATS
+	}
+}
+close (PIPE);
+
+# Now facon instrumentation info
+$now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+_facon_ $now hostup $hostup
+_facon_ $now hostifup $hostifup
+EOD_INSTRUMENTATION
+
+foreach $ip (keys %ip) {
+	&error("no data for host ". $ip) unless (defined $found{$ip});
+}
+
+foreach $ip (keys %ifip) {
+	&error("no data for interface ". $ip) unless (defined $iffound{$ip});
+}
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+# Write the up-hosts file for pre-collector ping pass.  Always.  It might 
+# be interesting.
+my $file = $main::config{TEMPDIR} .'/uphosts';
+open (UP, ">$file") or &abort("can't open $file for uphosts");
+print UP join("\n", @up) . "\n";
+close (UP);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it is not time
+    -G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      for compatibility with run-facon; ignored
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#-------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	%main::ip_cache = ();
+}
+
+#------------------------------------------------------- parse_command_line --
+sub parse_command_line {
+	use Getopt::Std;
+	my %opt = ();
+	getopts('d:f:FG:hH:K:u', \%opt);
+
+	if (defined $opt{'h'}) { &usage(); } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+	if (defined $opt{'F'}) { $main::force_collection = 1; }
+	else { $main::force_collection = 0; }
+	if( defined $opt{'G'}) { @main::groups = split(',', $opt{'G'}); }
+	if( defined $opt{'H'}) { @main::hosts = split(',', $opt{'H'}); }
+	if( defined $opt{'K'}) { @main::keys = split(',', $opt{'K'}); }
+	# Ignore '-u'.  We can't use uphosts as we haven't created it yet, 
+	# but we have to accept it, because run-facon will run all 
+	# collectors with '-u'.
+}

@@ -1,0 +1,129 @@
+#!/usr/bin/perl -w
+
+# facon-cleanup - remove cruft that gets left around.  Run it out of cron
+# $Id: facon-cleanup.pl,v 1.2 2002/08/16 12:47:12 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'facon-cleanup';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.2 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+
+# Parse the command-line
+&parse_command_line();
+&read_config_dir($main::config_dir, 'general', 'html', 'groups', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+my ($host);
+
+# - - -   Mainline   - - -
+
+# Some directories shouldn't have old files in them
+&clean_dir( $main::config{DATADIR}. '/LAST', 24*60*60, '.*');
+&clean_dir( $main::config{DATADIR}. '/LOGS', $main::config{KEEPLOGS}, '.*');
+&clean_dir( $main::config{DATADIR}. '/TRACEROUTES', $main::config{KEEPLOGS}, 
+	'.*');
+&clean_dir( $main::config{HTMLDIR}. '/MOVIES', 24*60*60, '^snap-.*\.png$', 
+	'^snap-.*\.gif$');
+
+# Clean host graphs
+foreach $host (keys %{$main::config{HOST}}) {
+	next if ($host eq '_facon_');
+	# This is the main graph images
+	&clean_dir( $main::config{HTMLDIR} .'/GRAPHS/' . $host,
+		$main::config{HTML}{KEEPIMAGES}, '.*\.png$', '.*\.gif$');
+	# This is graph images and rrds produced by rt-updater
+	&clean_dir( $main::config{HTMLDIR} .'/GRAPHS/TMP/' . $host,
+		$main::config{HTML}{KEEPIMAGES}, '.*\.png$', '.*\.gif$', '.*\.rrd$');
+}
+
+exit 0;
+
+#----------------------------------------------------------------- clean_dir ---
+sub clean_dir {
+	my ($dir, $max_age, @patterns) = @_;
+	my (@files, $file, $age, $pattern, @temp);
+	&debug("cleaning $dir (max age=$age) of ", join(' ', @patterns))
+		if( $main::debug);
+
+# Collect the list of files
+	@files = ();
+	foreach my $pattern (@patterns) {
+		push @files, &list_files( $dir, $pattern);
+	}
+#	@files = map { $dir . '/' . $_ } @files;
+
+# Check each one
+	foreach $file (@files) {
+		unless( -f $file) {
+			&error("$file isn't a file?; skipped");
+			next;
+		}
+		$age = (-M $file) * 24*60*60;
+		if ($age > $max_age) {
+			unlink $file or &error("can't unlink $file: $!");
+		}
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ parse_command_line ---
+sub parse_command_line {
+
+	my %opt = ();
+	getopts('d:f:h', \%opt);
+
+	if (defined $opt{'h'}) { &usage(); } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+}

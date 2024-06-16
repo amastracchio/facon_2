@@ -1,0 +1,81 @@
+# rrds/dnscachelog - stats from dnscache (part of djbdns)
+# CVS $Id: dnscachelog,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	log
+step	300
+
+data	hit DERIVE:600:0:U	count cached
+data	drop DERIVE:600:0:U	count drop
+data	lame DERIVE:600:0:U	count lame
+data	nodata DERIVE:600:0:U	count nodata
+data	nxdomain DERIVE:600:0:U	count nxdomain
+data	rquery DERIVE:600:0:U	count query
+data	response DERIVE:600:0:U	count sent
+data	servfail DERIVE:600:0:U	count servfail
+data	squery DERIVE:600:0:U	count tx
+data	motion DERIVE:600:0:U	last stats\s+\d+\s+(\d+)
+data	udpactive DERIVE:600:0:U	last stats\s+\d+\s+\d+\s+(\d+)
+data	tcpactive DERIVE:600:0:U	last stats\s+\d+\s+\d+\s+\d+\s+(\d+)
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	traffic desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  DNSCache is part of the <A HREF="http://cr.yp.to/djbdns.html">DJBDNS</A> package and acts as a local DNS cache.  Queries Rcvd is the count of queries that the clients of this server have sent to it for resolution.  Queries sent are the queries that dnscache has made on behalf of the clients, in attempting to resolve their requests.  Response Sent is the number of responses returned.  There is not a one-to-one correspondence between any of these.'
+	--title '##HOST## - DNSCache Traffic (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'pps'
+	DEF:rquery=##DB##:rquery:AVERAGE
+	DEF:squery=##DB##:squery:AVERAGE
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=rquery,UN,INF,UNKN,IF
+	'AREA:rquery###COLOR1##:query rcvd'
+	'LINE2:squery###COLOR2##:query sent'
+	'LINE2:response###COLOR3##:response sent'
+	'GPRINT:rquery:AVERAGE:query rcvd avg=%.0lf%s'
+	'GPRINT:squery:AVERAGE:query sent avg=%.0lf%s'
+	'GPRINT:response:AVERAGE:response sent avg=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	hits desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  DNSCache is part of the <A HREF="http://cr.yp.to/djbdns.html">DJBDNS</A> package and acts as a local DNS cache.  Queries are the requests from clients for DNS resolution.  Hits are the records which were already contained in the cache.'
+	--title '##HOST## - DNSCache Hits (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'pps'
+	DEF:rquery=##DB##:rquery:AVERAGE
+	DEF:hit=##DB##:hit:AVERAGE
+	CDEF:missing=rquery,UN,INF,UNKN,IF
+	'LINE2:rquery###COLOR1##:queries'
+	'LINE2:hit###COLOR2##:hits'
+	'GPRINT:rquery:AVERAGE:query rcvd avg=%.0lf%s'
+	'GPRINT:hit:AVERAGE:hits avg=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	active desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  DNSCache is part of the <A HREF="http://cr.yp.to/djbdns.html">DJBDNS</A> package and acts as a local DNS cache.  UDP is the current number of outstanding UDP queries which DNSCache has made on behalf of clients.  TCP is the number of current TCP sessions DSNCache has made on behalf of clients.'
+	--title '##HOST## - DNSCache active (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:udpactive=##DB##:udpactive:AVERAGE
+	DEF:tcpactive=##DB##:tcpactive:AVERAGE
+	CDEF:missing=udpactive,UN,INF,UNKN,IF
+	'LINE2:udpactive###COLOR1##:udp'
+	'LINE2:tcpactive###COLOR2##:tcp'
+	'GPRINT:udpactive:AVERAGE:udp avg=%.0lf%s'
+	'GPRINT:tcpactive:AVERAGE:tcp avg=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph motion desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  DNSCache is part of the <A HREF="http://cr.yp.to/djbdns.html">DJBDNS</A> package and acts as a local DNS cache. Cache Motion is the number of bytes that have been written to the cache since startup.'
+	--title '##HOST## - DNSCache motion (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:motion=##DB##:motion:AVERAGE
+	CDEF:missing=motion,UN,INF,UNKN,IF
+	'LINE2:motion###COLOR1##:motion'
+	'GPRINT:motion:MIN:min=%.1lf\g'
+	'GPRINT:motion:AVERAGE: avg=%.1lf\g'
+	'GPRINT:motion:MAX: max=%.1lf\g'
+	'GPRINT:motion:LAST: cur=%.1lf'
+	'AREA:missing###MISSING##:missing'
+

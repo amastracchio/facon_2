@@ -1,0 +1,205 @@
+rrd     iostat-md0
+rrd     iostat-md10
+rrd     iostat-md40
+rrd     iostat-md50
+rrd     iostat-md60
+rrd     iostat-md70
+rrd     iostat-md81
+rrd     iostat-md83
+rrd     iostat-md200
+rrd     iostat-md210
+rrd     iostat-md240
+rrd     iostat-md250
+rrd     iostat-md260
+rrd     iostat-md270
+rrd     iostat-md280
+rrd     iostat-md281
+rrd     iostat-md282
+rrd	iostat-sd0
+rrd	iostat-sd1
+rrd	iostat-sd2
+rrd	iostat-sd3
+rrd	iostat-sd4
+rrd	iostat-sd5
+rrd	iostat-sd6
+rrd	iostat-sd7
+rrd	iostat-sd8
+rrd	iostat-sd9
+rrd	iostat-sd10
+rrd	iostat-sd11
+rrd	iostat-sd26
+rrd	iostat-sd27
+rrd	iostat-sd28
+rrd	iostat-sd29
+rrd	iostat-sd30
+rrd	iostat-sd31
+rrd	iostat-sd32
+rrd	iostat-sd36
+rrd	iostat-sd37
+rrd	iostat-sd38
+rrd	iostat-sd42
+rrd	iostat-sd49
+rrd	iostat-sd50
+rrd	iostat-sd51
+rrd	iostat-sd55
+rrd	iostat-sd56
+rrd	iostat-sd57
+rrd	iostat-sd58
+rrd	iostat-sd59
+rrd	iostat-sd60
+rrd	iostat-sd61
+rrd	iostat-sd62
+rrd	iostat-sd63
+rrd	iostat-sd64
+rrd	iostat-sd66
+rrd	iostat-sd67
+rrd	iostat-sd68
+rrd	iostat-sd73
+rrd	iostat-sd74
+rrd	iostat-sd75
+rrd	iostat-sd76
+rrd	iostat-sd77
+rrd	iostat-sd78
+rrd	iostat-sd79
+rrd	iostat-sd80
+rrd	iostat-sd81
+rrd	iostat-sd85
+rrd	iostat-sd91
+rrd	iostat-sd93
+rrd	iostat-sd94
+rrd	iostat-sd95
+rrd	iostat-sd96
+rrd	iostat-sd97
+rrd	iostat-sd98
+rrd	iostat-sd104
+rrd	iostat-sd105
+rrd	iostat-sd106
+rrd	iostat-sd107
+rrd	iostat-sd108
+rrd	iostat-sd109
+rrd	iostat-sd110
+rrd	iostat-sd111
+rrd	iostat-sd112
+rrd	iostat-sd113
+rrd	iostat-sd114
+rrd	iostat-sd115
+rrd	iostat-sd116
+rrd	iostat-sd117
+rrd	iostat-sd118
+rrd	iostat-sd119
+rrd	iostat-sd120
+rrd	iostat-sd121
+rrd	iostat-sd122
+rrd	iostat-sd123
+rrd	iostat-sd129
+rrd	iostat-sd131
+rrd	iostat-sd132
+rrd	iostat-sd133
+rrd	iostat-sd134
+rrd	iostat-sd135
+rrd	iostat-sd136
+rrd	iostat-sd137
+rrd	iostat-sd138
+rrd	iostat-sd139
+rrd	iostat-sd140
+rrd	iostat-sd141
+rrd	iostat-sd142
+rrd	iostat-sd143
+rrd	iostat-sd144
+rrd	iostat-sd145
+rrd	iostat-sd146
+rrd	iostat-sd147
+rrd	iostat-sd148
+rrd	iostat-sd149
+rrd	iostat-sd150
+rrd	iostat-sd151
+rrd	iostat-sd152
+rrd	iostat-sd153
+rrd	iostat-sd154
+rrd	iostat-sd155
+rrd	iostat-sd156
+rrd	iostat-sd157
+rrd	iostat-sd158
+rrd	iostat-sd159
+rrd	iostat-sd160
+rrd	iostat-sd161
+rrd	iostat-sd162
+rrd	iostat-sd163
+rrd	iostat-sd164
+rrd	iostat-sd165
+rrd	iostat-sd166
+rrd	iostat-sd167
+rrd	iostat-sd168
+rrd	iostat-sd169
+rrd	iostat-sd170
+rrd	iostat-sd172
+rrd	iostat-sd173
+rrd	iostat-sd174
+rrd	iostat-sd175
+rrd	iostat-sd176
+rrd	iostat-sd177
+rrd	iostat-sd178
+rrd	iostat-sd179
+rrd	iostat-sd180
+rrd	iostat-sd181
+rrd	iostat-sd182
+rrd	iostat-sd184
+rrd	iostat-sd185
+rrd	iostat-sd186
+rrd	iostat-sd187
+rrd	iostat-sd189
+rrd	iostat-sd190
+rrd	iostat-sd191
+rrd	iostat-sd192
+rrd	iostat-sd193
+rrd	iostat-sd194
+rrd	iostat-sd195
+rrd	iostat-sd196
+rrd	iostat-sd197
+rrd	iostat-sd198
+rrd	iostat-sd199
+rrd	iostat-sd201
+rrd	iostat-sd202
+rrd	iostat-sd206
+rrd	iostat-sd208
+rrd	iostat-sd212
+rrd	iostat-sd213
+rrd	iostat-sd214
+rrd	iostat-sd215
+rrd	iostat-sd216
+rrd	iostat-sd217
+rrd	iostat-sd218
+rrd	iostat-sd219
+rrd	iostat-sd220
+rrd	iostat-sd221
+rrd	iostat-sd222
+rrd	iostat-sd223
+rrd	iostat-sd224
+rrd	iostat-sd226
+rrd	iostat-sd227
+rrd	iostat-sd228
+rrd	iostat-sd229
+rrd	iostat-sd230
+rrd	iostat-sd231
+rrd	iostat-sd232
+rrd	iostat-sd241
+
+# rrd	bamac-CIS ssh mwpbmhbl@yvas6120     "/users/bm300/exploit/script/start >/dev/null;  . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=bm3* since=\$DATE"  | /var/facon/bin/bamac2rem1.pl cis-yvas6120
+# rrd	bamac-CDAG ssh mwpbmhbl@yvas6120     "/users/bm100/exploit/script/start >/dev/null;  . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=bm1* since=\$DATE"  | /var/facon/bin/bamac2rem1.pl cdag-yvas6120
+# rrd	bamac-COM ssh mwpbmhbl@yvas6120     "/users/bm100/exploit/script/start >/dev/null;  . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=bmc* since=\$DATE"  | /var/facon/bin/bamac2rem1.pl comu-yvas6120
+# rrd	bamac-FR ssh mwpbmhbl@yvas6120     "/users/bm100/exploit/script/start >/dev/null;  . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=bmf* since=\$DATE"  | /var/facon/bin/bamac2rem1.pl fr-yvas6120
+# rrd	bamac-UK ssh mwpbmhbl@yvas6120     "/users/bm100/exploit/script/start >/dev/null;  . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=bmk* since=\$DATE"  | /var/facon/bin/bamac2rem1.pl uk-yvas6120
+# rrd	bamac-PBL ssh mwpbmhbl@yvas6120     "/users/bm100/exploit/script/start >/dev/null;  . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=bmh* since=\$DATE"  | /var/facon/bin/bamac2rem1.pl pbl-yvas6120
+#rrd	df-/cygdrive/c
+# queremos saber los problemas
+#noalert	bamac-CIS inci
+#noalert	bamac-CDAG inci
+#noalert	bamac-COM inci
+#noalert	bamac-FR inci
+#noalert	bamac-UK inci
+
+# users20 parece ser un fs con un .dbf no importa por ahora
+# noalert df-/users20 percent
+noalert        tcpstates timewait
+alert   dirsize-/users/bmb00/envoi cont < 1 1 1
+alert   dirsize-/users/bmb00/recept cont < 1 1 1

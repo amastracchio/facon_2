@@ -1,0 +1,166 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	response=memacc-response GAUGE:1200:0:U
+data	readacc=readacc GAUGE:1200:0:U
+data	writeacc=writeacc GAUGE:1200:0:U
+data	ccwriteacc=ccwriteacc GAUGE:1200:0:U
+data	delay=delay DERIVE:1200:0:U
+data    size=tmem GAUGE:1200:0:U
+data    used=tmemuse GAUGE:1200:0:U
+data    free=tmemfree GAUGE:1200:0:U
+
+data    docdb=db.docdb.work GAUGE:1200:0:U
+data    docsindex=db.docs.index.work GAUGE:1200:0:U
+data    excer=db.excerpts.work GAUGE:1200:0:U
+data    words=db.words.db.work GAUGE:1200:0:U
+
+data    docdbp=db.docdb GAUGE:1200:0:U
+data    docsindexp=db.docs.index GAUGE:1200:0:U
+data    excerp=db.excerpts GAUGE:1200:0:U
+data    wordsp=db.words.db GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+#graph	response desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+#	--title '##RRD## Response (##GRAPHTIME##)'
+#	--lower-limit 0
+#	--watermark 'ariel mastracchio' 
+#	--vertical-label 'ms'
+#	DEF:response=##DB##:response:AVERAGE
+#	CDEF:missing=response,UN,INF,UNKN,IF
+#	'LINE2:response###COLOR1##:response'
+#	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+#	'GPRINT:response:AVERAGE:%.0lf%s,'
+#	'GPRINT:response:MAX:%.0lf%s)'
+#	'AREA:missing###MISSING##:missing'
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'IO  usada (##GRAPHTIME##)'
+	--vertical-label 'kB'
+	--watermark 'ariel mastracchio' 
+	DEF:readacc=##DB##:readacc:AVERAGE
+	DEF:writeacc=##DB##:writeacc:AVERAGE
+	DEF:ccwriteacc=##DB##:ccwriteacc:AVERAGE
+	DEF:delay=##DB##:delay:AVERAGE
+	'LINE2:readacc###COLOR3##:kB_rd/s'
+	'LINE2:writeacc###COLOR4##:kB_wr/s'
+	'LINE2:ccwriteacc###COLOR5##:kB_ccwr/s'
+	'LINE2:delay###COLOR6##:iodelay'
+#	'GPRINT:memacc:MIN:memacc\: min=%.1lf'
+#	'GPRINT:memacc:MAX:max=%.1lf\l'
+#	'GPRINT:memrss:MIN:memrss\: min=%.1lf'
+#	'GPRINT:memrss:MAX:max=%.1lf\l'
+
+
+
+graph		memoria desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Memory Usage - ##WILDPART## (##GRAPHTIME##)'
+	--logarithmic
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:size=##DB##:size:AVERAGE
+		DEF:used=##DB##:used:AVERAGE
+		DEF:free=##DB##:free:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=size,UN,INF,UNKN,IF
+		'AREA:size###TOTALCOLOR##:Mem Size'
+		'LINE3:used###USEDCOLOR##:Mem Used'
+		'GPRINT:free:LAST:free=%.1lf%s\g'
+		'GPRINT:size:LAST: of %.1lf%s'
+		'AREA:missing###MISSING##:missing'
+
+
+graph		memlibre desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Memory Usage - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+	--lower-limit 0
+	--upper-limit 5000000000
+		DEF:free=##DB##:free:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=free,UN,INF,UNKN,IF
+		'LINE2:free###USEDCOLOR##:Mem free'
+		'GPRINT:free:LAST:free=%.1lf%s\g'
+		'AREA:missing###MISSING##:missing'
+
+
+
+
+
+graph		filesize desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - File Sizes - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:docdb=##DB##:docdb:AVERAGE
+		DEF:docsindex=##DB##:docsindex:AVERAGE
+		DEF:excer=##DB##:excer:AVERAGE
+		DEF:words=##DB##:words:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=docdb,UN,INF,UNKN,IF
+		'LINE1:docdb###COLOR1##:db.docdb.work'
+        'GPRINT:docdb:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docdb:AVERAGE:%.0lf%s,'
+        'GPRINT:docdb:MAX:%.0lf%s)\l'
+
+		'LINE1:docsindex###COLOR2##:db.docs.index.work'
+        'GPRINT:docsindex:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docsindex:AVERAGE:%.0lf%s,'
+        'GPRINT:docsindex:MAX:%.0lf%s)\l'
+		'LINE1:excer###COLOR3##:db.excerpts.work '
+        'GPRINT:excer:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:excer:AVERAGE:%.0lf%s,'
+        'GPRINT:excer:MAX:%.0lf%s)\l'
+
+		'LINE1:words###COLOR4##:db.words.db.work '
+
+        'GPRINT:words:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:words:AVERAGE:%.0lf%s,'
+        'GPRINT:words:MAX:%.0lf%s)\l'
+ 
+
+		'AREA:missing###MISSING##:missing'
+
+graph		filesiz desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - File Sizes - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:docdbp=##DB##:docdbp:AVERAGE
+		DEF:docsindexp=##DB##:docsindexp:AVERAGE
+		DEF:excerp=##DB##:excerp:AVERAGE
+		DEF:wordsp=##DB##:wordsp:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=docdbp,UN,INF,UNKN,IF
+		'LINE1:docdbp###COLOR1##:db.docdb'
+        'GPRINT:docdbp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docdbp:AVERAGE:%.0lf%s,'
+        'GPRINT:docdbp:MAX:%.0lf%s)\l'
+
+		'LINE1:docsindexp###COLOR2##:db.docs.index'
+        'GPRINT:docsindexp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docsindexp:AVERAGE:%.0lf%s,'
+        'GPRINT:docsindexp:MAX:%.0lf%s)\l'
+		'LINE1:excerp###COLOR3##:db.excerpts '
+        'GPRINT:excerp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:excerp:AVERAGE:%.0lf%s,'
+        'GPRINT:excerp:MAX:%.0lf%s)\l'
+
+		'LINE1:wordsp###COLOR4##:db.words.db'
+
+        'GPRINT:wordsp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:wordsp:AVERAGE:%.0lf%s,'
+        'GPRINT:wordsp:MAX:%.0lf%s)\l'
+ 
+

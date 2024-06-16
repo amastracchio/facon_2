@@ -1,0 +1,233 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	status=precioclaro GAUGE:1200:0:U
+data	response=*:65-1-13:preclista-response GAUGE:1200:0:U
+
+
+data	65-1-13=*:65-1-13:preclista GAUGE:1200:0:U
+data	65-1-13d=&grandeacentavos(*:65-1-13:preclista) DERIVE:1200:0:U
+data	65-1-13uno=*:65-1-13:precpromouno GAUGE:1200:0:U
+data	65-1-13unod=&grandeacentavos(*:65-1-13:precpromouno) DERIVE:1200:0:U
+data	65-1-13dos=*:65-1-13:precpromodos GAUGE:1200:0:U
+data	65-1-13dosd=&grandeacentavos(*:65-1-13:precpromodos) DERIVE:1200:0:U
+
+data	9-3-138=*:9-3-138:preclista GAUGE:1200:0:U
+data	9-3-138uno=*:9-3-138:precpromouno GAUGE:1200:0:U
+data	9-3-138dos=*:9-3-138:precpromodos GAUGE:1200:0:U
+data	9-3-138d=&grandeacentavos(*:9-3-138:preclista) DERIVE:1200:0:U
+data	9-3-138unod=&grandeacentavos(*:9-3-138:precpromouno) DERIVE:1200:0:U
+data	9-3-138dosd=&grandeacentavos(*:9-3-138:precpromodos) DERIVE:1200:0:U
+
+data	10-1-183=*:10-1-183:preclista GAUGE:1200:0:U
+data	10-1-183uno=*:10-1-183:precpromouno GAUGE:1200:0:U
+data	10-1-183dos=*:10-1-183:precpromodos GAUGE:1200:0:U
+data	10-1-183d=&grandeacentavos(*:10-1-183:preclista) DERIVE:1200:0:U
+data	10-1-183unod=&grandeacentavos(*:10-1-183:precpromouno) DERIVE:1200:0:U
+data	10-1-183dosd=&grandeacentavos(*:10-1-183:precpromodos) DERIVE:1200:0:U
+
+
+data    12-1-197=*:12-1-197:preclista GAUGE:1200:0:U
+data    12-1-197d=&grandeacentavos(*:12-1-197:preclista) DERIVE:1200:0:U
+data    12-1-197uno=*:12-1-197:precpromouno GAUGE:1200:0:U
+data    12-1-197unod=&grandeacentavos(*:12-1-197:precpromouno) DERIVE:1200:0:U
+data    12-1-197dos=*:12-1-197:precpromodos GAUGE:1200:0:U
+data    12-1-197dosd=&grandeacentavos(*:12-1-197:precpromodos) DERIVE:1200:0:U
+
+
+data    64-1-19=*:64-1-19:preclista GAUGE:1200:0:U
+data    64-1-19d=&grandeacentavos(*:64-1-19:preclista) DERIVE:1200:0:U
+data    64-1-19uno=*:64-1-19:precpromouno GAUGE:1200:0:U
+data    64-1-19unod=&grandeacentavos(*:64-1-19:precpromouno) DERIVE:1200:0:U
+data    64-1-19dos=*:64-1-19:precpromodos GAUGE:1200:0:U
+data    64-1-19dosd=&grandeacentavos(*:64-1-19:precpromodos) DERIVE:1200:0:U
+
+data   	60-1-0015=*:60-1-0015:preclista GAUGE:1200:0:U
+data    60-1-0015d=&grandeacentavos(*:60-1-0015:preclista) DERIVE:1200:0:U
+data    60-1-0015uno=*:60-1-0015:precpromouno GAUGE:1200:0:U
+data    60-1-0015unod=&grandeacentavos(*:60-1-0015:precpromouno) DERIVE:1200:0:U
+data    60-1-0015dos=*:60-1-0015:precpromodos GAUGE:1200:0:U
+data    60-1-0015dosd=&grandeacentavos(*:60-1-0015:precpromodos) DERIVE:1200:0:U
+
+
+
+
+#
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+# grafico delta
+graph	preciosdelta desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'UPC:##HOST## Delta Precios  (##GRAPHTIME##)'
+	--vertical-label 'pesos'
+	--watermark 'ariel mastracchio' 
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+
+
+	DEF:65-1-13d=##DB##:65-1-13d:AVERAGE
+	DEF:65-1-13unod=##DB##:65-1-13unod:AVERAGE
+	DEF:65-1-13dosd=##DB##:65-1-13dosd:AVERAGE
+
+	DEF:9-3-138d=##DB##:9-3-138d:AVERAGE
+	DEF:9-3-138unod=##DB##:9-3-138unod:AVERAGE
+	DEF:9-3-138dosd=##DB##:9-3-138dosd:AVERAGE
+
+	DEF:10-1-183d=##DB##:10-1-183d:AVERAGE
+	DEF:10-1-183unod=##DB##:10-1-183unod:AVERAGE
+	DEF:10-1-183dosd=##DB##:10-1-183dosd:AVERAGE
+
+        DEF:12-1-197d=##DB##:12-1-197d:AVERAGE
+        DEF:12-1-197unod=##DB##:12-1-197unod:AVERAGE
+        DEF:12-1-197dosd=##DB##:12-1-197dosd:AVERAGE
+
+
+        DEF:64-1-19d=##DB##:64-1-19d:AVERAGE
+        DEF:64-1-19unod=##DB##:64-1-19unod:AVERAGE
+        DEF:64-1-19dosd=##DB##:64-1-19dosd:AVERAGE
+
+        DEF:60-1-0015d=##DB##:60-1-0015d:AVERAGE
+        DEF:60-1-0015unod=##DB##:60-1-0015unod:AVERAGE
+        DEF:60-1-0015dosd=##DB##:60-1-0015dosd:AVERAGE
+
+        'LINE2:12-1-197d###COLOR4##:Coto' 
+	'LINE2:12-1-197unod###COLOR5##:Coto puno'
+        'LINE2:12-1-197dosd###COLOR6##:Coto pdos'
+
+
+        'LINE2:65-1-13d###COLOR1##:Diarco Pilar'
+        'LINE2:65-1-13unod###COLOR2##:Diarco Pilar puno'
+        'LINE2:65-1-13dosd###COLOR3##:Diarco Pilar pdos'
+
+        'LINE2:9-3-138d###COLOR4##:Jumbo Nordelta'
+        'LINE2:9-3-138unod###COLOR5##:Jumbo Nordelta puno'
+        'LINE2:9-3-138dosd###COLOR6##:Jumbo Nordelta pdos'
+
+        'LINE2:10-1-183d###COLOR7##:Carrefour Maschwitz'
+        'LINE2:10-1-183unod###COLOR8##:Carrefour puno'
+        'LINE2:10-1-183dosd###COLOR9##:Carrefour pdos:STACK'
+
+
+        'LINE2:64-1-19d###COLOR10##:Yaguar'
+        'LINE2:64-1-19unod###COLOR11##:Yaguar puno'
+        'LINE2:64-1-19dosd###COLOR12##:Yaguar pdos'
+
+        'LINE2:60-1-0015d###COLOR13##:Vital'
+        'LINE2:60-1-0015unod###COLOR14##:Vital puno'
+        'LINE2:60-1-0015dosd###COLOR14##:Vital pdos'
+
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'UPC:##HOST##  Precios  (##GRAPHTIME##)'
+	--vertical-label 'pesos'
+	--watermark 'ariel mastracchio' 
+	DEF:response=##DB##:response:AVERAGE
+	
+	CDEF:missing=response,UN,INF,UNKN,IF
+
+	DEF:65-1-13=##DB##:65-1-13:AVERAGE
+	DEF:65-1-13uno=##DB##:65-1-13uno:AVERAGE
+	DEF:65-1-13dos=##DB##:65-1-13dos:AVERAGE
+
+	DEF:9-3-138=##DB##:9-3-138:AVERAGE
+	DEF:9-3-138uno=##DB##:9-3-138uno:AVERAGE
+	DEF:9-3-138dos=##DB##:9-3-138dos:AVERAGE
+
+	DEF:10-1-183=##DB##:10-1-183:AVERAGE
+	DEF:10-1-183uno=##DB##:10-1-183uno:AVERAGE
+	DEF:10-1-183dos=##DB##:10-1-183dos:AVERAGE
+
+        DEF:12-1-197=##DB##:12-1-197:AVERAGE
+        DEF:12-1-197uno=##DB##:12-1-197uno:AVERAGE
+        DEF:12-1-197dos=##DB##:12-1-197dos:AVERAGE
+
+
+        DEF:64-1-19=##DB##:64-1-19:AVERAGE
+        DEF:64-1-19uno=##DB##:64-1-19uno:AVERAGE
+        DEF:64-1-19dos=##DB##:64-1-19dos:AVERAGE
+
+        DEF:60-1-0015=##DB##:60-1-0015:AVERAGE
+        DEF:60-1-0015uno=##DB##:60-1-0015uno:AVERAGE
+        DEF:60-1-0015dos=##DB##:60-1-0015dos:AVERAGE
+
+        'LINE2:12-1-197###COLOR4##:Coto' 
+	'LINE2:12-1-197uno###COLOR5##:Coto puno'
+        'LINE2:12-1-197dos###COLOR6##:Coto pdos'
+
+
+        'LINE2:65-1-13###COLOR1##:Diarco Pilar'
+        'LINE2:65-1-13uno###COLOR2##:Diarco Pilar puno'
+        'LINE2:65-1-13dos###COLOR3##:Diarco Pilar pdos'
+
+        'LINE2:9-3-138###COLOR4##:Jumbo Nordelta'
+        'LINE2:9-3-138uno###COLOR5##:Jumbo Nordelta puno'
+        'LINE2:9-3-138dos###COLOR6##:Jumbo Nordelta pdos'
+
+        'LINE2:10-1-183###COLOR7##:Carrefour Maschwitz'
+        'LINE2:10-1-183uno###COLOR8##:Carrefour puno'
+        'LINE2:10-1-183dos###COLOR9##:Carrefour pdos:STACK'
+
+
+        'LINE2:64-1-19###COLOR10##:Yaguar'
+        'LINE2:64-1-19uno###COLOR11##:Yaguar puno'
+        'LINE2:64-1-19dos###COLOR12##:Yaguar pdos'
+
+        'LINE2:60-1-0015###COLOR13##:Vital'
+        'LINE2:60-1-0015uno###COLOR14##:Vital puno'
+        'LINE2:60-1-0015dos###COLOR14##:Vital pdos'
+
+
+#        'LINE2:datados###COLOR4##:Leche sachet'
+#        'LINE2:datadospuno###COLOR5##:Leche prom. uno'
+#        'LINE2:datadospdos###COLOR6##:Leche prom. dos'
+
+#        'GPRINT:data:AVERAGE:avg=%.1lf'
+#        'GPRINT:data:MAX:max=%.1lf'
+#
+        'GPRINT:65-1-13:LAST:Diarco Pilar last=%.1lf'
+        'GPRINT:65-1-13uno:LAST:Diarco Pilar promouno last=%.1lf'
+        'GPRINT:65-1-13dos:LAST:Diarco Pilar promodos last=%.1lf'
+
+        'GPRINT:9-3-138:LAST:Jumbo nordelta last=%.1lf'
+        'GPRINT:9-3-138uno:LAST:Jumbo nordelta promouno last=%.1lf'
+        'GPRINT:9-3-138dos:LAST:Jumbo nordelta  promodos last=%.1lf'
+
+        'GPRINT:10-1-183:LAST:Carrefour last=%.1lf'
+        'GPRINT:10-1-183uno:LAST:Carrefour promouno last=%.1lf'
+        'GPRINT:10-1-183dos:LAST:Carrefour promodos last=%.1lf'
+
+        'GPRINT:12-1-197:LAST:Coto last=%.1lf'
+        'GPRINT:12-1-197uno:LAST:Coto promouno last=%.1lf'
+        'GPRINT:12-1-197dos:LAST:Coto promodos last=%.1lf'
+
+
+        'GPRINT:64-1-19:LAST:Yaguar last=%.1lf'
+        'GPRINT:64-1-19uno:LAST:Yaguar puno last=%.1lf'
+        'GPRINT:64-1-19dos:LAST:Yaguar pdos last=%.1lf'
+
+        'GPRINT:60-1-0015:LAST:Yaguar last=%.1lf'
+        'GPRINT:60-1-0015uno:LAST:Yaguar puno last=%.1lf'
+        'GPRINT:60-1-0015dos:LAST:Yaguar pdos last=%.1lf'
+
+#        'GPRINT:datapdos:AVERAGE:prodos max=%.1lf'
+
+#        'GPRINT:datados:MIN:leche\: min=%.1lf'
+#        'GPRINT:datados:AVERAGE:avg=%.1lf'
+#        'GPRINT:datados:MAX:max=%.1lf'
+#        'GPRINT:datadospuno:AVERAGE:prouno max=%.1lf'
+#        'GPRINT:datadospdos:AVERAGE:prodos max=%.1lf\l'
+
+
+
+

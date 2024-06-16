@@ -1,0 +1,1467 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data2=2  GAUGE:1200:0:U
+data    ddata2=2  DERIVE:1200:0:U
+alert    data2 delta< 10 10 10 
+data    data299862=299862  GAUGE:1200:0:U
+data    ddata299862=299862  DERIVE:1200:0:U
+alert    data299862 delta< 10 10 10 
+data    data251873=251873  GAUGE:1200:0:U
+data    ddata251873=251873  DERIVE:1200:0:U
+alert    data251873 delta< 10 10 10 
+data    data261237=261237  GAUGE:1200:0:U
+data    ddata261237=261237  DERIVE:1200:0:U
+alert    data261237 delta< 10 10 10 
+data    data66423=66423  GAUGE:1200:0:U
+data    ddata66423=66423  DERIVE:1200:0:U
+alert    data66423 delta< 10 10 10 
+data    data267714=267714  GAUGE:1200:0:U
+data    ddata267714=267714  DERIVE:1200:0:U
+alert    data267714 delta< 10 10 10 
+data    data261665=261665  GAUGE:1200:0:U
+data    ddata261665=261665  DERIVE:1200:0:U
+alert    data261665 delta< 10 10 10 
+data    data251874=251874  GAUGE:1200:0:U
+data    ddata251874=251874  DERIVE:1200:0:U
+alert    data251874 delta< 10 10 10 
+data    data11973=11973  GAUGE:1200:0:U
+data    ddata11973=11973  DERIVE:1200:0:U
+alert    data11973 delta< 10 10 10 
+data    data253482=253482  GAUGE:1200:0:U
+data    ddata253482=253482  DERIVE:1200:0:U
+alert    data253482 delta< 10 10 10 
+data    data261281=261281  GAUGE:1200:0:U
+data    ddata261281=261281  DERIVE:1200:0:U
+alert    data261281 delta< 10 10 10 
+data    data226790=226790  GAUGE:1200:0:U
+data    ddata226790=226790  DERIVE:1200:0:U
+alert    data226790 delta< 10 10 10 
+data    data281956=281956  GAUGE:1200:0:U
+data    ddata281956=281956  DERIVE:1200:0:U
+alert    data281956 delta< 10 10 10 
+data    data261238=261238  GAUGE:1200:0:U
+data    ddata261238=261238  DERIVE:1200:0:U
+alert    data261238 delta< 10 10 10 
+data    data465147=465147  GAUGE:1200:0:U
+data    ddata465147=465147  DERIVE:1200:0:U
+alert    data465147 delta< 10 10 10 
+data    data251951=251951  GAUGE:1200:0:U
+data    ddata251951=251951  DERIVE:1200:0:U
+alert    data251951 delta< 10 10 10 
+data    data251876=251876  GAUGE:1200:0:U
+data    ddata251876=251876  DERIVE:1200:0:U
+alert    data251876 delta< 10 10 10 
+data    data267906=267906  GAUGE:1200:0:U
+data    ddata267906=267906  DERIVE:1200:0:U
+alert    data267906 delta< 10 10 10 
+data    data6690=6690  GAUGE:1200:0:U
+data    ddata6690=6690  DERIVE:1200:0:U
+alert    data6690 delta< 10 10 10 
+data    data483365=483365  GAUGE:1200:0:U
+data    ddata483365=483365  DERIVE:1200:0:U
+alert    data483365 delta< 10 10 10 
+data    data465149=465149  GAUGE:1200:0:U
+data    ddata465149=465149  DERIVE:1200:0:U
+alert    data465149 delta< 10 10 10 
+data    data476201=476201  GAUGE:1200:0:U
+data    ddata476201=476201  DERIVE:1200:0:U
+alert    data476201 delta< 10 10 10 
+data    data222282=222282  GAUGE:1200:0:U
+data    ddata222282=222282  DERIVE:1200:0:U
+alert    data222282 delta< 10 10 10 
+data    data460739=460739  GAUGE:1200:0:U
+data    ddata460739=460739  DERIVE:1200:0:U
+alert    data460739 delta< 10 10 10 
+data    data10491=10491  GAUGE:1200:0:U
+data    ddata10491=10491  DERIVE:1200:0:U
+alert    data10491 delta< 10 10 10 
+data    data255454=255454  GAUGE:1200:0:U
+data    ddata255454=255454  DERIVE:1200:0:U
+alert    data255454 delta< 10 10 10 
+data    data81545=81545  GAUGE:1200:0:U
+data    ddata81545=81545  DERIVE:1200:0:U
+alert    data81545 delta< 10 10 10 
+data    data161825=161825  GAUGE:1200:0:U
+data    ddata161825=161825  DERIVE:1200:0:U
+alert    data161825 delta< 10 10 10 
+data    data226341=226341  GAUGE:1200:0:U
+data    ddata226341=226341  DERIVE:1200:0:U
+alert    data226341 delta< 10 10 10 
+data    data127684=127684  GAUGE:1200:0:U
+data    ddata127684=127684  DERIVE:1200:0:U
+alert    data127684 delta< 10 10 10 
+data    data161832=161832  GAUGE:1200:0:U
+data    ddata161832=161832  DERIVE:1200:0:U
+alert    data161832 delta< 10 10 10 
+data    data262252=262252  GAUGE:1200:0:U
+data    ddata262252=262252  DERIVE:1200:0:U
+alert    data262252 delta< 10 10 10 
+data    data261283=261283  GAUGE:1200:0:U
+data    ddata261283=261283  DERIVE:1200:0:U
+alert    data261283 delta< 10 10 10 
+data    data465150=465150  GAUGE:1200:0:U
+data    ddata465150=465150  DERIVE:1200:0:U
+alert    data465150 delta< 10 10 10 
+data    data251947=251947  GAUGE:1200:0:U
+data    ddata251947=251947  DERIVE:1200:0:U
+alert    data251947 delta< 10 10 10 
+data    data465497=465497  GAUGE:1200:0:U
+data    ddata465497=465497  DERIVE:1200:0:U
+alert    data465497 delta< 10 10 10 
+data    data127683=127683  GAUGE:1200:0:U
+data    ddata127683=127683  DERIVE:1200:0:U
+alert    data127683 delta< 10 10 10 
+data    data183652=183652  GAUGE:1200:0:U
+data    ddata183652=183652  DERIVE:1200:0:U
+alert    data183652 delta< 10 10 10 
+data    data265722=265722  GAUGE:1200:0:U
+data    ddata265722=265722  DERIVE:1200:0:U
+alert    data265722 delta< 10 10 10 
+data    data457969=457969  GAUGE:1200:0:U
+data    ddata457969=457969  DERIVE:1200:0:U
+alert    data457969 delta< 10 10 10 
+data    data262247=262247  GAUGE:1200:0:U
+data    ddata262247=262247  DERIVE:1200:0:U
+alert    data262247 delta< 10 10 10 
+data    data261666=261666  GAUGE:1200:0:U
+data    ddata261666=261666  DERIVE:1200:0:U
+alert    data261666 delta< 10 10 10 
+data    data10226=10226  GAUGE:1200:0:U
+data    ddata10226=10226  DERIVE:1200:0:U
+alert    data10226 delta< 10 10 10 
+data    data81546=81546  GAUGE:1200:0:U
+data    ddata81546=81546  DERIVE:1200:0:U
+alert    data81546 delta< 10 10 10 
+data    data224956=224956  GAUGE:1200:0:U
+data    ddata224956=224956  DERIVE:1200:0:U
+alert    data224956 delta< 10 10 10 
+data    data483364=483364  GAUGE:1200:0:U
+data    ddata483364=483364  DERIVE:1200:0:U
+alert    data483364 delta< 10 10 10 
+data    data160107=160107  GAUGE:1200:0:U
+data    ddata160107=160107  DERIVE:1200:0:U
+alert    data160107 delta< 10 10 10 
+data    data162775=162775  GAUGE:1200:0:U
+data    ddata162775=162775  DERIVE:1200:0:U
+alert    data162775 delta< 10 10 10 
+data    data3817=3817  GAUGE:1200:0:U
+data    ddata3817=3817  DERIVE:1200:0:U
+alert    data3817 delta< 10 10 10 
+data    data8898=8898  GAUGE:1200:0:U
+data    ddata8898=8898  DERIVE:1200:0:U
+alert    data8898 delta< 10 10 10 
+data    data85123=85123  GAUGE:1200:0:U
+data    ddata85123=85123  DERIVE:1200:0:U
+alert    data85123 delta< 10 10 10 
+data    data476202=476202  GAUGE:1200:0:U
+data    ddata476202=476202  DERIVE:1200:0:U
+alert    data476202 delta< 10 10 10 
+data    data268396=268396  GAUGE:1200:0:U
+data    ddata268396=268396  DERIVE:1200:0:U
+alert    data268396 delta< 10 10 10 
+data    data6482=6482  GAUGE:1200:0:U
+data    ddata6482=6482  DERIVE:1200:0:U
+alert    data6482 delta< 10 10 10 
+data    data254222=254222  GAUGE:1200:0:U
+data    ddata254222=254222  DERIVE:1200:0:U
+alert    data254222 delta< 10 10 10 
+data    data253103=253103  GAUGE:1200:0:U
+data    ddata253103=253103  DERIVE:1200:0:U
+alert    data253103 delta< 10 10 10 
+data    data262254=262254  GAUGE:1200:0:U
+data    ddata262254=262254  DERIVE:1200:0:U
+alert    data262254 delta< 10 10 10 
+data    data465200=465200  GAUGE:1200:0:U
+data    ddata465200=465200  DERIVE:1200:0:U
+alert    data465200 delta< 10 10 10 
+data    data468053=468053  GAUGE:1200:0:U
+data    ddata468053=468053  DERIVE:1200:0:U
+alert    data468053 delta< 10 10 10 
+data    data8899=8899  GAUGE:1200:0:U
+data    ddata8899=8899  DERIVE:1200:0:U
+alert    data8899 delta< 10 10 10 
+data    data481395=481395  GAUGE:1200:0:U
+data    ddata481395=481395  DERIVE:1200:0:U
+alert    data481395 delta< 10 10 10 
+data    data468748=468748  GAUGE:1200:0:U
+data    ddata468748=468748  DERIVE:1200:0:U
+alert    data468748 delta< 10 10 10 
+data    data81049=81049  GAUGE:1200:0:U
+data    ddata81049=81049  DERIVE:1200:0:U
+alert    data81049 delta< 10 10 10 
+data    data252823=252823  GAUGE:1200:0:U
+data    ddata252823=252823  DERIVE:1200:0:U
+alert    data252823 delta< 10 10 10 
+data    data261290=261290  GAUGE:1200:0:U
+data    ddata261290=261290  DERIVE:1200:0:U
+alert    data261290 delta< 10 10 10 
+data    data134187=134187  GAUGE:1200:0:U
+data    ddata134187=134187  DERIVE:1200:0:U
+alert    data134187 delta< 10 10 10 
+data    data482870=482870  GAUGE:1200:0:U
+data    ddata482870=482870  DERIVE:1200:0:U
+alert    data482870 delta< 10 10 10 
+data    data481393=481393  GAUGE:1200:0:U
+data    ddata481393=481393  DERIVE:1200:0:U
+alert    data481393 delta< 10 10 10 
+data    data294955=294955  GAUGE:1200:0:U
+data    ddata294955=294955  DERIVE:1200:0:U
+alert    data294955 delta< 10 10 10 
+data    data206435=206435  GAUGE:1200:0:U
+data    ddata206435=206435  DERIVE:1200:0:U
+alert    data206435 delta< 10 10 10 
+data    data481735=481735  GAUGE:1200:0:U
+data    ddata481735=481735  DERIVE:1200:0:U
+alert    data481735 delta< 10 10 10 
+data    data297182=297182  GAUGE:1200:0:U
+data    ddata297182=297182  DERIVE:1200:0:U
+alert    data297182 delta< 10 10 10 
+data    data483100=483100  GAUGE:1200:0:U
+data    ddata483100=483100  DERIVE:1200:0:U
+alert    data483100 delta< 10 10 10 
+data    data89286=89286  GAUGE:1200:0:U
+data    ddata89286=89286  DERIVE:1200:0:U
+alert    data89286 delta< 10 10 10 
+data    data460738=460738  GAUGE:1200:0:U
+data    ddata460738=460738  DERIVE:1200:0:U
+alert    data460738 delta< 10 10 10 
+data    data9491=9491  GAUGE:1200:0:U
+data    ddata9491=9491  DERIVE:1200:0:U
+alert    data9491 delta< 10 10 10 
+data    data89308=89308  GAUGE:1200:0:U
+data    ddata89308=89308  DERIVE:1200:0:U
+alert    data89308 delta< 10 10 10 
+data    data253222=253222  GAUGE:1200:0:U
+data    ddata253222=253222  DERIVE:1200:0:U
+alert    data253222 delta< 10 10 10 
+data    data258338=258338  GAUGE:1200:0:U
+data    ddata258338=258338  DERIVE:1200:0:U
+alert    data258338 delta< 10 10 10 
+data    data68402=68402  GAUGE:1200:0:U
+data    ddata68402=68402  DERIVE:1200:0:U
+alert    data68402 delta< 10 10 10 
+data    data191124=191124  GAUGE:1200:0:U
+data    ddata191124=191124  DERIVE:1200:0:U
+alert    data191124 delta< 10 10 10 
+data    data284861=284861  GAUGE:1200:0:U
+data    ddata284861=284861  DERIVE:1200:0:U
+alert    data284861 delta< 10 10 10 
+data    data255197=255197  GAUGE:1200:0:U
+data    ddata255197=255197  DERIVE:1200:0:U
+alert    data255197 delta< 10 10 10 
+data    data261769=261769  GAUGE:1200:0:U
+data    ddata261769=261769  DERIVE:1200:0:U
+alert    data261769 delta< 10 10 10 
+data    data251948=251948  GAUGE:1200:0:U
+data    ddata251948=251948  DERIVE:1200:0:U
+alert    data251948 delta< 10 10 10 
+data    data192663=192663  GAUGE:1200:0:U
+data    ddata192663=192663  DERIVE:1200:0:U
+alert    data192663 delta< 10 10 10 
+data    data262248=262248  GAUGE:1200:0:U
+data    ddata262248=262248  DERIVE:1200:0:U
+alert    data262248 delta< 10 10 10 
+data    data170969=170969  GAUGE:1200:0:U
+data    ddata170969=170969  DERIVE:1200:0:U
+alert    data170969 delta< 10 10 10 
+data    data164418=164418  GAUGE:1200:0:U
+data    ddata164418=164418  DERIVE:1200:0:U
+alert    data164418 delta< 10 10 10 
+data    data298995=298995  GAUGE:1200:0:U
+data    ddata298995=298995  DERIVE:1200:0:U
+alert    data298995 delta< 10 10 10 
+data    data480129=480129  GAUGE:1200:0:U
+data    ddata480129=480129  DERIVE:1200:0:U
+alert    data480129 delta< 10 10 10 
+data    data228676=228676  GAUGE:1200:0:U
+data    ddata228676=228676  DERIVE:1200:0:U
+alert    data228676 delta< 10 10 10 
+data    data480391=480391  GAUGE:1200:0:U
+data    ddata480391=480391  DERIVE:1200:0:U
+alert    data480391 delta< 10 10 10 
+data    data470349=470349  GAUGE:1200:0:U
+data    ddata470349=470349  DERIVE:1200:0:U
+alert    data470349 delta< 10 10 10 
+data    data476203=476203  GAUGE:1200:0:U
+data    ddata476203=476203  DERIVE:1200:0:U
+alert    data476203 delta< 10 10 10 
+data    data253154=253154  GAUGE:1200:0:U
+data    ddata253154=253154  DERIVE:1200:0:U
+alert    data253154 delta< 10 10 10 
+data    data482869=482869  GAUGE:1200:0:U
+data    ddata482869=482869  DERIVE:1200:0:U
+alert    data482869 delta< 10 10 10 
+data    data294948=294948  GAUGE:1200:0:U
+data    ddata294948=294948  DERIVE:1200:0:U
+alert    data294948 delta< 10 10 10 
+data    data474488=474488  GAUGE:1200:0:U
+data    ddata474488=474488  DERIVE:1200:0:U
+alert    data474488 delta< 10 10 10 
+data    data288034=288034  GAUGE:1200:0:U
+data    ddata288034=288034  DERIVE:1200:0:U
+alert    data288034 delta< 10 10 10 
+data    data256611=256611  GAUGE:1200:0:U
+data    ddata256611=256611  DERIVE:1200:0:U
+alert    data256611 delta< 10 10 10 
+data    data49433=49433  GAUGE:1200:0:U
+data    ddata49433=49433  DERIVE:1200:0:U
+alert    data49433 delta< 10 10 10 
+data    data465786=465786  GAUGE:1200:0:U
+data    ddata465786=465786  DERIVE:1200:0:U
+alert    data465786 delta< 10 10 10 
+data    data297181=297181  GAUGE:1200:0:U
+data    ddata297181=297181  DERIVE:1200:0:U
+alert    data297181 delta< 10 10 10 
+data    data239784=239784  GAUGE:1200:0:U
+data    ddata239784=239784  DERIVE:1200:0:U
+alert    data239784 delta< 10 10 10 
+data    data256609=256609  GAUGE:1200:0:U
+data    ddata256609=256609  DERIVE:1200:0:U
+alert    data256609 delta< 10 10 10 
+data    data481394=481394  GAUGE:1200:0:U
+data    ddata481394=481394  DERIVE:1200:0:U
+alert    data481394 delta< 10 10 10 
+data    data480390=480390  GAUGE:1200:0:U
+data    ddata480390=480390  DERIVE:1200:0:U
+alert    data480390 delta< 10 10 10 
+data    data262253=262253  GAUGE:1200:0:U
+data    ddata262253=262253  DERIVE:1200:0:U
+alert    data262253 delta< 10 10 10 
+data    data251950=251950  GAUGE:1200:0:U
+data    ddata251950=251950  DERIVE:1200:0:U
+alert    data251950 delta< 10 10 10 
+data    data480490=480490  GAUGE:1200:0:U
+data    ddata480490=480490  DERIVE:1200:0:U
+alert    data480490 delta< 10 10 10 
+data    data250657=250657  GAUGE:1200:0:U
+data    ddata250657=250657  DERIVE:1200:0:U
+alert    data250657 delta< 10 10 10 
+data    data166221=166221  GAUGE:1200:0:U
+data    ddata166221=166221  DERIVE:1200:0:U
+alert    data166221 delta< 10 10 10 
+data    data252520=252520  GAUGE:1200:0:U
+data    ddata252520=252520  DERIVE:1200:0:U
+alert    data252520 delta< 10 10 10 
+data    data261288=261288  GAUGE:1200:0:U
+data    ddata261288=261288  DERIVE:1200:0:U
+alert    data261288 delta< 10 10 10 
+data    data285320=285320  GAUGE:1200:0:U
+data    ddata285320=285320  DERIVE:1200:0:U
+alert    data285320 delta< 10 10 10 
+data    data253124=253124  GAUGE:1200:0:U
+data    ddata253124=253124  DERIVE:1200:0:U
+alert    data253124 delta< 10 10 10 
+data    data6478=6478  GAUGE:1200:0:U
+data    ddata6478=6478  DERIVE:1200:0:U
+alert    data6478 delta< 10 10 10 
+data    data481391=481391  GAUGE:1200:0:U
+data    ddata481391=481391  DERIVE:1200:0:U
+alert    data481391 delta< 10 10 10 
+data    data6689=6689  GAUGE:1200:0:U
+data    ddata6689=6689  DERIVE:1200:0:U
+alert    data6689 delta< 10 10 10 
+data    data299863=299863  GAUGE:1200:0:U
+data    ddata299863=299863  DERIVE:1200:0:U
+alert    data299863 delta< 10 10 10 
+data    data294949=294949  GAUGE:1200:0:U
+data    ddata294949=294949  DERIVE:1200:0:U
+alert    data294949 delta< 10 10 10 
+data    data212429=212429  GAUGE:1200:0:U
+data    ddata212429=212429  DERIVE:1200:0:U
+alert    data212429 delta< 10 10 10 
+data    data465657=465657  GAUGE:1200:0:U
+data    ddata465657=465657  DERIVE:1200:0:U
+alert    data465657 delta< 10 10 10 
+data    data204769=204769  GAUGE:1200:0:U
+data    ddata204769=204769  DERIVE:1200:0:U
+alert    data204769 delta< 10 10 10 
+data    data478029=478029  GAUGE:1200:0:U
+data    ddata478029=478029  DERIVE:1200:0:U
+alert    data478029 delta< 10 10 10 
+data    data15506=15506  GAUGE:1200:0:U
+data    ddata15506=15506  DERIVE:1200:0:U
+alert    data15506 delta< 10 10 10 
+data    data479389=479389  GAUGE:1200:0:U
+data    ddata479389=479389  DERIVE:1200:0:U
+alert    data479389 delta< 10 10 10 
+data    data473637=473637  GAUGE:1200:0:U
+data    ddata473637=473637  DERIVE:1200:0:U
+alert    data473637 delta< 10 10 10 
+data    data261356=261356  GAUGE:1200:0:U
+data    ddata261356=261356  DERIVE:1200:0:U
+alert    data261356 delta< 10 10 10 
+data    data482350=482350  GAUGE:1200:0:U
+data    ddata482350=482350  DERIVE:1200:0:U
+alert    data482350 delta< 10 10 10 
+data    data260007=260007  GAUGE:1200:0:U
+data    ddata260007=260007  DERIVE:1200:0:U
+alert    data260007 delta< 10 10 10 
+data    data251875=251875  GAUGE:1200:0:U
+data    ddata251875=251875  DERIVE:1200:0:U
+alert    data251875 delta< 10 10 10 
+data    data2696=2696  GAUGE:1200:0:U
+data    ddata2696=2696  DERIVE:1200:0:U
+alert    data2696 delta< 10 10 10 
+data    data481179=481179  GAUGE:1200:0:U
+data    ddata481179=481179  DERIVE:1200:0:U
+alert    data481179 delta< 10 10 10 
+data    data285028=285028  GAUGE:1200:0:U
+data    ddata285028=285028  DERIVE:1200:0:U
+alert    data285028 delta< 10 10 10 
+data    data5217=5217  GAUGE:1200:0:U
+data    ddata5217=5217  DERIVE:1200:0:U
+alert    data5217 delta< 10 10 10 
+data    data298197=298197  GAUGE:1200:0:U
+data    ddata298197=298197  DERIVE:1200:0:U
+alert    data298197 delta< 10 10 10 
+data    data480130=480130  GAUGE:1200:0:U
+data    ddata480130=480130  DERIVE:1200:0:U
+alert    data480130 delta< 10 10 10 
+data    data294954=294954  GAUGE:1200:0:U
+data    ddata294954=294954  DERIVE:1200:0:U
+alert    data294954 delta< 10 10 10 
+data    data5037=5037  GAUGE:1200:0:U
+data    ddata5037=5037  DERIVE:1200:0:U
+alert    data5037 delta< 10 10 10 
+data    data260008=260008  GAUGE:1200:0:U
+data    ddata260008=260008  DERIVE:1200:0:U
+alert    data260008 delta< 10 10 10 
+data    data258337=258337  GAUGE:1200:0:U
+data    ddata258337=258337  DERIVE:1200:0:U
+alert    data258337 delta< 10 10 10 
+data    data288035=288035  GAUGE:1200:0:U
+data    ddata288035=288035  DERIVE:1200:0:U
+alert    data288035 delta< 10 10 10 
+data    data6984=6984  GAUGE:1200:0:U
+data    ddata6984=6984  DERIVE:1200:0:U
+alert    data6984 delta< 10 10 10 
+data    data261282=261282  GAUGE:1200:0:U
+data    ddata261282=261282  DERIVE:1200:0:U
+alert    data261282 delta< 10 10 10 
+data    data292516=292516  GAUGE:1200:0:U
+data    ddata292516=292516  DERIVE:1200:0:U
+alert    data292516 delta< 10 10 10 
+data    data89260=89260  GAUGE:1200:0:U
+data    ddata89260=89260  DERIVE:1200:0:U
+alert    data89260 delta< 10 10 10 
+data    data481736=481736  GAUGE:1200:0:U
+data    ddata481736=481736  DERIVE:1200:0:U
+alert    data481736 delta< 10 10 10 
+data    data160420=160420  GAUGE:1200:0:U
+data    ddata160420=160420  DERIVE:1200:0:U
+alert    data160420 delta< 10 10 10 
+data    data474486=474486  GAUGE:1200:0:U
+data    ddata474486=474486  DERIVE:1200:0:U
+alert    data474486 delta< 10 10 10 
+data    data251047=251047  GAUGE:1200:0:U
+data    ddata251047=251047  DERIVE:1200:0:U
+alert    data251047 delta< 10 10 10 
+data    data103283=103283  GAUGE:1200:0:U
+data    ddata103283=103283  DERIVE:1200:0:U
+alert    data103283 delta< 10 10 10 
+data    data465788=465788  GAUGE:1200:0:U
+data    ddata465788=465788  DERIVE:1200:0:U
+alert    data465788 delta< 10 10 10 
+data    data262246=262246  GAUGE:1200:0:U
+data    ddata262246=262246  DERIVE:1200:0:U
+alert    data262246 delta< 10 10 10 
+data    data478030=478030  GAUGE:1200:0:U
+data    ddata478030=478030  DERIVE:1200:0:U
+alert    data478030 delta< 10 10 10 
+data    data253123=253123  GAUGE:1200:0:U
+data    ddata253123=253123  DERIVE:1200:0:U
+alert    data253123 delta< 10 10 10 
+data    data466956=466956  GAUGE:1200:0:U
+data    ddata466956=466956  DERIVE:1200:0:U
+alert    data466956 delta< 10 10 10 
+data    data252522=252522  GAUGE:1200:0:U
+data    ddata252522=252522  DERIVE:1200:0:U
+alert    data252522 delta< 10 10 10 
+data    data165740=165740  GAUGE:1200:0:U
+data    ddata165740=165740  DERIVE:1200:0:U
+alert    data165740 delta< 10 10 10 
+data    data172247=172247  GAUGE:1200:0:U
+data    ddata172247=172247  DERIVE:1200:0:U
+alert    data172247 delta< 10 10 10 
+data    data227698=227698  GAUGE:1200:0:U
+data    ddata227698=227698  DERIVE:1200:0:U
+alert    data227698 delta< 10 10 10 
+data    data481737=481737  GAUGE:1200:0:U
+data    ddata481737=481737  DERIVE:1200:0:U
+alert    data481737 delta< 10 10 10 
+data    data261287=261287  GAUGE:1200:0:U
+data    ddata261287=261287  DERIVE:1200:0:U
+alert    data261287 delta< 10 10 10 
+data    data482349=482349  GAUGE:1200:0:U
+data    ddata482349=482349  DERIVE:1200:0:U
+alert    data482349 delta< 10 10 10 
+data    data197269=197269  GAUGE:1200:0:U
+data    ddata197269=197269  DERIVE:1200:0:U
+alert    data197269 delta< 10 10 10 
+data    data257444=257444  GAUGE:1200:0:U
+data    ddata257444=257444  DERIVE:1200:0:U
+alert    data257444 delta< 10 10 10 
+data    data252521=252521  GAUGE:1200:0:U
+data    ddata252521=252521  DERIVE:1200:0:U
+alert    data252521 delta< 10 10 10 
+data    data262256=262256  GAUGE:1200:0:U
+data    ddata262256=262256  DERIVE:1200:0:U
+alert    data262256 delta< 10 10 10 
+data    data468096=468096  GAUGE:1200:0:U
+data    ddata468096=468096  DERIVE:1200:0:U
+alert    data468096 delta< 10 10 10 
+data    data164415=164415  GAUGE:1200:0:U
+data    ddata164415=164415  DERIVE:1200:0:U
+alert    data164415 delta< 10 10 10 
+data    data474487=474487  GAUGE:1200:0:U
+data    ddata474487=474487  DERIVE:1200:0:U
+alert    data474487 delta< 10 10 10 
+data    data254223=254223  GAUGE:1200:0:U
+data    ddata254223=254223  DERIVE:1200:0:U
+alert    data254223 delta< 10 10 10 
+data    data14046=14046  GAUGE:1200:0:U
+data    ddata14046=14046  DERIVE:1200:0:U
+alert    data14046 delta< 10 10 10 
+data    data285911=285911  GAUGE:1200:0:U
+data    ddata285911=285911  DERIVE:1200:0:U
+alert    data285911 delta< 10 10 10 
+data    data253880=253880  GAUGE:1200:0:U
+data    ddata253880=253880  DERIVE:1200:0:U
+alert    data253880 delta< 10 10 10 
+data    data290599=290599  GAUGE:1200:0:U
+data    ddata290599=290599  DERIVE:1200:0:U
+alert    data290599 delta< 10 10 10 
+data    data473636=473636  GAUGE:1200:0:U
+data    ddata473636=473636  DERIVE:1200:0:U
+alert    data473636 delta< 10 10 10 
+data    data161830=161830  GAUGE:1200:0:U
+data    ddata161830=161830  DERIVE:1200:0:U
+alert    data161830 delta< 10 10 10 
+data    data15934=15934  GAUGE:1200:0:U
+data    ddata15934=15934  DERIVE:1200:0:U
+alert    data15934 delta< 10 10 10 
+data    data299866=299866  GAUGE:1200:0:U
+data    ddata299866=299866  DERIVE:1200:0:U
+alert    data299866 delta< 10 10 10 
+data    data468751=468751  GAUGE:1200:0:U
+data    ddata468751=468751  DERIVE:1200:0:U
+alert    data468751 delta< 10 10 10 
+data    data161829=161829  GAUGE:1200:0:U
+data    ddata161829=161829  DERIVE:1200:0:U
+alert    data161829 delta< 10 10 10 
+data    data50789=50789  GAUGE:1200:0:U
+data    ddata50789=50789  DERIVE:1200:0:U
+alert    data50789 delta< 10 10 10 
+data    data187025=187025  GAUGE:1200:0:U
+data    ddata187025=187025  DERIVE:1200:0:U
+alert    data187025 delta< 10 10 10 
+data    data225537=225537  GAUGE:1200:0:U
+data    ddata225537=225537  DERIVE:1200:0:U
+alert    data225537 delta< 10 10 10 
+data    data79851=79851  GAUGE:1200:0:U
+data    ddata79851=79851  DERIVE:1200:0:U
+alert    data79851 delta< 10 10 10 
+data    data468404=468404  GAUGE:1200:0:U
+data    ddata468404=468404  DERIVE:1200:0:U
+alert    data468404 delta< 10 10 10 
+data    data469036=469036  GAUGE:1200:0:U
+data    ddata469036=469036  DERIVE:1200:0:U
+alert    data469036 delta< 10 10 10 
+data    data262249=262249  GAUGE:1200:0:U
+data    ddata262249=262249  DERIVE:1200:0:U
+alert    data262249 delta< 10 10 10 
+data    data212430=212430  GAUGE:1200:0:U
+data    ddata212430=212430  DERIVE:1200:0:U
+alert    data212430 delta< 10 10 10 
+data    data248888=248888  GAUGE:1200:0:U
+data    ddata248888=248888  DERIVE:1200:0:U
+alert    data248888 delta< 10 10 10 
+data    data164422=164422  GAUGE:1200:0:U
+data    ddata164422=164422  DERIVE:1200:0:U
+alert    data164422 delta< 10 10 10 
+data    data174014=174014  GAUGE:1200:0:U
+data    ddata174014=174014  DERIVE:1200:0:U
+alert    data174014 delta< 10 10 10 
+data    data89261=89261  GAUGE:1200:0:U
+data    ddata89261=89261  DERIVE:1200:0:U
+alert    data89261 delta< 10 10 10 
+data    data254550=254550  GAUGE:1200:0:U
+data    ddata254550=254550  DERIVE:1200:0:U
+alert    data254550 delta< 10 10 10 
+data    data253879=253879  GAUGE:1200:0:U
+data    ddata253879=253879  DERIVE:1200:0:U
+alert    data253879 delta< 10 10 10 
+data    data103285=103285  GAUGE:1200:0:U
+data    ddata103285=103285  DERIVE:1200:0:U
+alert    data103285 delta< 10 10 10 
+data    data481180=481180  GAUGE:1200:0:U
+data    ddata481180=481180  DERIVE:1200:0:U
+alert    data481180 delta< 10 10 10 
+data    data262279=262279  GAUGE:1200:0:U
+data    ddata262279=262279  DERIVE:1200:0:U
+alert    data262279 delta< 10 10 10 
+data    data479368=479368  GAUGE:1200:0:U
+data    ddata479368=479368  DERIVE:1200:0:U
+alert    data479368 delta< 10 10 10 
+data    responsetime=2-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data2=##DB##:data2:AVERAGE
+      'LINE2:data2###COLOR1##: SKU 2 ' 
+      'GPRINT:data2:LAST: last=%.1lf\n'
+      DEF:data299862=##DB##:data299862:AVERAGE
+      'LINE2:data299862###COLOR2##:Leche Org. Desc Deslactosada La Serenisi Ttb 750 Ml SKU 299862 ' 
+      'GPRINT:data299862:LAST: last=%.1lf\n'
+      DEF:data251873=##DB##:data251873:AVERAGE
+      'LINE2:data251873###COLOR3##:Dulce Leche Est/Colon F. C La Serenisi Pot 400 Grm SKU 251873 ' 
+      'GPRINT:data251873:LAST: last=%.1lf\n'
+      DEF:data261237=##DB##:data261237:AVERAGE
+      'LINE2:data261237###COLOR4##:Yog.Beb.Ent. Vainilla.. Yogurisimo Sch 1300 Grm SKU 261237 ' 
+      'GPRINT:data261237:LAST: last=%.1lf\n'
+      DEF:data66423=##DB##:data66423:AVERAGE
+      'LINE2:data66423###COLOR5##:Manteca Cal.Ext. Ciudad De Paq 200 Grm SKU 66423 ' 
+      'GPRINT:data66423:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data267714=##DB##:data267714:AVERAGE
+      'LINE2:data267714###COLOR1##:Flan Light Vainilla Ser Pak 190 Grm SKU 267714 ' 
+      'GPRINT:data267714:LAST: last=%.1lf\n'
+      DEF:data261665=##DB##:data261665:AVERAGE
+      'LINE2:data261665###COLOR2##:Yog.Desc.Firme Vainilla Ser Pot 195 Grm SKU 261665 ' 
+      'GPRINT:data261665:LAST: last=%.1lf\n'
+      DEF:data251874=##DB##:data251874:AVERAGE
+      'LINE2:data251874###COLOR3##:Dulce Leche Fuente D Calci La Serenisi Pot 400 Grm SKU 251874 ' 
+      'GPRINT:data251874:LAST: last=%.1lf\n'
+      DEF:data11973=##DB##:data11973:AVERAGE
+      'LINE2:data11973###COLOR4##:Leche Des.Lv Vit.A/D. Coto Ctn 1 Ltr SKU 11973 ' 
+      'GPRINT:data11973:LAST: last=%.1lf\n'
+      DEF:data253482=##DB##:data253482:AVERAGE
+      'LINE2:data253482###COLOR5##:Leche Ent.Lv Calcio Vit A/C La Serenisi Ctn 1 Ltr SKU 253482 ' 
+      'GPRINT:data253482:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data261281=##DB##:data261281:AVERAGE
+      'LINE2:data261281###COLOR1##:Yog.Cereal.Ent. Energia Total Yogurisimo Pot 166 Grm SKU 261281 ' 
+      'GPRINT:data261281:LAST: last=%.1lf\n'
+      DEF:data226790=##DB##:data226790:AVERAGE
+      'LINE2:data226790###COLOR2##:Yog.Bat.Des. Cereales C/Mie Ser Pot 164 Grm SKU 226790 ' 
+      'GPRINT:data226790:LAST: last=%.1lf\n'
+      DEF:data281956=##DB##:data281956:AVERAGE
+      'LINE2:data281956###COLOR3##:Crema Leche Light La Serenisi Pot 200 Cmq SKU 281956 ' 
+      'GPRINT:data281956:LAST: last=%.1lf\n'
+      DEF:data261238=##DB##:data261238:AVERAGE
+      'LINE2:data261238###COLOR4##:Yog.Beb.Ent. Frutilla.. Yogurisimo Sch 1300 Grm SKU 261238 ' 
+      'GPRINT:data261238:LAST: last=%.1lf\n'
+      DEF:data465147=##DB##:data465147:AVERAGE
+      'LINE2:data465147###COLOR5##:Yog.Ent.Firme Vainilla Yogurisimo Pot 125 Grm SKU 465147 ' 
+      'GPRINT:data465147:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data251951=##DB##:data251951:AVERAGE
+      'LINE2:data251951###COLOR1##:Queso Untable Light Vit A/D Finlandia Pot 200 Grm SKU 251951 ' 
+      'GPRINT:data251951:LAST: last=%.1lf\n'
+      DEF:data251876=##DB##:data251876:AVERAGE
+      'LINE2:data251876###COLOR2##:Leche Ultrap Des Vit A/C/D/B9 La Serenisi Sqa 1 Ltr SKU 251876 ' 
+      'GPRINT:data251876:LAST: last=%.1lf\n'
+      DEF:data267906=##DB##:data267906:AVERAGE
+      'LINE2:data267906###COLOR3##:Postre Chocolate Ser Pak 200 Grm SKU 267906 ' 
+      'GPRINT:data267906:LAST: last=%.1lf\n'
+      DEF:data6690=##DB##:data6690:AVERAGE
+      'LINE2:data6690###COLOR4##:Leche Des.Lv Vit.A/D Ilolay Ctn 1 Ltr SKU 6690 ' 
+      'GPRINT:data6690:LAST: last=%.1lf\n'
+      DEF:data483365=##DB##:data483365:AVERAGE
+      'LINE2:data483365###COLOR5##:Leche Ultra Descre 0% La Serenisi Sch 1 Ltr SKU 483365 ' 
+      'GPRINT:data483365:LAST: last=%.1lf\n'
+
+graph   value5-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data465149=##DB##:data465149:AVERAGE
+      'LINE2:data465149###COLOR1##:Yog.Bat.Ent. Cremix Frutill Yogurisimo Pot 120 Grm SKU 465149 ' 
+      'GPRINT:data465149:LAST: last=%.1lf\n'
+      DEF:data476201=##DB##:data476201:AVERAGE
+      'LINE2:data476201###COLOR2##:Postre Vainilla Ser Pak 200 Grm SKU 476201 ' 
+      'GPRINT:data476201:LAST: last=%.1lf\n'
+      DEF:data222282=##DB##:data222282:AVERAGE
+      'LINE2:data222282###COLOR3##:Leche Choc. Fortif . Cindor Ttb 1 Ltr SKU 222282 ' 
+      'GPRINT:data222282:LAST: last=%.1lf\n'
+      DEF:data460739=##DB##:data460739:AVERAGE
+      'LINE2:data460739###COLOR4##:Queso Untable Light Balance Finlandia Pot 300 Grm SKU 460739 ' 
+      'GPRINT:data460739:LAST: last=%.1lf\n'
+      DEF:data10491=##DB##:data10491:AVERAGE
+      'LINE2:data10491###COLOR5##:Leche Descre Ultrapas Coto Sch 1 Ltr SKU 10491 ' 
+      'GPRINT:data10491:LAST: last=%.1lf\n'
+
+graph   value6-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #6 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data255454=##DB##:data255454:AVERAGE
+      'LINE2:data255454###COLOR1##:Manteca Unt Light Vit A/E La Serenisi Pot 200 Grm SKU 255454 ' 
+      'GPRINT:data255454:LAST: last=%.1lf\n'
+      DEF:data81545=##DB##:data81545:AVERAGE
+      'LINE2:data81545###COLOR2##:Leche Des.Lv . Veronica Ttb 1 Ltr SKU 81545 ' 
+      'GPRINT:data81545:LAST: last=%.1lf\n'
+      DEF:data161825=##DB##:data161825:AVERAGE
+      'LINE2:data161825###COLOR3##:Crema Leche . Tregar Pot 350 Cmq SKU 161825 ' 
+      'GPRINT:data161825:LAST: last=%.1lf\n'
+      DEF:data226341=##DB##:data226341:AVERAGE
+      'LINE2:data226341###COLOR4##:Yog.Descre. Frut/Ara/Grnda Ser Pot 175 Grm SKU 226341 ' 
+      'GPRINT:data226341:LAST: last=%.1lf\n'
+      DEF:data127684=##DB##:data127684:AVERAGE
+      'LINE2:data127684###COLOR5##:Postre Chocolat Danette Pak 190 Grm SKU 127684 ' 
+      'GPRINT:data127684:LAST: last=%.1lf\n'
+
+graph   value7-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #7 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data161832=##DB##:data161832:AVERAGE
+      'LINE2:data161832###COLOR1##:Crema Leche . Tregar Pot 200 Cmq SKU 161832 ' 
+      'GPRINT:data161832:LAST: last=%.1lf\n'
+      DEF:data262252=##DB##:data262252:AVERAGE
+      'LINE2:data262252###COLOR2##:Yog.Bat.Des. Vit D Vainilla Calci+ X 240 Grm SKU 262252 ' 
+      'GPRINT:data262252:LAST: last=%.1lf\n'
+      DEF:data261283=##DB##:data261283:AVERAGE
+      'LINE2:data261283###COLOR3##:Yog.Ent.Firm.Fort. Vainilla. Yogurisimo Pot 190 Grm SKU 261283 ' 
+      'GPRINT:data261283:LAST: last=%.1lf\n'
+      DEF:data465150=##DB##:data465150:AVERAGE
+      'LINE2:data465150###COLOR4##:Yog.Ent.Firme Frutilla Yogurisimo Pot 125 Grm SKU 465150 ' 
+      'GPRINT:data465150:LAST: last=%.1lf\n'
+      DEF:data251947=##DB##:data251947:AVERAGE
+      'LINE2:data251947###COLOR5##:Dulce Leche Est/Colon F. C La Serenisi Pot 1 Kgm SKU 251947 ' 
+      'GPRINT:data251947:LAST: last=%.1lf\n'
+
+graph   value8-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #8 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data465497=##DB##:data465497:AVERAGE
+      'LINE2:data465497###COLOR1##:Leche Org. Desc Deslactosada Tregar Ttb 1000 Ml SKU 465497 ' 
+      'GPRINT:data465497:LAST: last=%.1lf\n'
+      DEF:data127683=##DB##:data127683:AVERAGE
+      'LINE2:data127683###COLOR2##:Postre Dce.Lec. Danette Pak 190 Grm SKU 127683 ' 
+      'GPRINT:data127683:LAST: last=%.1lf\n'
+      DEF:data183652=##DB##:data183652:AVERAGE
+      'LINE2:data183652###COLOR3##:Postre Dce.Lec. Ser Pak 200 Grm SKU 183652 ' 
+      'GPRINT:data183652:LAST: last=%.1lf\n'
+      DEF:data265722=##DB##:data265722:AVERAGE
+      'LINE2:data265722###COLOR4##:Jugos Naranja Citric Ttb 1.5 Ltr SKU 265722 ' 
+      'GPRINT:data265722:LAST: last=%.1lf\n'
+      DEF:data457969=##DB##:data457969:AVERAGE
+      'LINE2:data457969###COLOR5##:Leche Chocol . Nesquik Ttb 200 Ml SKU 457969 ' 
+      'GPRINT:data457969:LAST: last=%.1lf\n'
+
+graph   value9-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #9 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data262247=##DB##:data262247:AVERAGE
+      'LINE2:data262247###COLOR1##:Yog.Beb.Des. Vainilla Tregar Sch 900 Grm SKU 262247 ' 
+      'GPRINT:data262247:LAST: last=%.1lf\n'
+      DEF:data261666=##DB##:data261666:AVERAGE
+      'LINE2:data261666###COLOR2##:Yog.Desc.Firme Frutilla Ser Pot 195 Grm SKU 261666 ' 
+      'GPRINT:data261666:LAST: last=%.1lf\n'
+      DEF:data10226=##DB##:data10226:AVERAGE
+      'LINE2:data10226###COLOR3##:Leche Entera Ultrapas Coto Sch 1 Ltr SKU 10226 ' 
+      'GPRINT:data10226:LAST: last=%.1lf\n'
+      DEF:data81546=##DB##:data81546:AVERAGE
+      'LINE2:data81546###COLOR4##:Leche Ent.Lv . Veronica Ttb 1 Ltr SKU 81546 ' 
+      'GPRINT:data81546:LAST: last=%.1lf\n'
+      DEF:data224956=##DB##:data224956:AVERAGE
+      'LINE2:data224956###COLOR5##:Crema Leche Doble Milkaut Pot 200 Cmq SKU 224956 ' 
+      'GPRINT:data224956:LAST: last=%.1lf\n'
+
+graph   value10-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #10 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data483364=##DB##:data483364:AVERAGE
+      'LINE2:data483364###COLOR1##:Leche P/Descrem. 2% La Serenisi Sch 1 Ltr SKU 483364 ' 
+      'GPRINT:data483364:LAST: last=%.1lf\n'
+      DEF:data160107=##DB##:data160107:AVERAGE
+      'LINE2:data160107###COLOR2##:Pack X 2 Maxi - Frutill Danonino Pak 161 Grm SKU 160107 ' 
+      'GPRINT:data160107:LAST: last=%.1lf\n'
+      DEF:data162775=##DB##:data162775:AVERAGE
+      'LINE2:data162775###COLOR3##:Postre Crema American Danette Pak 190 Grm SKU 162775 ' 
+      'GPRINT:data162775:LAST: last=%.1lf\n'
+      DEF:data3817=##DB##:data3817:AVERAGE
+      'LINE2:data3817###COLOR4##:Manteca Cal.Ext. La Serenisi Paq 100 Grm SKU 3817 ' 
+      'GPRINT:data3817:LAST: last=%.1lf\n'
+      DEF:data8898=##DB##:data8898:AVERAGE
+      'LINE2:data8898###COLOR5##:Manteca Cal.Ext. Coto Paq 200 Grm SKU 8898 ' 
+      'GPRINT:data8898:LAST: last=%.1lf\n'
+
+graph   value11-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #11 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data85123=##DB##:data85123:AVERAGE
+      'LINE2:data85123###COLOR1##:Postre Crock/M&M Serenito Pot 120 Grm SKU 85123 ' 
+      'GPRINT:data85123:LAST: last=%.1lf\n'
+      DEF:data476202=##DB##:data476202:AVERAGE
+      'LINE2:data476202###COLOR2##:Yog.Enter. Natural C/Azuc Yogurisimo Pot 190 Grm SKU 476202 ' 
+      'GPRINT:data476202:LAST: last=%.1lf\n'
+      DEF:data268396=##DB##:data268396:AVERAGE
+      'LINE2:data268396###COLOR3##:Queso Untable Clasico Vit A/ Finlandia Pot 300 Grm SKU 268396 ' 
+      'GPRINT:data268396:LAST: last=%.1lf\n'
+      DEF:data6482=##DB##:data6482:AVERAGE
+      'LINE2:data6482###COLOR4##:Postre Vainilla Serenito Pot 120 Grm SKU 6482 ' 
+      'GPRINT:data6482:LAST: last=%.1lf\n'
+      DEF:data254222=##DB##:data254222:AVERAGE
+      'LINE2:data254222###COLOR5##:Queso Unt Light Vi Port Salut La Serenisi Pot 200 Grm SKU 254222 ' 
+      'GPRINT:data254222:LAST: last=%.1lf\n'
+
+graph   value12-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #12 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data253103=##DB##:data253103:AVERAGE
+      'LINE2:data253103###COLOR1##:Leche Ent.Lv Vit A/C/D/B9 La Serenisi Bot 1 Ltr SKU 253103 ' 
+      'GPRINT:data253103:LAST: last=%.1lf\n'
+      DEF:data262254=##DB##:data262254:AVERAGE
+      'LINE2:data262254###COLOR2##:Yog.Bat.Des. Vit D Frutilla Calci+ X 240 Grm SKU 262254 ' 
+      'GPRINT:data262254:LAST: last=%.1lf\n'
+      DEF:data465200=##DB##:data465200:AVERAGE
+      'LINE2:data465200###COLOR3##:Leche Org. Desc Protein La Serenisi Ttb 750 Ml SKU 465200 ' 
+      'GPRINT:data465200:LAST: last=%.1lf\n'
+      DEF:data468053=##DB##:data468053:AVERAGE
+      'LINE2:data468053###COLOR4##:Yog.Descre. Lemon Pie Ser Joyful Pot 125 Grm SKU 468053 ' 
+      'GPRINT:data468053:LAST: last=%.1lf\n'
+      DEF:data8899=##DB##:data8899:AVERAGE
+      'LINE2:data8899###COLOR5##:Leche Ent.Lv Vit.A/D Coto Ctn 1 Ltr SKU 8899 ' 
+      'GPRINT:data8899:LAST: last=%.1lf\n'
+
+graph   value13-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #13 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data481395=##DB##:data481395:AVERAGE
+      'LINE2:data481395###COLOR1##:Crema Leche . La Serenisi Ttb 520 Cmq SKU 481395 ' 
+      'GPRINT:data481395:LAST: last=%.1lf\n'
+      DEF:data468748=##DB##:data468748:AVERAGE
+      'LINE2:data468748###COLOR2##:Manteca . Primer Prem Pan 100 Grm SKU 468748 ' 
+      'GPRINT:data468748:LAST: last=%.1lf\n'
+      DEF:data81049=##DB##:data81049:AVERAGE
+      'LINE2:data81049###COLOR3##:Levaduras . Calsa Paq 100 Grm SKU 81049 ' 
+      'GPRINT:data81049:LAST: last=%.1lf\n'
+      DEF:data252823=##DB##:data252823:AVERAGE
+      'LINE2:data252823###COLOR4##:Manteca Multivitamina Sancor Pan 100 Grm SKU 252823 ' 
+      'GPRINT:data252823:LAST: last=%.1lf\n'
+      DEF:data261290=##DB##:data261290:AVERAGE
+      'LINE2:data261290###COLOR5##:Leche Fermen. 0% Multifruta Vit Actimel X 600 Grm SKU 261290 ' 
+      'GPRINT:data261290:LAST: last=%.1lf\n'
+
+graph   value14-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #14 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data134187=##DB##:data134187:AVERAGE
+      'LINE2:data134187###COLOR1##:Jugos Nja C/Pulpa Citric Ttb 1 Ltr SKU 134187 ' 
+      'GPRINT:data134187:LAST: last=%.1lf\n'
+      DEF:data482870=##DB##:data482870:AVERAGE
+      'LINE2:data482870###COLOR2##:Yog.Bat.Des. Frutilla/Anana Ser Pot 120 Grm SKU 482870 ' 
+      'GPRINT:data482870:LAST: last=%.1lf\n'
+      DEF:data481393=##DB##:data481393:AVERAGE
+      'LINE2:data481393###COLOR3##:Yog.Bat.Ent. Cremix Banana Yogurisimo Pot 120 Grm SKU 481393 ' 
+      'GPRINT:data481393:LAST: last=%.1lf\n'
+      DEF:data294955=##DB##:data294955:AVERAGE
+      'LINE2:data294955###COLOR4##:Yog.Beb.Des. Vainilla Ser Ttb 1 Kgm SKU 294955 ' 
+      'GPRINT:data294955:LAST: last=%.1lf\n'
+      DEF:data206435=##DB##:data206435:AVERAGE
+      'LINE2:data206435###COLOR5##:Queso Blanco Light.. Tregar Pot 300 Grm SKU 206435 ' 
+      'GPRINT:data206435:LAST: last=%.1lf\n'
+
+graph   value15-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #15 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data481735=##DB##:data481735:AVERAGE
+      'LINE2:data481735###COLOR1##:Yog.Bat.Ent. Cremix Frambue Yogurisimo Pot 120 Grm SKU 481735 ' 
+      'GPRINT:data481735:LAST: last=%.1lf\n'
+      DEF:data297182=##DB##:data297182:AVERAGE
+      'LINE2:data297182###COLOR2##:Yog.Crem.Ent Vainilla Tregar Pot 125 Grm SKU 297182 ' 
+      'GPRINT:data297182:LAST: last=%.1lf\n'
+      DEF:data483100=##DB##:data483100:AVERAGE
+      'LINE2:data483100###COLOR3##:Crema Leche . La Serenisi Ttb 200 Ml SKU 483100 ' 
+      'GPRINT:data483100:LAST: last=%.1lf\n'
+      DEF:data89286=##DB##:data89286:AVERAGE
+      'LINE2:data89286###COLOR4##:Crema Leche . Milkaut Pot 360 Cmq SKU 89286 ' 
+      'GPRINT:data89286:LAST: last=%.1lf\n'
+      DEF:data460738=##DB##:data460738:AVERAGE
+      'LINE2:data460738###COLOR5##:Queso Untable Light Balance Finlandia Pot 200 Grm SKU 460738 ' 
+      'GPRINT:data460738:LAST: last=%.1lf\n'
+
+graph   value16-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #16 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data9491=##DB##:data9491:AVERAGE
+      'LINE2:data9491###COLOR1##:Yog.Descre. Frutilla Ser Pot 175 Grm SKU 9491 ' 
+      'GPRINT:data9491:LAST: last=%.1lf\n'
+      DEF:data89308=##DB##:data89308:AVERAGE
+      'LINE2:data89308###COLOR2##:Manteca . Milkaut Pan 200 Grm SKU 89308 ' 
+      'GPRINT:data89308:LAST: last=%.1lf\n'
+      DEF:data253222=##DB##:data253222:AVERAGE
+      'LINE2:data253222###COLOR3##:Queso Crema Light Tu Toque Mendicrim Pot 300 Grm SKU 253222 ' 
+      'GPRINT:data253222:LAST: last=%.1lf\n'
+      DEF:data258338=##DB##:data258338:AVERAGE
+      'LINE2:data258338###COLOR4##:Ricotta Ent. Bajo Sodio Garcia Sch 500 Grm SKU 258338 ' 
+      'GPRINT:data258338:LAST: last=%.1lf\n'
+      DEF:data68402=##DB##:data68402:AVERAGE
+      'LINE2:data68402###COLOR5##:Flan Light Sancor Pot 240 Grm SKU 68402 ' 
+      'GPRINT:data68402:LAST: last=%.1lf\n'
+
+graph   value17-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #17 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data191124=##DB##:data191124:AVERAGE
+      'LINE2:data191124###COLOR1##:Jugos Naranja Citric Bid 3 Ltr SKU 191124 ' 
+      'GPRINT:data191124:LAST: last=%.1lf\n'
+      DEF:data284861=##DB##:data284861:AVERAGE
+      'LINE2:data284861###COLOR2##:Flan Vainilla Danette Pak 190 Grm SKU 284861 ' 
+      'GPRINT:data284861:LAST: last=%.1lf\n'
+      DEF:data255197=##DB##:data255197:AVERAGE
+      'LINE2:data255197###COLOR3##:Yog.Beb.Des. Multifruta Ser Libre Bot 185 Grm SKU 255197 ' 
+      'GPRINT:data255197:LAST: last=%.1lf\n'
+      DEF:data261769=##DB##:data261769:AVERAGE
+      'LINE2:data261769###COLOR4##:Dulce Leche Trad.Y Artesan San Ignacio Pot 400 Grm SKU 261769 ' 
+      'GPRINT:data261769:LAST: last=%.1lf\n'
+      DEF:data251948=##DB##:data251948:AVERAGE
+      'LINE2:data251948###COLOR5##:Dulce Leche 0%Grasa/Col F/ Ser Pot 400 Grm SKU 251948 ' 
+      'GPRINT:data251948:LAST: last=%.1lf\n'
+
+graph   value18-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #18 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data192663=##DB##:data192663:AVERAGE
+      'LINE2:data192663###COLOR1##:Dulce Leche Descremado San Ignacio Pot 400 Grm SKU 192663 ' 
+      'GPRINT:data192663:LAST: last=%.1lf\n'
+      DEF:data262248=##DB##:data262248:AVERAGE
+      'LINE2:data262248###COLOR2##:Leche Des.Lv . Tregar Ttb 1 Ltr SKU 262248 ' 
+      'GPRINT:data262248:LAST: last=%.1lf\n'
+      DEF:data170969=##DB##:data170969:AVERAGE
+      'LINE2:data170969###COLOR3##:Pack X 2 Maxi-Vainilla Danonino Pak 161 Grm SKU 170969 ' 
+      'GPRINT:data170969:LAST: last=%.1lf\n'
+      DEF:data164418=##DB##:data164418:AVERAGE
+      'LINE2:data164418###COLOR4##:Yog.Beb.Ent. Vainilla Tregar Sch 1 Kgm SKU 164418 ' 
+      'GPRINT:data164418:LAST: last=%.1lf\n'
+      DEF:data298995=##DB##:data298995:AVERAGE
+      'LINE2:data298995###COLOR5##:Dulce Leche Repostero La Serenisi Pot 400 Grm SKU 298995 ' 
+      'GPRINT:data298995:LAST: last=%.1lf\n'
+
+graph   value19-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #19 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data480129=##DB##:data480129:AVERAGE
+      'LINE2:data480129###COLOR1##:Yog.Descre. Coconut Pie Ser Joyful Pot 125 Grm SKU 480129 ' 
+      'GPRINT:data480129:LAST: last=%.1lf\n'
+      DEF:data228676=##DB##:data228676:AVERAGE
+      'LINE2:data228676###COLOR2##:Manteca . Tonadita Pan 200 Grm SKU 228676 ' 
+      'GPRINT:data228676:LAST: last=%.1lf\n'
+      DEF:data480391=##DB##:data480391:AVERAGE
+      'LINE2:data480391###COLOR3##:Yog. Light. Vainilla Tregar Pot 125 Grm SKU 480391 ' 
+      'GPRINT:data480391:LAST: last=%.1lf\n'
+      DEF:data470349=##DB##:data470349:AVERAGE
+      'LINE2:data470349###COLOR4##:Yog.Des.C/Frutas Arandano Tregar Pot 160 Grm SKU 470349 ' 
+      'GPRINT:data470349:LAST: last=%.1lf\n'
+      DEF:data476203=##DB##:data476203:AVERAGE
+      'LINE2:data476203###COLOR5##:Yog.Enter. Natural Yogurisimo Pot 250 Grm SKU 476203 ' 
+      'GPRINT:data476203:LAST: last=%.1lf\n'
+
+graph   value20-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #20 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data253154=##DB##:data253154:AVERAGE
+      'LINE2:data253154###COLOR1##:Leche Inf.Ent Lv Azucar Vit A/C La Serenisi Ttb 200 Cmq SKU 253154 ' 
+      'GPRINT:data253154:LAST: last=%.1lf\n'
+      DEF:data482869=##DB##:data482869:AVERAGE
+      'LINE2:data482869###COLOR2##:Yog.Bat.Des. Pera Ser Pot 120 Grm SKU 482869 ' 
+      'GPRINT:data482869:LAST: last=%.1lf\n'
+      DEF:data294948=##DB##:data294948:AVERAGE
+      'LINE2:data294948###COLOR3##:Yog.Beb.Des. Frutilla Ser Ttb 1 Kgm SKU 294948 ' 
+      'GPRINT:data294948:LAST: last=%.1lf\n'
+      DEF:data474488=##DB##:data474488:AVERAGE
+      'LINE2:data474488###COLOR4##:Yog.Bat.Ent. Con Arandanos Yogurisimo Pot 150 Grm SKU 474488 ' 
+      'GPRINT:data474488:LAST: last=%.1lf\n'
+      DEF:data288034=##DB##:data288034:AVERAGE
+      'LINE2:data288034###COLOR5##:Yog.Beb.Des. Frutilla Ser Sch 1000 Grm SKU 288034 ' 
+      'GPRINT:data288034:LAST: last=%.1lf\n'
+
+graph   value21-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #21 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data256611=##DB##:data256611:AVERAGE
+      'LINE2:data256611###COLOR1##:Yog.Beb.Des. Frutilla Sancor Yogs Bot 1000 Grm SKU 256611 ' 
+      'GPRINT:data256611:LAST: last=%.1lf\n'
+      DEF:data49433=##DB##:data49433:AVERAGE
+      'LINE2:data49433###COLOR2##:Levaduras . Levex Sob 20 Grm SKU 49433 ' 
+      'GPRINT:data49433:LAST: last=%.1lf\n'
+      DEF:data465786=##DB##:data465786:AVERAGE
+      'LINE2:data465786###COLOR3##:Queso Crema Light . Casancrem Pot 200 Grm SKU 465786 ' 
+      'GPRINT:data465786:LAST: last=%.1lf\n'
+      DEF:data297181=##DB##:data297181:AVERAGE
+      'LINE2:data297181###COLOR4##:Yog.Crem.Ent Frutilla Tregar Pot 125 Grm SKU 297181 ' 
+      'GPRINT:data297181:LAST: last=%.1lf\n'
+      DEF:data239784=##DB##:data239784:AVERAGE
+      'LINE2:data239784###COLOR5##:Yog.Cereal.Des. C/Flakes Ser Pot 173 Grm SKU 239784 ' 
+      'GPRINT:data239784:LAST: last=%.1lf\n'
+
+graph   value22-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #22 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data256609=##DB##:data256609:AVERAGE
+      'LINE2:data256609###COLOR1##:Yog.Beb.Des. Vainilla Sancor Yogs Bot 1000 Grm SKU 256609 ' 
+      'GPRINT:data256609:LAST: last=%.1lf\n'
+      DEF:data481394=##DB##:data481394:AVERAGE
+      'LINE2:data481394###COLOR2##:Queso Blanco Light Reduc.Lactosa Casancrem Pot 300 Grm SKU 481394 ' 
+      'GPRINT:data481394:LAST: last=%.1lf\n'
+      DEF:data480390=##DB##:data480390:AVERAGE
+      'LINE2:data480390###COLOR3##:Yog. Light. Frutilla Tregar Pot 125 Grm SKU 480390 ' 
+      'GPRINT:data480390:LAST: last=%.1lf\n'
+      DEF:data262253=##DB##:data262253:AVERAGE
+      'LINE2:data262253###COLOR4##:Yog.Bat.Des. Vit D Durazno Calci+ X 240 Grm SKU 262253 ' 
+      'GPRINT:data262253:LAST: last=%.1lf\n'
+      DEF:data251950=##DB##:data251950:AVERAGE
+      'LINE2:data251950###COLOR5##:Queso Untable Clasico Vit A/ Finlandia Pot 200 Grm SKU 251950 ' 
+      'GPRINT:data251950:LAST: last=%.1lf\n'
+
+graph   value23-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #23 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data480490=##DB##:data480490:AVERAGE
+      'LINE2:data480490###COLOR1##:Postre Chocolate Con Danette Pak 200 Grm SKU 480490 ' 
+      'GPRINT:data480490:LAST: last=%.1lf\n'
+      DEF:data250657=##DB##:data250657:AVERAGE
+      'LINE2:data250657###COLOR2##:Flan Vainilla Forti Serenito Pak 210 Grm SKU 250657 ' 
+      'GPRINT:data250657:LAST: last=%.1lf\n'
+      DEF:data166221=##DB##:data166221:AVERAGE
+      'LINE2:data166221###COLOR3##:Dulce Leche Familiar Milkaut Pot 400 Grm SKU 166221 ' 
+      'GPRINT:data166221:LAST: last=%.1lf\n'
+      DEF:data252520=##DB##:data252520:AVERAGE
+      'LINE2:data252520###COLOR4##:Queso Unt Light Vi Gruyere Finlandia Pot 200 Grm SKU 252520 ' 
+      'GPRINT:data252520:LAST: last=%.1lf\n'
+      DEF:data261288=##DB##:data261288:AVERAGE
+      'LINE2:data261288###COLOR5##:Yog.Beb.Ent. Vainilla Yogurisimo Bot 185 Grm SKU 261288 ' 
+      'GPRINT:data261288:LAST: last=%.1lf\n'
+
+graph   value24-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #24 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data285320=##DB##:data285320:AVERAGE
+      'LINE2:data285320###COLOR1##:Flan Light Con Dulce De L Sancor Pak 240 Grm SKU 285320 ' 
+      'GPRINT:data285320:LAST: last=%.1lf\n'
+      DEF:data253124=##DB##:data253124:AVERAGE
+      'LINE2:data253124###COLOR2##:Leche Des.Lv Hierro Vit A/C La Serenisi Ctn 1 Ltr SKU 253124 ' 
+      'GPRINT:data253124:LAST: last=%.1lf\n'
+      DEF:data6478=##DB##:data6478:AVERAGE
+      'LINE2:data6478###COLOR3##:Postre Comb.V/Dl Serenito Pot 125 Grm SKU 6478 ' 
+      'GPRINT:data6478:LAST: last=%.1lf\n'
+      DEF:data481391=##DB##:data481391:AVERAGE
+      'LINE2:data481391###COLOR4##:Flan Light Dulce De Leche Ser Pak 190 Grm SKU 481391 ' 
+      'GPRINT:data481391:LAST: last=%.1lf\n'
+      DEF:data6689=##DB##:data6689:AVERAGE
+      'LINE2:data6689###COLOR5##:Leche Ent.Lv Vit.A/D Ilolay Ctn 1 Ltr SKU 6689 ' 
+      'GPRINT:data6689:LAST: last=%.1lf\n'
+
+graph   value25-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #25 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data299863=##DB##:data299863:AVERAGE
+      'LINE2:data299863###COLOR1##:Leche Organic Deslactosada La Serenisi Ttb 750 Ml SKU 299863 ' 
+      'GPRINT:data299863:LAST: last=%.1lf\n'
+      DEF:data294949=##DB##:data294949:AVERAGE
+      'LINE2:data294949###COLOR2##:Yog.Beb.Ent. Vainilla Yogurisimo Ttb 1 Kgm SKU 294949 ' 
+      'GPRINT:data294949:LAST: last=%.1lf\n'
+      DEF:data212429=##DB##:data212429:AVERAGE
+      'LINE2:data212429###COLOR3##:Queso Crema . La Paulina Pot 290 Grm SKU 212429 ' 
+      'GPRINT:data212429:LAST: last=%.1lf\n'
+      DEF:data465657=##DB##:data465657:AVERAGE
+      'LINE2:data465657###COLOR4##:Crema Leche Past. Tonadita Pot 200 Cmq SKU 465657 ' 
+      'GPRINT:data465657:LAST: last=%.1lf\n'
+      DEF:data204769=##DB##:data204769:AVERAGE
+      'LINE2:data204769###COLOR5##:Queso Blanco . Tregar Pot 300 Grm SKU 204769 ' 
+      'GPRINT:data204769:LAST: last=%.1lf\n'
+
+graph   value26-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #26 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data478029=##DB##:data478029:AVERAGE
+      'LINE2:data478029###COLOR1##:Yog.Bat.Ent. Cremix Manzana Yogurisimo Pot 120 Grm SKU 478029 ' 
+      'GPRINT:data478029:LAST: last=%.1lf\n'
+      DEF:data15506=##DB##:data15506:AVERAGE
+      'LINE2:data15506###COLOR2##:Levaduras X 10 Grs C/U Levex Est 40 Grm SKU 15506 ' 
+      'GPRINT:data15506:LAST: last=%.1lf\n'
+      DEF:data479389=##DB##:data479389:AVERAGE
+      'LINE2:data479389###COLOR3##:Yog.Ent.Firme Vainilla Yogurisimo Pot 150 Grm SKU 479389 ' 
+      'GPRINT:data479389:LAST: last=%.1lf\n'
+      DEF:data473637=##DB##:data473637:AVERAGE
+      'LINE2:data473637###COLOR4##:Queso Crema Light Milkaut Pot 290 Grm SKU 473637 ' 
+      'GPRINT:data473637:LAST: last=%.1lf\n'
+      DEF:data261356=##DB##:data261356:AVERAGE
+      'LINE2:data261356###COLOR5##:Leche Fermentada Frutilla Vitam Actimel X 600 Grm SKU 261356 ' 
+      'GPRINT:data261356:LAST: last=%.1lf\n'
+
+graph   value27-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #27 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data482350=##DB##:data482350:AVERAGE
+      'LINE2:data482350###COLOR1##:Yog.Desc.C/Cereal Berries Ser Pot 160 Grm SKU 482350 ' 
+      'GPRINT:data482350:LAST: last=%.1lf\n'
+      DEF:data260007=##DB##:data260007:AVERAGE
+      'LINE2:data260007###COLOR2##:Yog.Des.C/Frutas Frutilla Tregar Pot 160 Grm SKU 260007 ' 
+      'GPRINT:data260007:LAST: last=%.1lf\n'
+      DEF:data251875=##DB##:data251875:AVERAGE
+      'LINE2:data251875###COLOR3##:Leche Ultra Ent Ex Vit A/C/D/B9 La Serenisi Sqa 1 Ltr SKU 251875 ' 
+      'GPRINT:data251875:LAST: last=%.1lf\n'
+      DEF:data2696=##DB##:data2696:AVERAGE
+      'LINE2:data2696###COLOR4##:Manteca . Primer Prem Pan 500 Grm SKU 2696 ' 
+      'GPRINT:data2696:LAST: last=%.1lf\n'
+      DEF:data481179=##DB##:data481179:AVERAGE
+      'LINE2:data481179###COLOR5##:Yog.Enter. Natural La Serenisi Pot 200 Grm SKU 481179 ' 
+      'GPRINT:data481179:LAST: last=%.1lf\n'
+
+graph   value28-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #28 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data285028=##DB##:data285028:AVERAGE
+      'LINE2:data285028###COLOR1##:Dulce Leche . Coto Pot 400 Grm SKU 285028 ' 
+      'GPRINT:data285028:LAST: last=%.1lf\n'
+      DEF:data5217=##DB##:data5217:AVERAGE
+      'LINE2:data5217###COLOR2##:Crema Leche . Ilolay Pot 200 Cmq SKU 5217 ' 
+      'GPRINT:data5217:LAST: last=%.1lf\n'
+      DEF:data298197=##DB##:data298197:AVERAGE
+      'LINE2:data298197###COLOR3##:Yog.Crem.Ent Dulce De Leche Tregar Pot 125 Grm SKU 298197 ' 
+      'GPRINT:data298197:LAST: last=%.1lf\n'
+      DEF:data480130=##DB##:data480130:AVERAGE
+      'LINE2:data480130###COLOR4##:Yog.Descre. Crumble De Per Ser Joyful Pot 125 Grm SKU 480130 ' 
+      'GPRINT:data480130:LAST: last=%.1lf\n'
+      DEF:data294954=##DB##:data294954:AVERAGE
+      'LINE2:data294954###COLOR5##:Yog.Beb.Ent. Frutilla Yogurisimo Ttb 1 Kgm SKU 294954 ' 
+      'GPRINT:data294954:LAST: last=%.1lf\n'
+
+graph   value29-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #29 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data5037=##DB##:data5037:AVERAGE
+      'LINE2:data5037###COLOR1##:Flan D/Leche Sancor Pak 240 Grm SKU 5037 ' 
+      'GPRINT:data5037:LAST: last=%.1lf\n'
+      DEF:data260008=##DB##:data260008:AVERAGE
+      'LINE2:data260008###COLOR2##:Yog.Des.C/Frutas Durazno Tregar Pot 160 Grm SKU 260008 ' 
+      'GPRINT:data260008:LAST: last=%.1lf\n'
+      DEF:data258337=##DB##:data258337:AVERAGE
+      'LINE2:data258337###COLOR3##:Ricotta Des. Magra Bjo Sodi La Serenisi Sch 500 Grm SKU 258337 ' 
+      'GPRINT:data258337:LAST: last=%.1lf\n'
+      DEF:data288035=##DB##:data288035:AVERAGE
+      'LINE2:data288035###COLOR4##:Yog.Beb.Des. Vainilla Ser Sch 1000 Grm SKU 288035 ' 
+      'GPRINT:data288035:LAST: last=%.1lf\n'
+      DEF:data6984=##DB##:data6984:AVERAGE
+      'LINE2:data6984###COLOR5##:Leche Chocol . Cindor Ctn 250 Cmq SKU 6984 ' 
+      'GPRINT:data6984:LAST: last=%.1lf\n'
+
+graph   value30-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #30 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data261282=##DB##:data261282:AVERAGE
+      'LINE2:data261282###COLOR1##:Yog.Ent.Firm.Fort. Frutilla. Yogurisimo Pot 190 Grm SKU 261282 ' 
+      'GPRINT:data261282:LAST: last=%.1lf\n'
+      DEF:data292516=##DB##:data292516:AVERAGE
+      'LINE2:data292516###COLOR2##:Queso Crema Light . San Ignacio Pot 500 Grm SKU 292516 ' 
+      'GPRINT:data292516:LAST: last=%.1lf\n'
+      DEF:data89260=##DB##:data89260:AVERAGE
+      'LINE2:data89260###COLOR3##:Leche Des.Lv Uat Milkaut Ttb 1 Ltr SKU 89260 ' 
+      'GPRINT:data89260:LAST: last=%.1lf\n'
+      DEF:data481736=##DB##:data481736:AVERAGE
+      'LINE2:data481736###COLOR4##:Yog.Bat.Ent. Cremix Durazno Yogurisimo Pot 120 Grm SKU 481736 ' 
+      'GPRINT:data481736:LAST: last=%.1lf\n'
+      DEF:data160420=##DB##:data160420:AVERAGE
+      'LINE2:data160420###COLOR5##:Yog.Enter. Ciruela Activia Pot 250 Grm SKU 160420 ' 
+      'GPRINT:data160420:LAST: last=%.1lf\n'
+
+graph   value31-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #31 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data474486=##DB##:data474486:AVERAGE
+      'LINE2:data474486###COLOR1##:Yog.Bat.Ent. Con Frutillas Yogurisimo Pot 150 Grm SKU 474486 ' 
+      'GPRINT:data474486:LAST: last=%.1lf\n'
+      DEF:data251047=##DB##:data251047:AVERAGE
+      'LINE2:data251047###COLOR2##:Dulce Leche Est/Colon F. C La Serenisi Pot 250 Grm SKU 251047 ' 
+      'GPRINT:data251047:LAST: last=%.1lf\n'
+      DEF:data103283=##DB##:data103283:AVERAGE
+      'LINE2:data103283###COLOR3##:Postre Vai/Dcel Shimy Pot 120 Grm SKU 103283 ' 
+      'GPRINT:data103283:LAST: last=%.1lf\n'
+      DEF:data465788=##DB##:data465788:AVERAGE
+      'LINE2:data465788###COLOR4##:Queso Crema Regular Casancrem Pot 200 Grm SKU 465788 ' 
+      'GPRINT:data465788:LAST: last=%.1lf\n'
+      DEF:data262246=##DB##:data262246:AVERAGE
+      'LINE2:data262246###COLOR5##:Yog.Beb.Des. Frutilla Tregar Sch 900 Grm SKU 262246 ' 
+      'GPRINT:data262246:LAST: last=%.1lf\n'
+
+graph   value32-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #32 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data478030=##DB##:data478030:AVERAGE
+      'LINE2:data478030###COLOR1##:Yog.Ent.Firme Manzana Y Pera Yogurisimo Pot 125 Grm SKU 478030 ' 
+      'GPRINT:data478030:LAST: last=%.1lf\n'
+      DEF:data253123=##DB##:data253123:AVERAGE
+      'LINE2:data253123###COLOR2##:Leche Ent.Lv Hierro Vit A/C La Serenisi Ctn 1 Ltr SKU 253123 ' 
+      'GPRINT:data253123:LAST: last=%.1lf\n'
+      DEF:data466956=##DB##:data466956:AVERAGE
+      'LINE2:data466956###COLOR3##:Manteca Light Tonadita Pan 200 Grm SKU 466956 ' 
+      'GPRINT:data466956:LAST: last=%.1lf\n'
+      DEF:data252522=##DB##:data252522:AVERAGE
+      'LINE2:data252522###COLOR4##:Queso Unt Light Vi Cheddar Finlandia Pot 200 Grm SKU 252522 ' 
+      'GPRINT:data252522:LAST: last=%.1lf\n'
+      DEF:data165740=##DB##:data165740:AVERAGE
+      'LINE2:data165740###COLOR5##:Dulce Leche Clasico Tregar Pot 400 Grm SKU 165740 ' 
+      'GPRINT:data165740:LAST: last=%.1lf\n'
+
+graph   value33-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #33 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data172247=##DB##:data172247:AVERAGE
+      'LINE2:data172247###COLOR1##:Levaduras Instantanea Mi Pan Sob 10 Grm SKU 172247 ' 
+      'GPRINT:data172247:LAST: last=%.1lf\n'
+      DEF:data227698=##DB##:data227698:AVERAGE
+      'LINE2:data227698###COLOR2##:Dulce Leche .. Vacalin Pot 400 Grm SKU 227698 ' 
+      'GPRINT:data227698:LAST: last=%.1lf\n'
+      DEF:data481737=##DB##:data481737:AVERAGE
+      'LINE2:data481737###COLOR3##:Postre Chocolate C/Me Ser Pak 200 Grm SKU 481737 ' 
+      'GPRINT:data481737:LAST: last=%.1lf\n'
+      DEF:data261287=##DB##:data261287:AVERAGE
+      'LINE2:data261287###COLOR4##:Yog.Beb.Ent. Frutilla Yogurisimo Bot 185 Grm SKU 261287 ' 
+      'GPRINT:data261287:LAST: last=%.1lf\n'
+      DEF:data482349=##DB##:data482349:AVERAGE
+      'LINE2:data482349###COLOR5##:Yog.Desc.C/Cereal Tropical Ser Pot 160 Grm SKU 482349 ' 
+      'GPRINT:data482349:LAST: last=%.1lf\n'
+
+graph   value34-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #34 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data197269=##DB##:data197269:AVERAGE
+      'LINE2:data197269###COLOR1##:Dulce Leche Familiar San Ignacio Pot 200 Grm SKU 197269 ' 
+      'GPRINT:data197269:LAST: last=%.1lf\n'
+      DEF:data257444=##DB##:data257444:AVERAGE
+      'LINE2:data257444###COLOR2##:Leche Des.Lv Tradicion Cali Tres Niñas Ctn 1 Ltr SKU 257444 ' 
+      'GPRINT:data257444:LAST: last=%.1lf\n'
+      DEF:data252521=##DB##:data252521:AVERAGE
+      'LINE2:data252521###COLOR3##:Queso Unt Light Vi Jamon/Parmesan Finlandia Pot 200 Grm SKU 252521 ' 
+      'GPRINT:data252521:LAST: last=%.1lf\n'
+      DEF:data262256=##DB##:data262256:AVERAGE
+      'LINE2:data262256###COLOR4##:Alim.Lacteo Concen Frutilla Danof Danonino Bot 185 Grm SKU 262256 ' 
+      'GPRINT:data262256:LAST: last=%.1lf\n'
+      DEF:data468096=##DB##:data468096:AVERAGE
+      'LINE2:data468096###COLOR5##:Crema Leche Light Tonadita Pot 350 Cmq SKU 468096 ' 
+      'GPRINT:data468096:LAST: last=%.1lf\n'
+
+graph   value35-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #35 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data164415=##DB##:data164415:AVERAGE
+      'LINE2:data164415###COLOR1##:Yog.Beb.Ent. Frutilla Tregar Sch 1 Kgm SKU 164415 ' 
+      'GPRINT:data164415:LAST: last=%.1lf\n'
+      DEF:data474487=##DB##:data474487:AVERAGE
+      'LINE2:data474487###COLOR2##:Yog.Bat.Ent. Con Duraznos Yogurisimo Pot 150 Grm SKU 474487 ' 
+      'GPRINT:data474487:LAST: last=%.1lf\n'
+      DEF:data254223=##DB##:data254223:AVERAGE
+      'LINE2:data254223###COLOR3##:Queso Unt Vit A/D Cremon La Serenisi Pot 200 Grm SKU 254223 ' 
+      'GPRINT:data254223:LAST: last=%.1lf\n'
+      DEF:data14046=##DB##:data14046:AVERAGE
+      'LINE2:data14046###COLOR4##:Manteca Cal.Ext. Ilolay Paq 200 Grm SKU 14046 ' 
+      'GPRINT:data14046:LAST: last=%.1lf\n'
+      DEF:data285911=##DB##:data285911:AVERAGE
+      'LINE2:data285911###COLOR5##:Yog.Cereal.Des. C/Cereal Sancor Yogs Pot 162 Grm SKU 285911 ' 
+      'GPRINT:data285911:LAST: last=%.1lf\n'
+
+graph   value36-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #36 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data253880=##DB##:data253880:AVERAGE
+      'LINE2:data253880###COLOR1##:Yog.Beb.Desc.Multi Frutos Del Bos Sancor Yogs Sch 900 Grm SKU 253880 ' 
+      'GPRINT:data253880:LAST: last=%.1lf\n'
+      DEF:data290599=##DB##:data290599:AVERAGE
+      'LINE2:data290599###COLOR2##:Yogur VIDACOL Bebible Descremado 400 Gr Multifruta SKU 290599 ' 
+      'GPRINT:data290599:LAST: last=%.1lf\n'
+      DEF:data473636=##DB##:data473636:AVERAGE
+      'LINE2:data473636###COLOR3##:Queso Crema . Milkaut Pot 290 Grm SKU 473636 ' 
+      'GPRINT:data473636:LAST: last=%.1lf\n'
+      DEF:data161830=##DB##:data161830:AVERAGE
+      'LINE2:data161830###COLOR4##:Arroz Con Leche Dulce De Leche Tregar Pot 180 Grm SKU 161830 ' 
+      'GPRINT:data161830:LAST: last=%.1lf\n'
+      DEF:data15934=##DB##:data15934:AVERAGE
+      'LINE2:data15934###COLOR5##:Flan C/Carame Sancor Pak 240 Grm SKU 15934 ' 
+      'GPRINT:data15934:LAST: last=%.1lf\n'
+
+graph   value37-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #37 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data299866=##DB##:data299866:AVERAGE
+      'LINE2:data299866###COLOR1##:Leche Descrem C/Fitoesterole Serecol Ttb 750 Ml SKU 299866 ' 
+      'GPRINT:data299866:LAST: last=%.1lf\n'
+      DEF:data468751=##DB##:data468751:AVERAGE
+      'LINE2:data468751###COLOR2##:Jugos Naranja Puro Sol Ttb 1000 Cmq SKU 468751 ' 
+      'GPRINT:data468751:LAST: last=%.1lf\n'
+      DEF:data161829=##DB##:data161829:AVERAGE
+      'LINE2:data161829###COLOR3##:Arroz Con Leche Clasico Tregar Pot 180 Grm SKU 161829 ' 
+      'GPRINT:data161829:LAST: last=%.1lf\n'
+      DEF:data50789=##DB##:data50789:AVERAGE
+      'LINE2:data50789###COLOR4##:Postre Vainilla Shimy Pot 120 Grm SKU 50789 ' 
+      'GPRINT:data50789:LAST: last=%.1lf\n'
+      DEF:data187025=##DB##:data187025:AVERAGE
+      'LINE2:data187025###COLOR5##:Yog.Beb.Ent. Vainilla Forti Yogurisimo Sch 1000 Grm SKU 187025 ' 
+      'GPRINT:data187025:LAST: last=%.1lf\n'
+
+graph   value38-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #38 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data225537=##DB##:data225537:AVERAGE
+      'LINE2:data225537###COLOR1##:Postre Choc Suizo Danette Pak 190 Grm SKU 225537 ' 
+      'GPRINT:data225537:LAST: last=%.1lf\n'
+      DEF:data79851=##DB##:data79851:AVERAGE
+      'LINE2:data79851###COLOR2##:Leche Des.Lv Vit.A/D Ciudad De Ctn 1 Ltr SKU 79851 ' 
+      'GPRINT:data79851:LAST: last=%.1lf\n'
+      DEF:data468404=##DB##:data468404:AVERAGE
+      'LINE2:data468404###COLOR3##:Yog.Bat.Ent.Natura C/Granola Y Mi Yogurisimo Pot 157 Grm SKU 468404 ' 
+      'GPRINT:data468404:LAST: last=%.1lf\n'
+      DEF:data469036=##DB##:data469036:AVERAGE
+      'LINE2:data469036###COLOR4##:Postre Chocolate C/Cr Danette Pot 100 Grm SKU 469036 ' 
+      'GPRINT:data469036:LAST: last=%.1lf\n'
+      DEF:data262249=##DB##:data262249:AVERAGE
+      'LINE2:data262249###COLOR5##:Leche Ent.Lv . Tregar Ttb 1 Ltr SKU 262249 ' 
+      'GPRINT:data262249:LAST: last=%.1lf\n'
+
+graph   value39-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #39 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data212430=##DB##:data212430:AVERAGE
+      'LINE2:data212430###COLOR1##:Queso Crema Light . La Paulina Pot 290 Grm SKU 212430 ' 
+      'GPRINT:data212430:LAST: last=%.1lf\n'
+      DEF:data248888=##DB##:data248888:AVERAGE
+      'LINE2:data248888###COLOR2##:Yog.Enter. Arandanos Tregar Pot 160 Grm SKU 248888 ' 
+      'GPRINT:data248888:LAST: last=%.1lf\n'
+      DEF:data164422=##DB##:data164422:AVERAGE
+      'LINE2:data164422###COLOR3##:Arroz Con Leche Canela Tregar Pot 180 Grm SKU 164422 ' 
+      'GPRINT:data164422:LAST: last=%.1lf\n'
+      DEF:data174014=##DB##:data174014:AVERAGE
+      'LINE2:data174014###COLOR4##:Jugos Pomelo Citric Ttb 1 Ltr SKU 174014 ' 
+      'GPRINT:data174014:LAST: last=%.1lf\n'
+      DEF:data89261=##DB##:data89261:AVERAGE
+      'LINE2:data89261###COLOR5##:Leche Ent.Lv . Milkaut Ttb 1 Ltr SKU 89261 ' 
+      'GPRINT:data89261:LAST: last=%.1lf\n'
+
+graph   value40-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #40 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+			--logarithmic
+		        --vertical-label 'unidades'
+
+      DEF:data254550=##DB##:data254550:AVERAGE
+      'LINE2:data254550###COLOR1##:Leche Ent.Lv Tradicion Cali Tres Niñas Ctn 1 Ltr SKU 254550 ' 
+      'GPRINT:data254550:LAST: last=%.1lf\n'
+      DEF:data253879=##DB##:data253879:AVERAGE
+      'LINE2:data253879###COLOR2##:Yog.Beb.Desc.Multi Vainilla Sancor Yogs Sch 900 Grm SKU 253879 ' 
+      'GPRINT:data253879:LAST: last=%.1lf\n'
+      DEF:data103285=##DB##:data103285:AVERAGE
+      'LINE2:data103285###COLOR3##:Postre Cho/Dcel Shimy Pot 120 Grm SKU 103285 ' 
+      'GPRINT:data103285:LAST: last=%.1lf\n'
+      DEF:data481180=##DB##:data481180:AVERAGE
+      'LINE2:data481180###COLOR4##:Yog.Enter. Natural C/Azuc La Serenisi Pot 200 Grm SKU 481180 ' 
+      'GPRINT:data481180:LAST: last=%.1lf\n'
+      DEF:data262279=##DB##:data262279:AVERAGE
+      'LINE2:data262279###COLOR5##:Yog.Beb.Des. Vit D Durazno Calci+ Bot 185 Grm SKU 262279 ' 
+      'GPRINT:data262279:LAST: last=%.1lf\n'
+
+graph   value41-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #41 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data479368=##DB##:data479368:AVERAGE
+      'LINE2:data479368###COLOR1##:Yog.Ent.Firme Frutilla Yogurisimo Pot 150 Grm SKU 479368 ' 
+      'GPRINT:data479368:LAST: last=%.1lf\n'
+

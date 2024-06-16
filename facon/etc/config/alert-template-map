@@ -1,0 +1,61 @@
+# alert-template-map - select templates for addresses and rrds
+# $Id: alert-template-map,v 1.11 2002/05/28 15:54:51 facon Exp $
+#
+# RRDs with special alert-templates
+#
+rrd	apcenv:temperature	apcenv-temperature
+rrd	apcups:capacity		apcups-capacity
+rrd	apcups:load		apcups-load
+rrd	apcups:onbattery	apcups-onbattery
+rrd	apcups:timeleft		apcups-timeleft
+rrd	apcups:temperature	apcups-temperature
+rrd	apcupsreplacebattery:replace apcupsreplacebattery
+rrd	bgppeer-*:start		bgppeer-start
+rrd	bgppeer-*:state		bgppeer-state
+rrd	collector-dbi		collector-dbi
+rrd	collector-dbi:runtime	collector-dbi-runtime
+rrd	collector-log		collector-log
+rrd	collector-log:runtime	collector-log-runtime
+rrd	collector-nt-status	collector-nt-status
+rrd	collector-nt-status:runtime	collector-nt-status-runtime
+rrd	collector-ntop		collector-ntop
+rrd	collector-ntop:runtime	collector-ntop-runtime
+rrd	collector-ping		collector-ping
+rrd	collector-ping:runtime		collector-ping-runtime
+rrd	collector-port		collector-port
+rrd	collector-port:runtime		collector-port-runtime
+rrd	collector-snmp		collector-snmp
+rrd	collector-snmp:runtime		collector-snmp-runtime
+rrd	collector-unix-status	collector-unix-status
+rrd	collector-unix-status:runtime	collector-unix-status-runtime
+rrd	cpu			cpu
+rrd	df-*:inodepct		df-inodepct
+rrd	df-*:percent		df-percent
+rrd	dsinuse			dsinuse
+rrd	if-*:err		if-err
+rrd	load			load
+rrd	memory:scanrate		memory-scanrate
+rrd	memory:freemem		memory-freemem
+rrd	ntservice:*		ntservice
+rrd	ping:rcvd		ping-rcvd
+rrd	ping:rttavg		ping-rttavg
+rrd	port-*:status		port-generic-status
+rrd	port-*:response		port-generic-response
+rrd	port-ftp:status		port-ftp-status
+rrd	port-http:status	port-http-status
+rrd	port-pop3:status	port-pop3-status
+rrd	port-smtp:status	port-smtp-status
+rrd	port-ssh:status		port-ssh-status
+rrd	port-ftp:response	port-ftp-response
+rrd	port-http:response	port-http-response
+rrd	port-pop3:response	port-pop3-response
+rrd	port-smtp:response	port-smtp-response
+rrd	port-ssh:response	port-ssh-response
+rrd	qmailq:backlog		qmailq-backlog
+rrd	qmailq:qlocal		qmailq-qlocal
+rrd	qmailq:qremote		qmailq-qremote
+rrd	qmailq:qsite		qmailq-qsite
+rrd	snmpcpu			snmpcpu
+#
+# Addressees with special alert-templates
+#

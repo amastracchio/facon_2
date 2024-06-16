@@ -1,0 +1,7 @@
+There are ##VALUE## messages in qmail's queue on 
+##HOST##(##IP##) for local delivery (i.e. on ##HOST##).  
+It is unusual for local deliveries to fail, except when modifying 
+.qmail files, and that kind of failure will get retried shortly 
+and succeed.
+
+Use qmail-qread to see what's in the queue.

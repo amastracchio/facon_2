@@ -1,0 +1,6 @@
+The unix-status-collector is not returning any data.
+All the machines running the unix-status-server could be
+down, or DNS could be broken.
+
+This started at ##START## and has been in this state
+for ##DURATION##.

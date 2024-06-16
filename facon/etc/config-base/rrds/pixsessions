@@ -1,0 +1,24 @@
+# rrds/pixsessions - Cisco Pix firewall session count
+# CVS $Id: pixsessions,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	snmp
+step	300
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+data	sessions=pixsessions GAUGE:1200:0:U
+
+oid	PixSessions
+
+graph	pixsessions desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.cisco.com/">Cisco</A> Pix Firewall.  The Sessions number is the number of active TCP connections that the Pix is currently supervising.'
+	--title '##HOST## - Pix Sessions (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--units-exponent 0
+	DEF:sessions=##DB##:sessions:MAX
+	CDEF:missing=sessions,UN,INF,UNKN,IF
+	'LINE2:sessions###COLOR1##:Sessions'
+	'AREA:missing###MISSING##:missing'
+

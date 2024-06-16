@@ -1,0 +1,146 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1179127=1179127  GAUGE:1200:0:U
+data    ddata1179127=1179127  DERIVE:1200:0:U
+alert    data1179127 delta< 10 10 10 
+data    data1204102=1204102  GAUGE:1200:0:U
+data    ddata1204102=1204102  DERIVE:1200:0:U
+alert    data1204102 delta< 10 10 10 
+data    data1204101=1204101  GAUGE:1200:0:U
+data    ddata1204101=1204101  DERIVE:1200:0:U
+alert    data1204101 delta< 10 10 10 
+data    data1207359=1207359  GAUGE:1200:0:U
+data    ddata1207359=1207359  DERIVE:1200:0:U
+alert    data1207359 delta< 10 10 10 
+data    data1999835=1999835  GAUGE:1200:0:U
+data    ddata1999835=1999835  DERIVE:1200:0:U
+alert    data1999835 delta< 10 10 10 
+data    data1047292=1047292  GAUGE:1200:0:U
+data    ddata1047292=1047292  DERIVE:1200:0:U
+alert    data1047292 delta< 10 10 10 
+data    data1047293=1047293  GAUGE:1200:0:U
+data    ddata1047293=1047293  DERIVE:1200:0:U
+alert    data1047293 delta< 10 10 10 
+data    data1047294=1047294  GAUGE:1200:0:U
+data    ddata1047294=1047294  DERIVE:1200:0:U
+alert    data1047294 delta< 10 10 10 
+data    data1047295=1047295  GAUGE:1200:0:U
+data    ddata1047295=1047295  DERIVE:1200:0:U
+alert    data1047295 delta< 10 10 10 
+data    data1999836=1999836  GAUGE:1200:0:U
+data    ddata1999836=1999836  DERIVE:1200:0:U
+alert    data1999836 delta< 10 10 10 
+data    data1999846=1999846  GAUGE:1200:0:U
+data    ddata1999846=1999846  DERIVE:1200:0:U
+alert    data1999846 delta< 10 10 10 
+data    data1999847=1999847  GAUGE:1200:0:U
+data    ddata1999847=1999847  DERIVE:1200:0:U
+alert    data1999847 delta< 10 10 10 
+data    data1999848=1999848  GAUGE:1200:0:U
+data    ddata1999848=1999848  DERIVE:1200:0:U
+alert    data1999848 delta< 10 10 10 
+data    data1999834=1999834  GAUGE:1200:0:U
+data    ddata1999834=1999834  DERIVE:1200:0:U
+alert    data1999834 delta< 10 10 10 
+data    data1125546=1125546  GAUGE:1200:0:U
+data    ddata1125546=1125546  DERIVE:1200:0:U
+alert    data1125546 delta< 10 10 10 
+data    data1125545=1125545  GAUGE:1200:0:U
+data    ddata1125545=1125545  DERIVE:1200:0:U
+alert    data1125545 delta< 10 10 10 
+data    data1125544=1125544  GAUGE:1200:0:U
+data    ddata1125544=1125544  DERIVE:1200:0:U
+alert    data1125544 delta< 10 10 10 
+data    data1125543=1125543  GAUGE:1200:0:U
+data    ddata1125543=1125543  DERIVE:1200:0:U
+alert    data1125543 delta< 10 10 10 
+data    responsetime=1179127-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=14919&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1179127=##DB##:data1179127:AVERAGE
+      'LINE2:data1179127###COLOR1##:Perfil H Cristal 5.8x0.10 M. SKU 1179127 ' 
+      'GPRINT:data1179127:LAST: last=%.1lf\n'
+      DEF:data1204102=##DB##:data1204102:AVERAGE
+      'LINE2:data1204102###COLOR2##:Perfil H Cristal 2.9x0.10 M. SKU 1204102 ' 
+      'GPRINT:data1204102:LAST: last=%.1lf\n'
+      DEF:data1204101=##DB##:data1204101:AVERAGE
+      'LINE2:data1204101###COLOR3##:Perfil H Cristal 2.9x0.10 M. SKU 1204101 ' 
+      'GPRINT:data1204101:LAST: last=%.1lf\n'
+      DEF:data1207359=##DB##:data1207359:AVERAGE
+      'LINE2:data1207359###COLOR4##:Chapa Acanalada Galvanizada C25 x4.50 M. SKU 1207359 ' 
+      'GPRINT:data1207359:LAST: last=%.1lf\n'
+      DEF:data1999835=##DB##:data1999835:AVERAGE
+      'LINE2:data1999835###COLOR5##:Chapa Acanalada C25 1.10x3.00 M. SKU 1999835 ' 
+      'GPRINT:data1999835:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=14919&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1047292=##DB##:data1047292:AVERAGE
+      'LINE2:data1047292###COLOR1##:Chapa Acanalada 1.10x3.00 M. Blanca SKU 1047292 ' 
+      'GPRINT:data1047292:LAST: last=%.1lf\n'
+      DEF:data1047293=##DB##:data1047293:AVERAGE
+      'LINE2:data1047293###COLOR2##:Chapa Acanalada 1.10x3.00 M. Verde SKU 1047293 ' 
+      'GPRINT:data1047293:LAST: last=%.1lf\n'
+      DEF:data1047294=##DB##:data1047294:AVERAGE
+      'LINE2:data1047294###COLOR3##:Chapa Acanalada 1.10x3.50 M. Blanca SKU 1047294 ' 
+      'GPRINT:data1047294:LAST: last=%.1lf\n'
+      DEF:data1047295=##DB##:data1047295:AVERAGE
+      'LINE2:data1047295###COLOR4##:Chapa Acanalada Verde 1.10x3.50 M. SKU 1047295 ' 
+      'GPRINT:data1047295:LAST: last=%.1lf\n'
+      DEF:data1999836=##DB##:data1999836:AVERAGE
+      'LINE2:data1999836###COLOR5##:Chapa Acanalada C25 1.10x3.50 M. SKU 1999836 ' 
+      'GPRINT:data1999836:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=14919&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1999846=##DB##:data1999846:AVERAGE
+      'LINE2:data1999846###COLOR1##:Chapa Trapezoidal C25 1.10x4.50 M. SKU 1999846 ' 
+      'GPRINT:data1999846:LAST: last=%.1lf\n'
+      DEF:data1999847=##DB##:data1999847:AVERAGE
+      'LINE2:data1999847###COLOR2##:Chapa Trapezoidal C25 1.10x3.50 M. SKU 1999847 ' 
+      'GPRINT:data1999847:LAST: last=%.1lf\n'
+      DEF:data1999848=##DB##:data1999848:AVERAGE
+      'LINE2:data1999848###COLOR3##:Chapa Trapezoidal C25 1.10x3.00 M. SKU 1999848 ' 
+      'GPRINT:data1999848:LAST: last=%.1lf\n'
+      DEF:data1999834=##DB##:data1999834:AVERAGE
+      'LINE2:data1999834###COLOR4##:Chapa Acanalada C25 1.10x4.50 M. SKU 1999834 ' 
+      'GPRINT:data1999834:LAST: last=%.1lf\n'
+      DEF:data1125546=##DB##:data1125546:AVERAGE
+      'LINE2:data1125546###COLOR5##:Soporte Para Chapa Trapezoidal 25 Unidades SKU 1125546 ' 
+      'GPRINT:data1125546:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=14919&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1125545=##DB##:data1125545:AVERAGE
+      'LINE2:data1125545###COLOR1##:Soporte Para Chapa Acanalada 25 Unidades SKU 1125545 ' 
+      'GPRINT:data1125545:LAST: last=%.1lf\n'
+      DEF:data1125544=##DB##:data1125544:AVERAGE
+      'LINE2:data1125544###COLOR2##:Chapa Acanalada 1.10x3.00 M. Incoloro SKU 1125544 ' 
+      'GPRINT:data1125544:LAST: last=%.1lf\n'
+      DEF:data1125543=##DB##:data1125543:AVERAGE
+      'LINE2:data1125543###COLOR3##:Chapa T101 1.10x3.00 M. Blanca SKU 1125543 ' 
+      'GPRINT:data1125543:LAST: last=%.1lf\n'
+

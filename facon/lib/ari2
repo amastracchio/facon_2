@@ -1,0 +1,100 @@
+#----------------------------------------------------------- get_ifindex ---
+sub get_ifindex {
+	my ($host, $comhost, $real_wildpart) = @_;
+	my ($ifindex, $ifname, $ifdescr, $fixed_wildpart, $fixed_ifname, $wildpart);
+
+	# Use in-memory cache, if we've got it
+	$wildpart = $real_wildpart;
+	if( defined $main::ifindex_cache{$wildpart}) {
+		return $main::ifindex_cache{$wildpart};
+	}
+
+	# Drop a trailing port-number
+	if( $wildpart =~ /^([^:]+):.*$/o) { $wildpart = $1; }
+
+	# See if we have the ifIndex cached
+	$fixed_wildpart = &to_filename(&to_ifname($wildpart));
+	my $file = "$main::config{DATADIR}/$host/IFINDEX-$fixed_wildpart";
+
+	if (-f $file) {
+		&debug("ifindex cache file exists ($file)") if ($main::debug>1);
+		($ifindex) = &get_status($host, 'IFINDEX-'.$fixed_wildpart);
+		$ifname = &get_ifname( $comhost, $ifindex);
+
+		# Make sure that it's correct, as Cisco likes to renumber interfaces
+		if (defined $ifname) {
+			$fixed_ifname = &to_filename($ifname);
+			if ($ifname =~ /^$wildpart$/i) {
+				&debug("    ifIndex for $host $ifname is $ifindex, " .
+					"fixed='$fixed_ifname' (cached)") if ($main::debug>1);
+				$main::ifindex_cache{$real_wildpart} = $ifindex;
+				return $ifindex;
+			}
+			else {
+				&debug("ifindex $ifindex name($ifname) " .
+					"fixed='$fixed_ifname' doesn't match " .
+					"interface($wildpart)") if ($main::debug>1);
+			}
+		}
+		else {
+			&debug("missing cached interface $ifindex") if ($main::debug>1);
+			return undef;
+		}
+	}
+	&debug("ifIndex not cached for $host interface '$wildpart'")
+		if ($main::debug>1);
+
+	# Not cached, have to search for it.  This is why I cache them.
+	# Collect the names of all the interfaces so we don't have to walk all the
+	# interfaces for each one.
+
+	# I don't know why snmpwalk returns them as number:number, but it does and
+	# nothing likes to see them that way.
+	unless (defined $main::ifindices) {
+		my ($ix1, $ix2, $i, $foundsome);
+		$foundsome = 0;
+		foreach $i (&snmpwalk($comhost, 'ifIndex')) {
+			next unless (defined $i);
+			($ix1, $ix2) = split(':',$i,2);
+			&error("ix1($ix1) != ix2($ix2) and I don't know which to use.")
+				if ($ix1 != $ix2);
+			$ifname = &get_ifname( $comhost, $ix1);
+			&debug("  index=$ix1, name='$ifname'") if ($main::debug>1);
+			next unless (defined $ifname);
+			$foundsome = 1;
+			$fixed_ifname = &to_filename($ifname);
+			&debug("  index $ix1 is $ifname, fixed='$fixed_ifname'")
+				if ($main::debug>1);
+
+			# Only store the first ocurrance of the name
+			next if (defined $main::ifindices{$ifname});
+			$main::ifindices{$ifname} = $ix1;
+		}
+
+		# Note that we can't contact this host if we found no interfaces
+		unless ($foundsome) {
+			$main::ifindices{NOINTERFACES} = 1;  # define it
+			$main::no_interfaces = 1;
+			return undef;
+		}
+	}
+
+	# Did we find it?
+	if (defined $main::ifindices{$wildpart}) {
+		$ifindex = $main::ifindices{$wildpart};
+		&debug("ifIndex for $host $ifname is $ifindex (search)")
+			if ($main::debug>1);
+		&put_status($host, 'IFINDEX-'. $fixed_wildpart, $ifindex);
+		&debug("ifIndex for $wildpart ($ifindex) written to $file") 
+			if ($main::debug>1);
+		$main::ifindex_cache{$real_wildpart} = $ifindex;
+		return $ifindex;
+	}
+	else {
+		&error("$host interface $wildpart not found");
+	}
+
+
+	return undef;
+}
+

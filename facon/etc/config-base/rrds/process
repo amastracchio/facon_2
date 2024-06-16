@@ -1,0 +1,39 @@
+# rrds/memory - memory usage on unix boxen
+# CVS $Id: memory,v 1.11 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# I know what read is, but what exactly is blocked?  Amount of swap memory
+# available?  In use?  Tell me if you know.
+
+source	unix-status
+step	300
+
+data	ready GAUGE:600:0:U	vmstat
+data	blocked GAUGE:600:0:U	vmstat
+data	waiting GAUGE:600:0:U vmstat
+
+alert	ready < 30 40
+alert	blocked < 1 2
+alert	waiting < 1 2
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	process desc="This is collected by the unix-status-collector.  (Under Solaris, look at the wait graphs for swapping problems.)  It works by running the <B>vmstat</B> command on the remote host and parsing the output to look for the Free Memory.  Exactly what Free Memory is depends on the flavour of unix.  Under Linux, free memory can be near zero with no apparent ill effects, as it uses all of memory shared between running programs and file-system buffers."
+		--title '##HOST## - Process Queue(##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+
+        DEF:ready=##DB##:ready:AVERAGE
+        DEF:blocked=##DB##:blocked:AVERAGE
+        DEF:waiting=##DB##:waiting:AVERAGE
+        CDEF:missing=ready,UN,INF,UNKN,IF
+		'LINE2:ready###GREEN##:Ready'
+		'LINE2:blocked###RED##:Blocked'
+		'LINE2:waiting###BLUE##:Waiting'
+		'GPRINT:ready:AVERAGE:ready avg=%.0lf%s\g'
+		'GPRINT:ready:MIN: min=%.0lf%s\g'
+		'GPRINT:ready:LAST: cur=%.01lf%s'
+		'AREA:missing###MISSING##:missing'
+

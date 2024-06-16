@@ -1,0 +1,182 @@
+#!/usr/bin/perl -w
+
+# datapage-alert-writer - write datapages showing alert statuses
+# $Id: datapage-alert-writer.pl,v 1.4 2003/05/15 11:58:05 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'datapage-alert-writer';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.4 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+use RRDs;
+require "facon.pl";
+require "htmlstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+&read_config_dir( $main::config_dir, 'general', 'links', 'colors',
+	'tools', 'times', 'html', 'oids', 'rrds', 'groups', 'host-templates', 
+	'hosts');
+
+# Collect the hosts in Group order
+my %hosts = ();
+my @hosts = ();
+my ($group, $host, $status);
+
+foreach $group (@{$main::config{GROUPS}}) {
+# In case there is a group with no hosts
+	next unless (@{$main::config{GROUP}{$group}});
+	push @hosts, @{$main::config{GROUP}{$group}};
+}
+undef %hosts;
+
+# Get the indices
+%main::indices = &init_indices;
+%main::upindices = %main::indices;
+
+# - - -   Mainline   - - -
+
+my( $last_group, $ip, $fixed_group, $group_file, $header_bar, $html, $top,
+	$realrrd, $wildpart, $wildrrd, $fixedrrd, $var, $varname,
+	$rrdhtml, $found_var, $desc);
+
+my $alert_index = $main::config{DATAPAGEDIR} .'/alert-index.page';
+open( ALERT_INDEX, ">$alert_index") or
+	&abort("can't open $alert_index");
+my $alert_html = "<DATAPAGE::HEADER Alert Index>\n\n";
+
+$last_group = '';
+my $group_bar = '';
+foreach $host( @hosts) {
+	$ip = &get_ip( $host);
+	next unless( defined $ip);
+	
+	$group = $main::config{HOST}{$host}{GROUP};
+	if( $group ne $last_group) {
+		$last_group = $group;
+		$fixed_group = &to_filename( $group) . '.html';
+		$group_file= $main::config{HTMLDIR} .'/'. $fixed_group;
+		if( -f $group_file) {
+			$group = "<NOBR><A HREF=\"$fixed_group\">$group</A></NOBR>";
+			$main::upindices{$main::config{HTML}{GROUPINDEX}} = '../' .
+				$fixed_group;
+		}
+		else { undef $main::upindices{$main::config{HTML}{GROUPINDEX}}; }
+		
+		$header_bar = &header_bar( $group);
+		$alert_html .= $group_bar . "\n<H2>$group</H2>\n";
+		$group_bar = "<HR>\n";
+	}
+	if( defined $main::config{HOST}{$host}{DESC}) {
+		$desc = ' - ' . $main::config{HOST}{$host}{DESC};
+	}
+	else { $desc = ''; }
+	$html = '<TABLE BORDER=0 WIDTH="100%"><TR>' .
+		'<TD BGCOLOR="#CCCCCC"><FONT SIZE="+1"><A HREF="' . 
+		&make_host_index_url( $host) .  '"><B>' . $host .
+		'</B></A></FONT>' . $desc . "</TD></TR></TABLE>\n";
+
+	# Write the index entry for a host
+	my $rrdsep = '';
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+                ($wildrrd, $wildpart, $fixedrrd) = 
+                        &get_rrd($realrrd);
+                next unless (defined $wildrrd);
+                &debug("  for rrd $realrrd($wildrrd)") if ($main::debug);
+		$rrdhtml = $rrdsep . "<NOBR><SPAN STYLE=\"background-color: #DDDDDD\"><B>$realrrd</B></SPAN>:\n";
+		$rrdsep = "<SPAN WIDTH=\"5%\"></SPAN>\n";
+
+		$found_var = 0;
+		foreach $var (@{$main::config{RRD}{$wildrrd}{DATANAMES}}) {
+
+			# Sometimes we just don't want it on this host
+			if (defined $main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{NOALERT}) {
+				&debug("  noalert for $realrrd $var; skipped") if ($main::debug);
+				next;
+			}
+
+			# Alerts defined on the host override those on the rrd
+			elsif (defined $main::config{HOST}{$host}{ALERT}{$realrrd}{$var}{RELATION}) {
+				&debug("    host alert for $realrrd $var") if ($main::debug);
+			}
+
+			# But we'll use alerts on the rrd if the host doesn't define one
+			elsif (defined $main::config{RRD}{$wildrrd}{ALERT}{$var}{RELATION}) {
+				&debug("    rrd alert for $realrrd $var") if ($main::debug);
+			}
+			else {
+				&debug("    no alert possible for $realrrd $var") if ($main::debug);
+				next;
+			}
+			$varname = $host .'_'. $fixedrrd .'_'. $var;
+			$top .= 'alertstatus ' . $varname .' '. $host .' '. $realrrd .' '. $var . "\n";
+			$top .= 'alertvalue ' . $varname .'_value '. $host .' '. $realrrd .' '. $var . "\n";
+			$top .= 'eval ' . $varname .'_value &siunits(${'. $varname .'_value'. "})\n";
+#			$rrdhtml .= "$var(<DATAPAGE::VAR ${varname}_value>)<DATAPAGE::VAR $varname>\n";
+#			$rrdhtml .= "<DATAPAGE::VAR $varname>[$var(<DATAPAGE::VAR ${varname}_value>)]\n";
+			$rrdhtml .= "[$var&nbsp;<DATAPAGE::VAR $varname>=<DATAPAGE::VAR ${varname}_value>]\n";
+			$found_var = 1;
+		}
+		$rrdhtml .= "</NOBR>\n";
+		if( $found_var) { $html .= $rrdhtml; }
+	}
+
+	$alert_html .= "\n" . $html;
+}
+$alert_html .= "\n<BR>\n<DATAPAGE::FOOTER>\n";
+
+print ALERT_INDEX $top, "BEGIN-PAGE\nContent-type: text/html\n\n", $alert_html;
+close (ALERT_INDEX);
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

@@ -1,0 +1,63 @@
+# rrds/httpdlog - This looks at a standard web-server log-file, rather sloppily.
+# CVS $Id: httpdlog,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	log
+step	300
+
+
+data	fata=fata-* GAUGE:600:0:U	count \sF\s
+data	erro=erro-* GAUGE:600:0:U	count \sE\s
+data	warn=warn-* GAUGE:600:0:U	count \sW\s
+data	audi=audi-* GAUGE:600:0:U	count \sA\s
+data	info=info-* GAUGE:600:0:U	count \sI\s
+data	conf=conf-* GAUGE:600:0:U	count \sC\s
+data	deta=deta-* GAUGE:600:0:U	count \sD\s
+data	oooo=oooo-* GAUGE:600:0:U	count \sO\s
+data	rrrr=rrrr-* GAUGE:600:0:U	count \sR\s
+data	zzzz=zzzz-* GAUGE:600:0:U	count \sZ\s
+data	else=else-* GAUGE:600:0:U	count .*
+
+#data	reject=reject-* GAUGE:600:0:U	count W\s{3}
+#data	found=found-* GAUGE:600:0:U	count I\s{3}
+#data	error=error-* GAUGE:600:0:U	count A\s{3}
+#data	else=else-* GAUGE:600:0:U	count .*
+
+
+
+alert	erro < 1 1 1
+alert	fata < 1 1 1
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	httpreq desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it reads from a standard web-server log-file and counts the number of requests and successful requests, as determined by the HTTP response code.  I.E. if it begins with a 2, it is considered to be successful"
+	--title '##HOST## - JVM log-systemout-(##WILDPART## ##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'  --rigid
+	--vertical-label lines
+	DEF:fata=##DB##:fata:AVERAGE
+	DEF:erro=##DB##:erro:AVERAGE
+	DEF:warn=##DB##:warn:AVERAGE
+	DEF:audi=##DB##:audi:AVERAGE
+	DEF:info=##DB##:info:AVERAGE
+	DEF:conf=##DB##:conf:AVERAGE
+	DEF:deta=##DB##:deta:AVERAGE
+	DEF:oooo=##DB##:oooo:AVERAGE
+	DEF:rrrr=##DB##:rrrr:AVERAGE
+	DEF:zzzz=##DB##:zzzz:AVERAGE
+        DEF:else=##DB##:else:AVERAGE
+	CDEF:missing=else,UN,INF,UNKN,IF
+	'LINE2:fata###COLOR10##:F FATAL message'
+	'LINE1:erro###COLOR2##:E ERROR message'
+	'LINE1:warn###COLOR3##:W WARNING message'
+	'LINE1:audi###COLOR4##:A AUDIT message'
+	'LINE1:info###COLOR5##:I INFORMATION message'
+	'LINE1:conf###COLOR6##:C CONFIGURATION message'
+	'LINE1:deta###COLOR11##:D DETAIL message'
+	'LINE1:oooo###COLOR8##:O USER to system.out message'
+	'LINE1:rrrr###COLOR9##:R USER to system.err message'
+	'LINE1:zzzz###COLOR1##:Z Placeholder not recognized'
+	'AREA:missing###MISSING##:missing'
+
+

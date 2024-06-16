@@ -1,0 +1,159 @@
+#!/usr/bin/perl -w
+
+# topology-monitor - say when path to a host has changed
+# $Id: topology-monitor.pl,v 1.9 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'topology-monitor';
+# Where is the config dir?
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.9 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+
+# Parse the command-line
+# XXX use \%opt
+getopts('d:f:h');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+
+unless ($#ARGV == 1) { &usage; } # no return
+my $oldfile = shift @ARGV;
+my $newfile = shift @ARGV;
+
+# Get the host->ip mapping from the config
+&read_config_dir( $main::config_dir, 'general', 'groups', 'times', 'oids',
+	'rrds', 'host-templates', 'hosts');
+
+my ($host, $ip, %hosts, @old, @new, $oldhops, $newhops);
+foreach $host (keys %{$main::config{HOST}}) {
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("load: unknown IP number for $host; skipped") if ($main::debug);
+		next;
+	}
+	$hosts{$ip} = $host;
+}
+
+# Read in the topology files
+my %old = &read_topology($oldfile);
+my %new = &read_topology($newfile);
+
+# - - -   Mainline   - - -
+
+foreach $ip (keys %new) {
+	unless (defined $old{$ip}) {
+		&debug("new host $ip; skipped") if ($main::debug);
+		next;
+	}
+
+# Get the hostname
+	if (defined $hosts{$ip}) {
+		$host = $hosts{$ip};
+	}
+	else {
+		&debug("no hostname for IP $ip; skipped") if ($main::debug);
+		next;
+	}
+	&debug("doing host $host") if ($main::debug);
+
+# Get the path
+	@old = @{$old{$ip}};
+	@new = @{$new{$ip}};
+	$oldhops = $#old + 1;
+	$newhops = $#new + 1;
+
+# Must be different if it's a different length
+	if ($oldhops != $newhops) {
+		&debug("  hop count changed, old=$oldhops, new=$newhops") if ($main::debug);
+		&logit('TOPOLOGY', $host, undef, undef, undef,
+			"hops old=$oldhops, new=$newhops");
+	}
+
+# Darn.  I've got to actually compare them.
+	else {
+		for (my $i=0; $i<=$#new; $i++) {
+			unless (defined $old[$i]) {
+				&debug("missing old data for $host at hop $i") if ($main::debug);
+				next;
+			}
+			next if ($old[$i] eq $new[$i]);
+			++$i;
+			&debug("  path changed at hop $i") if ($main::debug);
+			&logit('TOPOLOGY', $host, undef, undef, undef,
+				"path change at hop $i");
+			last;
+		}
+	}
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] oldfile newfile
+where options are:
+	-d	enable debugging output
+	-f fff use 'fff' for config-dir [$main::config_dir]
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#--------------------------------------------------------- read_topology ---
+# Reads a file of lines produced by make-path into a hash by IP number
+sub read_topology {
+	my ($file) = @_;
+	my %hash = ();
+
+	open (FILE, "<$file") or &abort("can't open $file: $!");
+	while (<FILE>) {
+		chomp;
+		next if (/^\s*$/ or /^#/);
+		my (undef, $ip, @path) = split(' ',$_);
+		$hash{$ip} = [@path];
+	}
+	close (FILE);
+%hash;
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+	%main::config = ();
+}

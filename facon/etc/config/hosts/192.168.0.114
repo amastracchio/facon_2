@@ -1,0 +1,26 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc	The linux  machine
+ip	192.168.0.114
+group	prod
+tools	availability status
+#rrd	snmpuptime
+# solo para probar!! poner de nueo arriba y abajo
+rrd     snmpdisk-/
+rrd     snmpdisk-/landsat
+rrd	snmpif-eth0
+rrd	snmpif-eth1
+rrd     snmpload
+#rrd     pscount-ed857416
+#rrd     pscount-wspheraa
+#rrd     pscount-root
+#rrd	load
+#rrd	process
+#rrd	memory
+#rrd     pssum-ed857416
+#rrd     pssum-wspheraa
+#rrd     pssum-root
+#rrd     mem /root/precios/mem-desa-acer.pl
+#rrd     io /root/precios/mem-desa-acer.pl
+##
+

@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+
+# snmp-get - a simple way to test if you've configured communities correctly
+# 	without having to fetch and build a large SNMP package.
+# $Id: snmp-get.pl,v 1.11 2002/08/19 18:43:06 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for file-names and error-messages
+$main::prog = 'snmp-get';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.11 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "snmpstuff.pl";
+
+my %opt = ();
+my ($community, $realrrd, $host, $oid, $wildrrd, $comhost, $value, $port, $rrdport);
+
+use Getopt::Std;
+getopts('c:d:f:hr:', \%opt);
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $community = $opt{'c'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'d'}; }
+if (defined $opt{'p'}) { $port = $opt{'p'}; }
+if (defined $opt{'r'}) { $realrrd = $opt{'r'}; }
+
+unless (defined $community or defined $realrrd) { &usage; } # no return
+if (defined $community and defined $realrrd) { &usage; } # no return
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+
+if (@ARGV != 2) { &usage; } # no return
+($host, $oid) = @ARGV;
+
+&snmp_load_oids();
+
+# - - -   Mainline   - - -
+
+my $ip = &get_ip( $host);
+
+if (defined $realrrd) {
+	if ($realrrd =~ /^(.+-)\*?$/) {
+		$wildrrd = $realrrd;
+	}
+	else {
+		($wildrrd) = &get_rrd($realrrd);
+	}
+	$comhost = &get_comhost( $host, $realrrd, $wildrrd, $ip);
+	print "comhost='$comhost' from rrd=$wildrrd\n";
+}
+elsif (defined $community) {
+	if( defined $ip) { $comhost = $community . '@' . $ip; }
+	else { $comhost = $community .'@'. $host; }
+
+	print "comhost='$comhost'\n";
+}
+else { &usage; } # no return
+
+if (defined $port) {
+	if ($comhost =~ /^([^:]+):(.*)$/) {
+		$comhost = $1;
+		$rrdport = $2;
+		warn "$main::prog: overriding rrd-specified port ($rrdport) with $port\n";
+	}
+	$comhost .= ':'. $port;
+}
+
+($value) = &snmpget( $comhost, $oid);
+if (defined $value) { print "$oid = $value\n"; }
+else { print "$oid: oid unknown, incorrect community, or host unknown/down/unreachable\n"; }
+exit 0;
+
+#---------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] {-c ccc | -r rrr} host oid
+where options are:
+    -d ddd  set debugging output to level 'ddd'
+    -h      show this help
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -p ppp  use port 'ppp' instead of the usual port
+
+required args are only one of:
+    -c ccc  use 'ccc' as SNMP community-string
+    -r rrr  get SNMP community-string from RRD 'rrr'
+
+- 'host' is the host to query
+- 'oid' is the Object ID to return the value of, either fully numeric or
+  as defined in the 'oids' config-file
+EOD_USAGE
+	exit 0;
+}
+
+#---------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}

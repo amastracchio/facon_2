@@ -1,0 +1,3 @@
+The BGP session on ##HOST##(##IP##) peering with 
+##WILDPART## has changed state to ##VALUE##.  
+The only good state is 6 (established).

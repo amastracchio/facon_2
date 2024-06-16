@@ -1,0 +1,48 @@
+# rrds/collector-cisco-access-server - status of the cisco-access-server collector
+# All collector RRDs are the same except for the source
+# CVS $Id: collector-cisco-access-server,v 1.11 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	cisco-access-server
+step	300
+
+data	requests=cisco-access-server-collector:requests GAUGE:600:0:U
+data	collected=cisco-access-server-collector:collected GAUGE:600:0:U
+data	used=cisco-access-server-collector:used GAUGE:600:0:U
+data	runtime=cisco-access-server-collector:runtime GAUGE:600:0:U
+
+alert	collected > 0 0 0
+alert	used > 0 0 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	entries-cisco-access-server desc="This is collected by the cisco-access-server-collector.  This shows the efficiency of the collector.  Requests are how many requests(lines) that the collector sent to the server.  Collected is how many responses (lines) were returned.  Used is how many of those lines were used.  Ideally, Collected should be at least as large as Requests, or some requests are not being answered.  If Used is larger than Collected, then some responses are being ignored.  The numbers here are not interesting; the pattern is.  Unexplained anomalies usually indicate a problem."
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'entries'
+	--title '##HOST## - cisco-access-server-collector (##GRAPHTIME##)'
+	--units-exponent 0
+	DEF:collected=##DB##:collected:AVERAGE
+	DEF:requests=##DB##:requests:AVERAGE
+	DEF:used=##DB##:used:AVERAGE
+	CDEF:missing=collected,UN,INF,UNKN,IF
+	'AREA:collected###COLOR2##:entries collected'
+	'LINE2:requests###COLOR1##:requests sent'
+	'LINE2:used###COLOR3##:entries used'
+	'AREA:missing###MISSING##:missing'
+
+graph runtime desc="This is collected by the cisco-access-server-collector.  This shows how long the collector took to collect the required information.  The numbers here are not interesting; the pattern is.  Unexplained anomalies usually indicate a problem.  For some collectors, a host being down will cause the collector to run longer."
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'sec'
+	--title '##HOST## - cisco-access-server-collector runtime (##GRAPHTIME##)'
+	--units-exponent 0
+	DEF:runtime=##DB##:runtime:AVERAGE
+	CDEF:missing=runtime,UN,INF,UNKN,IF
+	'LINE2:runtime###COLOR1##:runtime'
+	'GPRINT:runtime:MIN:min=%.0lf'
+	'GPRINT:runtime:AVERAGE:avg=%.0lf'
+	'GPRINT:runtime:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'
+

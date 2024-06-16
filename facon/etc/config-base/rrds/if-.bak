@@ -1,0 +1,38 @@
+# rrds/if-* - Interface numbers, from the unix point-of-view.
+# CVS $Id: if-,v 1.10 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source		unix-status
+step		300
+
+data		in=interface_packets_in:* DERIVE:600:0:U	netstat
+data		ierr=interface_errors_in:* DERIVE:600:0:U	netstat
+data		out=interface_packets_out:* DERIVE:600:0:U	netstat
+data		oerr=interface_errors_out:* DERIVE:600:0:U	netstat
+data		coll=interface_collisions:* DERIVE:600:0:U	netstat
+data		status=interface_status:* GAUGE:600:0:2		netstat
+
+alert		ierr < 1000 5000 10000
+alert		oerr < 1000 5000 10000
+archives	day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times		day yesterday week month 3month year
+
+graph		if-* desc="This is collected by the unix-status-collector.  It works by running the <B>netstat</B> command on the remote host and parsing the output.  Unfortunately, this only gives packet counts, not byte counts."
+		--title '##HOST## - Interface ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'packets/sec'
+		DEF:in=##DB##:in:AVERAGE
+		DEF:out=##DB##:out:AVERAGE
+		CDEF:missing=in,UN,INF,UNKN,IF
+		'AREA:in###INCOLOR##:In Packets'
+		'LINE2:out###OUTCOLOR##:Out Packets'
+		'GPRINT:in:AVERAGE:in avg=%.0lf%s'
+		'GPRINT:in:MAX:max=%.0lf%s'
+		'GPRINT:in:LAST:cur=%.0lf%s'
+		'GPRINT:out:AVERAGE:out avg=%.0lf%s'
+		'GPRINT:out:MAX:max=%.0lf%s'
+		'GPRINT:out:LAST:cur=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+

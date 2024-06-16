@@ -1,0 +1,55 @@
+# rrds/ntnetwork - overall network usage on NT boxen
+# CVS $Id: ntnetwork,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+
+data	inbytes=redirector:bytes_received-sec COUNTER:600:0:U perfcounters
+data	outbytes=redirector:bytes_transmitted-sec COUNTER:600:0:U perfcounters
+data	inpackets=redirector:read_bytes_network-sec COUNTER:600:0:U perfcounters
+data	outpackets=redirector:write_bytes_network-sec COUNTER:600:0:U perfcounters
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	bytes
+	--title '##HOST## - Network Bytes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'bits/sec'
+	DEF:inbytes=##DB##:inbytes:AVERAGE
+	DEF:outbytes=##DB##:outbytes:AVERAGE
+	CDEF:inbits=inbytes,8,*
+	CDEF:outbits=outbytes,8,*
+	CDEF:missing=inbytes,UN,INF,UNKN,IF
+	HRULE:2200000###LINECOLOR##:2.2Mbps
+	'AREA:inbits###COLOR1##:In'
+	'LINE2:outbits###COLOR2##:Out'
+	'GPRINT:inbits:LAST:in=%.0lf%s'
+	'GPRINT:inbits:AVERAGE:avg=%.0lf%s'
+	'GPRINT:inbits:MAX:max=%.0lf%s'
+	'GPRINT:outbits:LAST:out=%.0lf%s'
+	'GPRINT:outbits:AVERAGE:avg=%.0lf%s'
+	'GPRINT:outbits:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	packets
+	--title '##HOST## - Network Packets (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'packets/sec'
+	DEF:inpackets=##DB##:inpackets:AVERAGE
+	DEF:outpackets=##DB##:outpackets:AVERAGE
+	CDEF:missing=inpackets,UN,INF,UNKN,IF
+	'AREA:inpackets###COLOR1##:In'
+	'LINE2:outpackets###COLOR2##:Out'
+	'GPRINT:inpackets:LAST:in=%.0lf%s'
+	'GPRINT:inpackets:AVERAGE:avg=%.0lf%s'
+	'GPRINT:inpackets:MAX:max=%.0lf%s'
+	'GPRINT:outpackets:LAST:out=%.0lf%s'
+	'GPRINT:outpackets:AVERAGE:avg=%.0lf%s'
+	'GPRINT:outpackets:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

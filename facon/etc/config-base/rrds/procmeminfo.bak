@@ -1,0 +1,70 @@
+# rrds/procmeminfo - memory stats via /proc/meminfo on linux
+# CVS $Id: procmeminfo,v 1.8 2003/05/15 12:11:16 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	total=procmeminfo_total_mem GAUGE:600:0:U	procmeminfo
+data	free=procmeminfo_free_mem GAUGE:600:0:U	procmeminfo
+data	shared=procmeminfo_shared_mem GAUGE:600:0:U	procmeminfo
+data	buffer=procmeminfo_buffer_mem GAUGE:600:0:U	procmeminfo
+data	cache=procmeminfo_cache_mem GAUGE:600:0:U	procmeminfo
+data	swaptot=procmeminfo_total_swap GAUGE:600:0:U	procmeminfo
+data	swapfree=procmeminfo_free_swap GAUGE:600:0:U	procmeminfo
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	memory desc="This is collected by the unix-status-collector.  It is Linux specific.  It works by reading and parsing /proc/meminfo.  Total memory is how much memory exists on the host.  Free Memory is not being used at all, and is often very low on a busy machine with no adverse effects.  Shared is memory which is shared between programs, e.g. for shared libraries.  Buffers is memory used by the file-system for transferring to and from disk.  Cache is any of the above which isn't being used right now, but is clean and could be used instead of reading something off the disk.  The Free Memory can be and often is very low because the memory is shared between programs and file-system bufers, so any Free memory quickly gets sucked into the file-system buffers.  It will be freed for use by any program which needs it."
+	--title '##HOST## - Free Memory (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label bytes
+	DEF:total=##DB##:total:AVERAGE
+	DEF:free=##DB##:free:AVERAGE
+	DEF:shared=##DB##:shared:AVERAGE
+	DEF:buffer=##DB##:buffer:AVERAGE
+	DEF:cache=##DB##:cache:AVERAGE
+	CDEF:available=free,buffer,cache,+,+
+	CDEF:active=total,free,buffer,cache,+,+,-
+	CDEF:missing=total,UN,INF,UNKN,IF
+	'AREA:active###RED##:active'
+	'GPRINT:active:AVERAGE:avg=%4.0lf%s\g'
+	'GPRINT:active:MIN: min=%4.0lf%S\g'
+	'GPRINT:active:LAST: cur=%4.0lf%S\n'
+	'STACK:shared###YELLOW##:shared'
+	'GPRINT:shared:AVERAGE:avg=%4.0lf%S\g'
+	'GPRINT:shared:MIN: min=%4.0lf%S\g'
+	'GPRINT:shared:LAST: cur=%4.0lf%S\n'
+	'STACK:buffer###CYAN##:buffer'
+	'GPRINT:buffer:AVERAGE:avg=%4.0lf%S\g'
+	'GPRINT:buffer:MIN: min=%4.0lf%S\g'
+	'GPRINT:buffer:LAST: cur=%4.0lf%S\n'
+	'STACK:cache###BLUE##:cache '
+	'GPRINT:cache:AVERAGE:avg=%4.0lf%S\g'
+	'GPRINT:cache:MIN: min=%4.0lf%S\g'
+	'GPRINT:cache:LAST: cur=%4.0lf%S\n'
+	'STACK:free###GREEN##:free  '
+	'GPRINT:free:AVERAGE:avg=%4.0lf%S\g'
+	'GPRINT:free:MIN: min=%4.0lf%S\g'
+	'GPRINT:free:LAST: cur=%4.0lf%S\n'
+	'AREA:missing###MISSING##:missing'
+
+graph	swap desc="This is collected by the unix-status-collector.  It works by reading and parsing /proc/meminfo.   The Used Swap is how much of your available swap partitions/files are currently in use."
+	--title '##HOST## - Free Swap (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label bytes
+	DEF:total=##DB##:swaptot:AVERAGE
+	DEF:free=##DB##:swapfree:MIN
+	CDEF:used=total,free,-
+	CDEF:missing=total,UN,INF,UNKN,IF
+	'AREA:total###TOTALCOLOR##:total'
+	'LINE2:used###USEDCOLOR##:used'
+	'GPRINT:free:AVERAGE:free avg=%.0lf%s\g'
+	'GPRINT:free:MIN: min=%.0lf%s\g'
+	'GPRINT:free:LAST: cur=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

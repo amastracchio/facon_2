@@ -1,0 +1,7 @@
+# environment - extra environment variables for run-facon to make available
+#	to all its children.
+# $Id: environment,v 1.2 2002/04/16 15:23:13 facon Exp $
+#
+# For example, the dbi-collector need to know where Oracle was installed.  Don't
+# just uncomment this one; check to make sure that it's correct for you.
+# ORACLE_HOME /home/oracle/product/ias9i_std

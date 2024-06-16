@@ -1,0 +1,80 @@
+# config-base/pages - which pages to generate where
+# $Id: pages,v 1.5 2002/08/14 11:41:30 remstats Exp $
+#
+# The available directives are:
+#
+#	PAGE	<template-name> <file-name>
+#
+#	CHDIR	<new-dir>
+#
+#	VAR		<var-name> <value>
+#
+# They are processed in the order given.  Note the REMSTATS::PAGE tag
+# can cause the effect of including a PAGE directive here, with variables
+# set to interesting values.
+#
+# This is where to put things, usually for testing
+var TOPDIR
+
+# Some very usefull variables from configuration
+var::config HTMLURL HTMLURL
+var::config HTMLDIR HTMLDIR
+var::config CGIURL CGIURL
+var::config CGIDIR CGIDIR
+var::config DATADIR DATADIR
+var::config SRCURL SRCURL
+
+var GRAPHDIR GRAPHS
+mkdir ##GRAPHDIR##
+chgrp remstats ##GRAPHDIR##
+chmod 2775 ##GRAPHDIR##
+
+var RRDTOPDIR RRDS
+
+var VIEWDIR ##HTMLDIR##/VIEWS
+var VIEWURL ##HTMLURL##/VIEWS
+
+# URLs for the standard buttons
+var ALERTINDEXURL /remstats/cgi-bin/datapage.cgi?alert-index
+var ALERTREPORTURL ##CGIURL##/alert.cgi
+var	CUSTOMINDEXURL ##HTMLURL##/##TOPDIR##CUSTOM/index.cgi
+var LOGREPORTURL ##CGIURL##/showlog.cgi
+var PINGINDEXURL ##HTMLURL##/##TOPDIR##ping-index.cgi
+var QUICKINDEXURL ##HTMLURL##/##TOPDIR##quick-index.cgi
+var RRDINDEXURL ##HTMLURL##/##TOPDIR##rrd-index.cgi
+var VIEWINDEXURL ##HTMLURL##/##TOPDIR##view-index.cgi
+var RRDTOOLHOMEURL http://people.ee.ethz.ch/~oetiker/webtools/rrdtool
+var RRDLOGOURL ##HTMLURL##/IMAGES/rrdtool.png
+var REMSTATSLOGOURL ##HTMLURL##/IMAGES/remstats.png
+var SOURCEFORGELOGOURL ##HTMLURL##/IMAGES/sourceforge.png
+
+var::config ALERTINDEX HTML ALERTINDEX
+var::config ALERTREPORT HTML ALERTREPORT
+var::config CUSTOMINDEX HTML CUSTOMINDEX
+var::config LOGREPORT HTML LOGREPORT
+var::config PINGINDEX HTML PINGINDEX
+var::config QUICKINDEX HTML QUICKINDEX
+var::config RRDINDEX HTML RRDINDEX
+var::config VIEWINDEX HTML VIEWINDEX
+
+# The standard buttons themselves
+var ALERTINDEXBUT <A CLASS="BUT" HREF="/remstats/cgi-bin/datapage.cgi?alert-index" TARGET="MAINSIDE">##ALERTINDEX##</A>
+var ALERTREPORTBUT <A CLASS="BUT" HREF="##ALERTREPORTURL##" TARGET="MAINSIDE">##ALERTREPORT##</A>
+var CUSTOMINDEXBUT <A CLASS="BUT" HREF="##CUSTOMINDEXURL##" TARGET="MAINSIDE">##CUSTOMINDEX##</A>
+var LOGREPORTBUT <A CLASS="BUT" HREF="##LOGREPORTURL##" TARGET="MAINSIDE">##LOGREPORT##</A>
+var PINGINDEXBUT <A CLASS="BUT" HREF="##PINGINDEXURL##" TARGET="MAINSIDE">##PINGINDEX##</A>
+var QUICKINDEXBUT <A CLASS="BUT" HREF="##QUICKINDEXURL##" TARGET="MAINSIDE">##QUICKINDEX##</A>
+var RRDINDEXBUT <A CLASS="BUT" HREF="##RRDINDEXURL##" TARGET="MAINSIDE">##RRDINDEX##</A>
+var VIEWINDEXBUT <A CLASS="BUT" HREF="##VIEWINDEXURL##" TARGET="MAINSIDE">##VIEWINDEX##</A>
+var RRDTOOLBUT <A HREF="##RRDTOOLHOMEURL##" TARGET="MAINSIDE"><IMG SRC="##RRDLOGOURL##" ALT="rrdtool"></A>
+var REMSTATSBUT <A HREF="##SRCURL##/index.html" TARGET="MAINSIDE"><IMG SRC="##REMSTATSLOGOURL##" ALT="remstats"></A>
+
+# Standard pages
+page	quick-index quick-index.cgi
+page	ping-index ping-index.cgi
+chdir	CUSTOM
+page	custom-index index.cgi
+chdir	..
+
+mkdir	##RRDTOPDIR##
+page	rrd-index rrd-index.cgi

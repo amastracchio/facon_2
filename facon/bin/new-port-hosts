@@ -1,0 +1,168 @@
+#!/usr/bin/perl -w
+
+# new-port-hosts - a facon configuration generator.  
+#		It's a very limited	port-scanner.
+# CVS $Id: new-port-hosts.pl,v 1.12 2003/03/13 14:16:05 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'new-port-hosts';
+# Where is the config-dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# How long to wait for a connection
+$main::timeout = 10;
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.12 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib';
+use Getopt::Std;
+require "facon.pl";
+use Socket;
+require "socketstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:ht:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'}; }
+
+&usage unless (@ARGV > 0);
+my $group = shift @ARGV;
+
+# These are the only ones I'll scan for.  Port-collector is capable
+# of dealing with more, but I'll have to figure out a way of importing
+# knowledge from the rrd config files first.
+my %ports = (
+	'domain' => 53, 
+	'http' => 80, 
+	'imap' => 143, 
+	'ldap' => 389,
+	'netbios' => 139, 
+	'nntp' => 119, 
+	'pop3' => 110, 
+	'smtp' => 25, 
+	'ssh' => 22,
+	'telnet' => 23, 
+	'whois' => 43, 
+);
+
+unless (-d $main::config_dir) {
+	&abort("missing config-dir $main::config_dir");
+}
+&read_config_dir( $main::config_dir, 'general');
+
+&add_group_if_missing( $group);
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $hostfile);
+while (<>) {
+	chomp;
+	next if (/^#/ or /^\s*$/);
+	$host = lc $_;
+	$ip = &get_ip($host);
+	next unless (defined $ip);
+	&debug("host $host") if ($main::debug);
+
+	$hostfile = $main::config_dir .'/hosts/'. $host;
+
+# Append to an old host
+	if (-f $hostfile) {
+		open (HOST, ">>$hostfile") or 
+			&abort("can't open $hostfile: $!");
+	}
+
+# Write a header for a new host
+	else {
+		open (HOST, ">$hostfile") or
+			&abort("can't open $hostfile: $!");
+		print HOST <<"EOD";
+# hosts/$host
+#ip	$ip
+desc\t$group host
+group\t$group
+tools\tping traceroute availability status
+rrd\tping
+EOD
+	}
+
+# Write RRD lines for those ports that answer.  If the
+# port is protected by tcp_wrappers, it *will* answer,
+# but then close immediately, but this code isn't smart
+# enough to tell that.
+	my ($this_timeout, $socket, $status);
+	foreach my $port (keys %ports) {
+		&debug("  trying port $port") if ($main::debug);
+		$this_timeout = $main::timeout;
+		($socket, $status, $this_timeout) = 
+			&open_socket( $host, $port, $this_timeout);
+		if ($status == $main::SOCKET_OK) {
+			print HOST "rrd\tport-$port\n";
+			&debug("    added port-$port") if( $main::debug);
+			close ($socket);
+		}
+		else {
+			&debug("    no answer to ${host}:$port") if ($main::debug);
+		}
+	}
+	close (HOST);
+
+}
+
+# Save new version of ip_cache
+&write_ip_cache;
+
+# Touch config_dir for update-time
+my $now = time;
+utime $now, $now, $main::config_dir or
+	&abort("can't touch $main::config_dir for update time");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] group [hostfile ...]
+where options are:
+    -d      enable debugging output
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#--------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#----------------------------------------------------------- keep_perl_happy ---
+sub keep_perl_happy {
+	$main::SOCKET_OK = 0;
+}

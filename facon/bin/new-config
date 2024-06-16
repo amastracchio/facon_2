@@ -1,0 +1,150 @@
+#!/usr/bin/perl -w
+
+# new-config - make a new config-dir as links to config-base
+# $Id: new-config.pl,v 1.17 2002/08/16 12:46:04 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'new-config';
+# Where is the base config-dir
+$main::config_base = '/root/3p/facon/etc/config-base';
+# Which things in config-base get linked here
+my @links = ('alert-template-map', 'alert-templates', 'archives', 
+	'availability', 'colors', 'oids', 'page-templates', 'remotepings', 
+	'rrds', 'run', 'run-stages', 'scripts', 'times', );
+# Which things should be copied instead
+my @copies = ('access', 'alerts', 'alert-destination-map', 'discovery',
+	'environment', 'general', 'html', 'links', 'ntops', 
+	'pages', 'remotepings', 'tools' );
+# Which things need to be real sub-directories
+my @subdirs = ('customgraphs', 'dbi-connects', 'dbi-selects',
+	'hosts', 'views', 'view-templates', 'host-templates' );
+# What collectors exist to self-monitor?
+my @collectors = ( 'dbi', 'log', 'nt-status', 'ntop', 'ping', 'port',
+	'snmp', 'snmp-route', 'unix-status');
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.17 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+
+my %opt = ();
+getopts("d:f:h", \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'f'}) { $main::config_base = $opt{'f'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+
+unless ($#ARGV == 0) { &usage; }
+
+$main::config_dir = shift @ARGV;
+
+unless (-d $main::config_base) {
+	&abort("$main::config_base is missing or isn't a directory");
+}
+
+if (-e $main::config_dir) { &abort("$main::config_dir exists"); }
+
+# - - -   Mainline   - - -
+
+mkdir $main::config_dir, 0755 or &abort("can't mkdir $main::config_dir: $!");
+&debug("mkdir for $main::config_dir") if ($main::debug);
+
+# Make the symlinks
+my ($old, $new, $dir, $file, $data);
+foreach $dir (@links) {
+	$old = $main::config_base .'/'. $dir;
+	$new = $main::config_dir .'/'. $dir;
+	symlink $old, $new or
+		&abort("can't symlink $old to $new: $!");
+	&debug("  symlinked $dir from $old") if ($main::debug);
+}
+
+# Make the copies
+foreach $file (@copies) {
+	$old = $main::config_base .'/'. $file;
+	$new = $main::config_dir .'/'. $file;
+
+	open (OLD, "<$old") or &abort("can't open $old: $!");
+	$data = join('', <OLD>) or &abort("can't read $old: $!");
+	close (OLD) or &abort("can't close $old: $!");
+
+	open (NEW, ">$new") or &abort("can't open $new: $!");
+	print NEW $data or &abort("can't write $new: $!");
+	close (NEW) or &abort("can't close $new: $!");
+}
+
+# Make the sub-drectories
+foreach $dir (@subdirs) {
+	$new = $main::config_dir .'/'. $dir;
+	mkdir $new, 0755 or &abort("can't mkdir $new: $!");
+	&debug("  mkdir for $dir") if ($main::debug);
+}
+
+# Make an (almost) empty groups file
+$new = $main::config_dir .'/groups';
+open (GROUPS, ">$new") or &abort("can't open $new: $!");
+print GROUPS <<"EOD_GROUPS";
+# groups - the groups in the order you want to see them
+
+
+# you probably want this one last
+Remstats
+EOD_GROUPS
+close (GROUPS);
+
+# Make the _facon_ pseudo-host
+$new = $main::config_dir .'/hosts/_facon_';
+my $collectors = join("\n", map {"rrd\tcollector-$_"} @collectors);
+open (REMSTATS, ">$new") or &abort("can't open $new: $!\n");
+print REMSTATS <<"EOD_REMSTATS";
+# hosts/_facon_ - facon self-monitoring
+#
+desc	the status of facon itself
+ip		127.0.0.1
+group	Remstats
+tools	availability status
+$collectors
+EOD_REMSTATS
+close (REMSTATS);
+
+0;
+
+#------------------------------------------------ usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] new-config-dir
+where options are:
+    -d ddd  set debug level to 'ddd'
+    -f fff  use 'fff' as config-base [$main::config_base]
+    -h      show this text
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------ debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#----------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

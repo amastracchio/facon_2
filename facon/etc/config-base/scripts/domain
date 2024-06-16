@@ -1,0 +1,8 @@
+# scripts/domain - DNS server availability
+# $Id: domain,v 1.2 2002/04/16 15:21:14 remstats Exp $
+
+# I'm not going to attempt to speak DNS.  If it's answering
+# the port that's good enough for me.
+
+timeout	5
+

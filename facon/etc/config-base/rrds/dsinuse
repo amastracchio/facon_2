@@ -1,0 +1,29 @@
+# rrds/dsinuse - count of lines on a Cisco 5300 that are in use
+# CVS $Id: dsinuse,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	snmp
+step	300
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+data	inuse=ciscocpmactiveds0s GAUGE:1200:0:24
+
+oid	CiscoCpmActiveDS0s
+
+graph	dsinuse desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  The OID in question are only implemented on a <A HREF="http://www.cisco.com/">Cisco</A> Access Server.   This OID contains the current number of active DS0s (phone lines)'
+	--title '##HOST## - Active DS0s (##GRAPHTIME##)'
+	--vertical-label 'DS0s'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 24 --rigid
+	--units-exponent 0
+	DEF:inusemax=##DB##:inuse:MAX
+	DEF:inuseavg=##DB##:inuse:AVERAGE
+	CDEF:missing=inusemax,UN,INF,UNKN,IF
+	'LINE2:inuseavg###COLOR2##:avg'
+	'LINE2:inusemax###COLOR3##:max'
+	'GPRINT:inuseavg:AVERAGE:average=%.0fl%s'
+	'GPRINT:inusemax:MAX:max=%.0fl%s'
+	'AREA:missing###MISSING##:missing'
+

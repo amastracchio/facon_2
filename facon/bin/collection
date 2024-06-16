@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# collection - stop/start collection
+# $Id: collection.sh,v 1.4 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Version History - - -
+# $Revision: 1.4 $
+
+# - - -   Setup   - - -
+
+if [ $# != 1 ] ; then
+	echo >&2 "usage: `basename $0` {stop MSG|start|status}"
+	exit 0
+fi
+
+what="$1"
+file="@@TMPDIR@@/STOP-run-facon"
+
+# - - -   Mainline   - - -
+
+case "$what" in 
+	start)
+		if [ -f $file ] ; then
+			rm -f $file
+			echo "stop-file removed ($file)"
+		else
+			echo "no stop-file; it's not stopped"
+		fi
+		;;
+	stop)
+		if [ -f $file ] ; then
+			echo "stop-file exists ($file); it's stopped already"
+		else
+			echo >$file "`date +%Y-%m-%d %H:%M:%S`"
+			if [ ! -z "$2" ] ; then
+				echo >>$file "Reason: $2"
+			else
+				echo >>$file "Reason: unknown"
+			fi
+		fi
+		;;
+	status)
+		if [ -f $file ] ; then
+			echo "REMSTATS STOPPED"
+			cat $file
+		else
+			echo "facon collection not stopped"
+		fi
+		;;
+	*)
+		echo >&2 "usage: `basename $0` {stop|start|status}"
+		exit 0
+		;;
+esac
+

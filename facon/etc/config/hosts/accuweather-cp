@@ -1,0 +1,8 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc	accuweather
+ip	2.17.202.116
+group	prod
+tools	availability status
+rrd    tempaccu-CarlosPaz /root/precios/get_temp_accu_carlos_paz.pl
+rrd    airquality-CarlosPaz /root/precios/get_airq_carlos_paz.pl

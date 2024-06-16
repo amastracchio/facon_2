@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	ibo=ibo:* GAUGE:1200:0:U  bamsql *
+data	sysaux=sysaux:* GAUGE:1200:0:U  bamsql *
+data	ireferentiel=ireferentiel:* GAUGE:1200:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1200:0:U  bamsql *
+data	neo_data=neo_data:* GAUGE:1200:0:U  bamsql *
+data	neo_index=neo_index:* GAUGE:1200:0:U  bamsql *
+data	interfaces=interfaces:* GAUGE:1200:0:U  bamsql *
+data	neo_temp=neo_temp:* GAUGE:1200:0:U  bamsql *
+data	ibamac_h=ibamac_h:* GAUGE:1200:0:U  bamsql *
+data	bo=bo:* GAUGE:1200:0:U  bamsql *
+data	bo_install=bo_install:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:ibo=##DB##:ibo:AVERAGE
+	 DEF:sysaux=##DB##:sysaux:AVERAGE
+	 DEF:ireferentiel=##DB##:ireferentiel:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:neo_data=##DB##:neo_data:AVERAGE
+	 DEF:neo_index=##DB##:neo_index:AVERAGE
+	 DEF:interfaces=##DB##:interfaces:AVERAGE
+	 DEF:neo_temp=##DB##:neo_temp:AVERAGE
+	 DEF:ibamac_h=##DB##:ibamac_h:AVERAGE
+	 DEF:bo=##DB##:bo:AVERAGE
+	 DEF:bo_install=##DB##:bo_install:AVERAGE
+      CDEF:missing=ibo,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:ibo###COLOR1##:ibo'
+	'LINE2:sysaux###COLOR2##:sysaux'
+	'LINE2:ireferentiel###COLOR3##:ireferentiel'
+	'LINE2:rbs###COLOR4##:rbs'
+	'LINE2:neo_data###COLOR5##:neo_data'
+	'LINE2:neo_index###COLOR6##:neo_index'
+	'LINE2:interfaces###COLOR7##:interfaces'
+	'LINE2:neo_temp###COLOR8##:neo_temp'
+	'LINE2:ibamac_h###COLOR9##:ibamac_h'
+	'LINE2:bo###COLOR10##:bo'
+	'LINE2:bo_install###COLOR11##:bo_install'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:ibo:LAST:ibo         = %.2lf\l'
+	'GPRINT:sysaux:LAST:sysaux         = %.2lf\l'
+	'GPRINT:ireferentiel:LAST:ireferentiel         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:neo_data:LAST:neo_data         = %.2lf\l'
+	'GPRINT:neo_index:LAST:neo_index         = %.2lf\l'
+	'GPRINT:interfaces:LAST:interfaces         = %.2lf\l'
+	'GPRINT:neo_temp:LAST:neo_temp         = %.2lf\l'
+	'GPRINT:ibamac_h:LAST:ibamac_h         = %.2lf\l'
+	'GPRINT:bo:LAST:bo         = %.2lf\l'
+	'GPRINT:bo_install:LAST:bo_install         = %.2lf\l'

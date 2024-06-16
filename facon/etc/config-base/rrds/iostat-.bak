@@ -1,0 +1,100 @@
+# rrds/df-* - disk space available via the unix-status-collector
+# CVS $Id: df-,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Disk space available, including inodes, if the file-system has them.
+# Percent looks redundant, as it can be calculated, however, I can only
+# generate alerts on variables, not on calculations, so I really do need it.
+
+source		unix-status
+step		300
+
+
+# per interval not secons
+data		rs=iostatrs:* GAUGE:600:0:U	iostat
+data		ws=iostatws:* GAUGE:600:0:U	iostat
+data		krs=iostatkrs:* GAUGE:600:0:U	iostat
+data		kws=iostatkws:* GAUGE:600:0:U	iostat
+data		wai=iostatwai:* GAUGE:600:0:U	iostat
+data		actv=iostatactv:* GAUGE:600:0:U	iostat
+data		svct=iostatsvct:* GAUGE:600:0:U	iostat
+data		w=iostatw:* GAUGE:600:0:U	iostat
+data		b=iostatb:* GAUGE:600:0:U	iostat
+#
+#alert		svct < 20 20 20
+alert		b < 50 50 50
+alert		w < 20 20 20
+#alert		inodepct < 90 95 98
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times		day yesterday week month 3month year
+
+#graph		iostat-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+#		--title '##HOST## - Diskd R/W  ##WILDPART## (##GRAPHTIME##)'
+#		--lower-limit 0
+	--watermark 'AACORN HP'
+#		--vertical-label ' ops Kb'
+#		DEF:rs=##DB##:rs:AVERAGE
+#		DEF:ws=##DB##:ws:AVERAGE
+#		DEF:krs=##DB##:krs:AVERAGE
+#		DEF:kws=##DB##:kws:AVERAGE
+#		CDEF:missing=rs,UN,INF,UNKN,IF
+#		'LINE1:rs###GREEN##:Reads per sec - rs'
+#		'LINE1:ws###BLUE##:Writes per sec -ws '
+#		'LINE1:kws###RED##:KB Writes per sec -kws'
+#		'LINE1:krs###GREY##:KB Reads per sec - krs'
+#		'GPRINT:rs:LAST:free=%.1lf%s\g'
+#		'AREA:missing###MISSING##:missing'
+#
+
+
+#graph          iostat-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+#               --title '##HOST## - Disk I/O Ops  ##WILDPART## (##GRAPHTIME##)'
+#               --lower-limit 0
+	--watermark 'AACORN HP'
+#               --vertical-label 'ops/s'
+#               DEF:rs=##DB##:rs:AVERAGE
+#               DEF:ws=##DB##:ws:AVERAGE
+#               CDEF:missing=rs,UN,INF,UNKN,IF
+#               'AREA:rs###COLOR1##:reads'
+#                'STACK:ws###COLOR2##:writes'
+#               'GPRINT:rs:LAST:free=%.1lf%s\g'
+#               'AREA:missing###MISSING##:missing'
+#
+#
+
+graph		iostatperc-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Disk blocked/waiting- ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP' --upper-limit 100 --rigid
+#		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'percent'
+		DEF:w=##DB##:w:AVERAGE
+		DEF:b=##DB##:b:AVERAGE
+		CDEF:missing=w,UN,INF,UNKN,IF
+		'LINE1:w###GREEN##:waiting - w '
+		'LINE1:b###BLUE##:blocked - b'
+		'AREA:missing###MISSING##:missing'
+
+#
+#graph           iostatres-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+#                --title '##HOST## - Disk Transaccion Serviced ##WILDPART## (##GRAPHTIME##)'
+#                --lower-limit 0
+	--watermark 'AACORN HP'
+#                --vertical-label 'count'
+#                DEF:actv=##DB##:actv:AVERAGE
+#                CDEF:missing=actv,UN,INF,UNKN,IF
+#                'LINE1:actv###CYAN##:transaccion serviced - actv'
+#                'AREA:missing###MISSING##:missing'
+#
+#graph           iostatress-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+#                --title '##HOST## - Disk Transaccion Response time ##WILDPART## (##GRAPHTIME##)'
+#                --lower-limit 0
+	--watermark 'AACORN HP'
+#                --vertical-label 'mS'
+#                DEF:svct=##DB##:svct:AVERAGE
+#                CDEF:missing=svct,UN,INF,UNKN,IF
+#                'LINE1:svct###CYAN##:response time - svc_t'
+#                'AREA:missing###MISSING##:missing'
+#

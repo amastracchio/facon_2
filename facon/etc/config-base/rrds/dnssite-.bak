@@ -1,0 +1,51 @@
+# rrds/dnssite-* - DNS site record lookups
+# CVS $Id: dnssite-,v 1.2 2003/05/15 12:11:16 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	dns
+step	300
+
+data	soa=dns-SOA:* GAUGE:600:0:U
+data	A=dns-A:* GAUGE:600:0:U
+data	NS=dns-NS:* GAUGE:600:0:U
+data	MX=dns-MX:* GAUGE:600:0:U
+data	response=dns-SOA-response:* GAUGE:600:0:U
+
+alert	soa > 0 0
+alert	a > 0 0
+alert	ns > 0 0
+alert	mx > 0 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	dnssite-* desc="This is collected by the dns-collector.  It works by fetching SOA, A, NS and MX records from the target host for the specified name and noting the number of records for each type."
+	--title '##HOST## - DNS ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'responses'
+	DEF:soa=##DB##:soa:AVERAGE
+	DEF:a=##DB##:a:AVERAGE
+	DEF:ns=##DB##:ns:AVERAGE
+	DEF:mx=##DB##:mx:AVERAGE
+	CDEF:missing=a,UN,INF,UNKN,IF
+	'AREA:soa###COLOR1##:SOA'
+	'STACK:a###COLOR2##:A'
+	'STACK:ns###COLOR3##:NS'
+	'STACK:mx###COLOR4##:MX'
+	'AREA:missing###MISSING##:missing'
+
+
+graph	response-* desc="This is collected by the dns-collector.  It works by fetching SOA, A, NS and MX records from the target host for the specified name and noting the time taken to respond."
+	--title '##HOST## - DNS for ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'seconds'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:min=%.2lf%s'
+	'GPRINT:response:AVERAGE:avg=%.2lf%s'
+	'GPRINT:response:MAX:max=%.2lf%s'
+	'GPRINT:response:LAST:cur=%.2lf%s'
+	'AREA:missing###MISSING##:missing'

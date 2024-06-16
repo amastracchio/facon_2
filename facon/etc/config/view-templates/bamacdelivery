@@ -1,0 +1,168 @@
+
+<VIEW::HEADER Bamac Status>
+
+<P>
+<h1>Detalle de corridas batch </h1>
+<UL>
+
+
+<h3>PDG</h3>
+
+<VIEW::GRAPH pyah14 bamac-pdg value-* day>
+<VIEW::GRAPH pyah14 bamac-pdg value-* yesterday>
+<VIEW::GRAPH pyah14 bamac-pdg value-* week>
+<VIEW::INCLUDE /tmp/pdg-pyah14.html>
+<VIEW::GRAPH pyah14 fileage-/users2/bmd00/exploit/data/bmdevtdu.lst age day>
+
+
+
+
+<hr/>
+
+<h3>UK</h3>
+
+<VIEW::GRAPH pyah14 bamac-uk value-* day>
+<VIEW::GRAPH pyah14 bamac-uk value-* yesterday>
+<VIEW::GRAPH pyah14 bamac-uk value-* week>
+<VIEW::INCLUDE /tmp/uk-pyah14.html>
+<VIEW::GRAPH pyah14 fileage-/users2/bmk00/exploit/data/bmkevtdu.lst age day>
+<hr/>
+
+<h3>PPA</h3>
+
+<VIEW::GRAPH pyah14 bamac-ppa value-* day>
+<VIEW::GRAPH pyah14 bamac-ppa value-* yesterday>
+<VIEW::GRAPH pyah14 bamac-ppa value-* week>
+<VIEW::INCLUDE /tmp/ppa-pyah14.html>
+<VIEW::GRAPH pyah14 fileage-/users2/bml00/exploit/data/bmlevtdu.lst age day>
+<hr/>
+
+<h3>PAI</h3>
+
+<VIEW::GRAPH pyahg8 bamac-pai value-* day>
+<VIEW::GRAPH pyahg8 bamac-pai value-* yesterday>
+<VIEW::GRAPH pyahg8 bamac-pai value-* week>
+<VIEW::INCLUDE /tmp/pai-pyahg8.html>
+<VIEW::GRAPH pyahg8 fileage-/users/bmi00/exploit/data/bmievtdu.lst age day>
+<hr/>
+
+<h3>PNE</h3>
+
+<VIEW::GRAPH pyahg8 bamac-pne value-* day>
+<VIEW::GRAPH pyahg8 bamac-pne value-* yesterday>
+<VIEW::GRAPH pyahg8 bamac-pne value-* week>
+<VIEW::INCLUDE /tmp/pne-pyahg8.html>
+<VIEW::GRAPH pyahg8 fileage-/users/bmn00/exploit/data/bmnevtdu.lst age day>
+<hr/>
+
+<h3>PSU</h3>
+
+<VIEW::GRAPH pyahg8 bamac-psu value-* day>
+<VIEW::GRAPH pyahg8 bamac-psu value-* yesterday>
+<VIEW::GRAPH pyahg8 bamac-psu value-* week>
+<VIEW::INCLUDE /tmp/psu-pyahg8.html>
+<VIEW::GRAPH pyahg8 fileage-/users/bmb00/exploit/data/bmbevtdu.lst age day>
+<hr/>
+
+<h3>FR</h3>
+
+<VIEW::GRAPH pyahha bamac-fr value-* day>
+<VIEW::GRAPH pyahha bamac-fr value-* yesterday>
+<VIEW::GRAPH pyahha bamac-fr value-* week>
+<VIEW::INCLUDE /tmp/fr-pyahha.html>
+<VIEW::GRAPH pyahha fileage-/users/bmf00/exploit/data/bmfevtdu.lst age day>
+<hr/>
+
+<h3>CDAG</h3>
+
+<VIEW::GRAPH yvas4180 bamac-cdag value-* day>
+<VIEW::GRAPH yvas4180 bamac-cdag value-* yesterday>
+<VIEW::GRAPH yvas4180 bamac-cdag value-* week>
+<VIEW::INCLUDE /tmp/cdag-yvas4180.html>
+<VIEW::GRAPH yvas4180 fileage-/users/bm100/exploit/data/bm1evtdu.lst age day>
+<VIEW::GRAPH yvas4180 fileage-/users/bm100/exploit/data/bm1fpmsf.dat age day>
+
+<hr/>
+
+<h3>ACP</h3>
+
+<VIEW::GRAPH pyahfb bamac-acp value-* day>
+<VIEW::GRAPH pyahfb bamac-acp value-* yesterday>
+<VIEW::GRAPH pyahfb bamac-acp value-* week>
+<VIEW::INCLUDE /tmp/acp-pyahfb.html>
+<VIEW::GRAPH pyahfb fileage-/users/bm200/exploit/data/bm2evtdu.lst age day>
+<hr/>
+
+<h3>CIS</h3>
+
+
+<VIEW::GRAPH yvas4180 bamac-cis value-* day>
+<VIEW::GRAPH yvas4180 bamac-cis value-* yesterday>
+<VIEW::GRAPH yvas4180 bamac-cis value-* week>
+<VIEW::INCLUDE /tmp/cis-yvas4180.html>
+<VIEW::GRAPH yvas4180 fileage-/users/bm300/exploit/data/bm3evtdu.lst age day>
+<VIEW::GRAPH yvas4180 fileage-/users/bm300/exploit/data/bm3fpmsf.dat age day>
+
+<hr/>
+
+<h3>ACE</h3>
+
+<VIEW::GRAPH pyahfb bamac-ace value-* day>
+<VIEW::GRAPH pyahfb bamac-ace value-* yesterday>
+<VIEW::GRAPH pyahfb bamac-ace value-* week>
+<VIEW::INCLUDE /tmp/ace-pyahfb.html>
+<VIEW::GRAPH pyahfb fileage-/users/bm400/exploit/data/bm4evtdu.lst age day>
+<hr/>
+
+<h3>PBL</h3>
+
+<VIEW::GRAPH yvas4180 bamac-pbl value-* day>
+<VIEW::GRAPH yvas4180 bamac-pbl value-* yesterday>
+<VIEW::GRAPH yvas4180 bamac-pbl value-* week>
+<VIEW::INCLUDE /tmp/pbl-yvas4180.html>
+<VIEW::GRAPH yvas4180 fileage-/users/bmh00/exploit/data/bmhevtdu.lst age day>
+<VIEW::GRAPH yvas4180 fileage-/users/bmh00/exploit/data/bmhfpmsf.dat age day>
+
+<hr/>
+
+<h3>BAMAC COMUN</h3>
+
+<VIEW::GRAPH yvas4180 bamac-com value-* day>
+<VIEW::GRAPH yvas4180 bamac-com value-* yesterday>
+<VIEW::GRAPH yvas4180 bamac-com value-* week>
+<VIEW::INCLUDE /tmp/com-yvas4180.html>
+
+<hr/>
+
+<h3>Neolane</h3>
+
+<VIEW::GRAPH yval1760 bamac-neolane value-* day>
+<VIEW::GRAPH yval1760 bamac-neolane value-* yesterday>
+<VIEW::GRAPH yval1760 bamac-neolane value-* week>
+<VIEW::INCLUDE /tmp/neolane-yval1760.html>
+
+
+</UL>
+
+<P>
+<h1>Detalle de los discos</h1>.
+<UL>
+
+<VIEW::GRAPH pyah14 df--users df-* day>
+<VIEW::GRAPH pyah14 df--users2 df-* day>
+<VIEW::GRAPH pyahg8 df--users df-* day>
+<VIEW::GRAPH pyahha df--users df-* day>
+<VIEW::GRAPH pyahfb df--users df-* day>
+<VIEW::GRAPH yvas4180 df--users df-* day>
+<VIEW::GRAPH yvas4180 df--users2 df-* day>
+<VIEW::GRAPH yvas4180 df--users20 df-* day> 
+</UL>
+
+</P>
+
+<P>
+<UL>
+</UL>
+
+<VIEW::FOOTER>
+~

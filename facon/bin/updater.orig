@@ -1,0 +1,343 @@
+#!/usr/bin/perl -w
+
+# updater - the facon database updater
+# $Id: updater.pl,v 1.23 2002/08/20 20:29:40 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'updater';
+# Where is the configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.23 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "miscstuff.pl";
+require "private.pl";
+use RRDs;
+use Getopt::Std;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:hH:r:R:', \%opt);
+
+my( @hosts, %hosts);
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if( defined $opt{'H'}) {
+	@hosts = split(',', $opt{'H'});
+}
+if( defined $opt{'r'}) { $main::rrdfile = $opt{'r'}; }
+if( defined $opt{'R'}) { $main::realrrd = $opt{'R'}; }
+
+# Make sure we've got the required combination of options for -r
+if( $main::rrdfile) {
+	unless( @hosts and $main::realrrd) { &usage(); }
+}
+
+if (@ARGV != 1) { &usage(); } # no return
+$main::collector = shift @ARGV;
+
+&read_config_dir($main::config_dir, 'general', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+# Get the list of hosts to work on
+unless( @hosts) { @hosts = keys %{$main::config{HOST}}; }
+%hosts = map { ($_ => 1) } @hosts;
+
+# - - -   Mainline   - - -
+
+
+# DEBUG ARI
+#open (FILE, ">>/tmp/updater2.log");
+
+# Collect all the data into a hash, for easier access
+my ($host, $timestamp, $var, $value, %value);
+while (<STDIN>) {
+	chomp;
+#	print FILE $_ . "\n";
+	($host, $timestamp, $var, $value) = split(' ',$_,4);
+	unless (defined $value and defined $var and defined $timestamp and 
+			defined $host) {
+		&debug("garbage input: $_") if ($main::debug);
+		next;
+	}
+
+	# Clean up the input
+	$host = lc $host;
+	next unless( defined $hosts{$host});
+	$var = lc $var;
+	if( $timestamp =~ /^(\d+)(\.\d+)?$/) {
+		# since rrdtool only deals with integral timestamps
+		$timestamp = int($timestamp); 
+	}
+	else {
+		&error("garbage input: $_");
+		next;
+	}
+	$value{$host}{$var}{TIME} = $timestamp;
+	$value{$host}{$var}{VALUE} = $value;
+	&debug("RAW: host=$host, time=$timestamp, var=$var, value=$value")
+		if ($main::debug>1);
+}
+
+# close FILE;
+# Do the updates
+my ($realrrd, $ip, $wildrrd, $wildpart, $extra, $update, $alias,
+	$found_data, $sub_collector, $rrdfile, $fixedrrd, $data, 
+	$error, $function, $newvalue, $expression, $status_file, $lc_host,
+	$lc_alias);
+
+
+foreach $host (@hosts) {
+	$ip = &get_ip($host);
+	$lc_host = lc $host;
+	&debug("doing updates for $host") if ($main::debug);
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		next if( $main::realrrd and $realrrd ne $main::realrrd);
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		unless (defined $wildrrd) {
+			&debug("can't find wildrrd for $realrrd; skipped")
+				if( $main::debug);
+			next;
+		}
+
+		# It's simply collected by this collector
+		if( &rrd_collected_by( $wildrrd, $main::collector)) {
+			&debug("  $wildrrd is collected by $main::collector") 
+				if( $main::debug>1);
+		}
+
+		# It's collected by a sub-collector.  
+		elsif ($main::config{RRD}{$wildrrd}{SOURCE} !~ 
+				/^${main::collector}=(\S+)/i){
+			&debug("  $wildrrd isn't collected by $main::collector; skipped") 
+				if ($main::debug>1);
+			next;
+		}
+
+		# Sanity check.  I should know.
+		else {
+			&error('INTERNAL: I do not know if ', $wildrrd, ' (for ',
+				$realrrd, ' @ ', $host, ') is collected by ',
+				$main::collector);
+			next;
+		}
+		&debug("  rrd $realrrd") if ($main::debug);
+
+		if( $main::rrdfile) {
+			$rrdfile = $main::rrdfile;
+		}
+		else {
+			$rrdfile = $main::config{DATADIR}.'/'.$host.'/'.$fixedrrd.'.rrd';
+		}
+		unless (-f $rrdfile) {
+			&error("missing RRD $rrdfile; skipped update");
+			next;
+		}
+
+		# Build an update packet
+		undef $timestamp;
+		$update = '';
+		$found_data = 0;
+
+		foreach $data (@{$main::config{RRD}{$wildrrd}{DATANAMES}}) {
+			$alias = $main::config{RRD}{$wildrrd}{DS}{$data}{ALIAS};
+			unless (defined $alias) {
+				&error("no name defined for $realrrd($wildrrd) $data; skipped");
+				next;
+			}
+			$alias =~ s/\*/$wildpart/ if (defined $wildpart);
+
+			# Allow configuration-specified function-calls in the alias
+			if ($alias =~ /^\&([a-zA-Z_]+)\(([^\)]+)\)$/o) {
+				$function = $1;
+				$alias = $2;
+				&debug("    host=$lc_host, var=$data, function=$function," .
+					" alias=$alias") if( $main::debug>1);
+			}
+			else {
+				undef $function;
+				&debug("    host=$lc_host, var=$data, alias=$alias")
+					if( $main::debug>1);
+			}
+			$lc_alias = lc $alias;
+
+			# All values for a given RRD go in with the same timestamp
+			if (defined $value{$lc_host}{$lc_alias}) {
+
+				# Builtin data faker, allows testing by creating a file
+				# under the host's data directory.
+				if (defined $function and $function =~ /^fake$/io) {
+					$newvalue = &fake_from_file( 
+						$value{$lc_host}{$lc_alias}{VALUE}, $host, $realrrd,
+						$data);
+					&debug('FAKE in=', $value{$lc_host}{$lc_alias}{VALUE},
+						' out=', $newvalue) if( $main::debug>1);
+					$value{$lc_host}{$lc_alias}{VALUE} = $newvalue;
+				}
+
+				# Invoke a function to massage the raw data
+				elsif( defined $function) {
+					$newvalue = eval '&'. $function .'(\''.
+						$value{$lc_host}{$lc_alias}{VALUE} .'\')';
+					&debug("function $function: " .
+						"in=$value{$lc_host}{$lc_alias}{VALUE} " .
+						"out=$newvalue")
+						if ($main::debug>1);
+					$value{$lc_host}{$lc_alias}{VALUE} = $newvalue;
+				}
+				$update .= ':'. $value{$lc_host}{$lc_alias}{VALUE};
+				$timestamp = $value{$lc_host}{$lc_alias}{TIME};
+				$found_data = 1;
+
+				# Deal with 'currentvalue' directive in RRDs
+				if( defined $main::config{RRD}{$wildrrd}{CURRENTVALUE}{$data}) {
+					$status_file =
+						$main::config{RRD}{$wildrrd}{CURRENTVALUE}{$data}{STATUSFILE};
+					$value = $value{$lc_host}{$lc_alias}{VALUE};
+					if( defined $main::config{RRD}{$wildrrd}{CURRENTVALUE}{$data}{FUNCTION}) {
+						$expression = '&' .
+							$main::config{RRD}{$wildrrd}{CURRENTVALUE}{$data}{FUNCTION}
+							. '(' . $value . ')';
+						&debug("currentvalue: expression=$expression")
+							if( $main::debug>1);
+						$value = eval $expression;
+						if( $@) {
+							&error("cannot eval '", $expression, ' for ',
+								$host, ';', $wildrrd, ':', $data);
+						}
+					}
+					&put_status( $host, $status_file, $value)
+						if( defined $value);
+				}
+			}
+			else {
+				$update .= ':U';
+			}
+
+		}
+
+		# Put the data in
+		if ($found_data) {
+			$update = $timestamp . $update;
+
+			# What is this ??
+			# $update =~ tr/\000/:/;
+
+			&debug("    update packet: $update") if ($main::debug);
+			if( $main::rrdfile) {
+				&debug("    updating $main::rrdfile:") if( $main::debug);
+			}
+			RRDs::update $rrdfile, $update;
+			$error = RRDs::error();
+			if ($error) {
+				&error("    update for $rrdfile failed with $update");
+				&error("    RRDerror: $error");
+			}
+			else {
+				&debug("    updated $rrdfile with $update") if ($main::debug>1);
+			}
+		}
+		else {
+			&debug("    no data for $realrrd on $host; skipped update")
+				if ($main::debug);
+		}
+		exit(0) if( $main::rrdfile); # short-circuit for rt-updater
+	}
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] collector
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -f fff  use 'fff' for config-dir [$main::config_dir]
+  -h      show this help
+  -H hhh  only process host 'hhh'
+  -r rrr  update rrd file 'rrr' (see note1)
+  -R RRR  update only rrd 'RRR'
+
+Note1: The -r option must be combined with the -H and -R options and is
+intended only to be used by rt-updater.  It will take data only for the
+specified host (-H) and RRD (-R) and update the specified (-r) RRD file,
+instead of the usual calculated one.
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------- fake_from_file ---
+sub fake_from_file {
+	my( $value, $host, $realrrd, $dsname) = @_;
+	my $file = $main::config{DATADIR} . '/' . $host . '/FAKE-' .
+		&to_filename( $realrrd) . '-' . &to_filename( $dsname);
+	
+	# If we've got a FAKE-rrd-ds file, use its value
+	if( -f $file) {
+		&debug("reading fake value for $host $realrrd $dsname")
+			if( $main::debug>1);
+		open( FAKEFILE, "<$file") or do {
+			&error("can't open $file: $!");
+			return $value;
+		};
+		my $new_value = <FAKEFILE>;
+		close(FAKEFILE);
+		unless( defined $new_value ) {
+			&debug("empty fake file, returning real $value")
+				if( $main::debug>1);
+			return $value;
+		}
+
+		# Trim leading and trailing whitespace
+		$new_value =~ s/^\s*//;
+		$new_value =~ s/\s*[\r\n]*$//;
+
+		# Don't return empty values from files
+		unless( length($new_value) > 0) {
+			&debug("blank fake file, returning real $value")
+				if( $main::debug>1);
+			return $value;
+		}
+		&debug("faked value for $host $realrrd $dsname ($new_value)")
+			if( $main::debug>1);
+
+		# Got something there, return it
+		return $new_value;
+	}
+
+	# Otherwise return what we started with
+	return $value;
+}

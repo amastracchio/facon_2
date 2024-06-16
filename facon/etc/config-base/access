@@ -1,0 +1,84 @@
+# config/access - access-control for CGIs (or anything else that calls it)
+#	Implemented in remstats.pl as access_control.  See also htpasswd and
+#	htgroup.
+# $Id: access,v 1.1 2002/06/24 12:32:05 remstats Exp $
+#
+# The fields are:
+#	access program user group ip/host
+#
+# The first matching record (all fields match or are "*", which matches
+# anything) is used and grants the access specified.
+#
+# Any of the fields may be "*" meaning "all".  Any fields which are not
+# set to "*", must match the correcponding data.  I.E. if the "program" is
+# set to "xyzzy", then the record only applies to the "xyzzy" program and
+# if all the other fields match or are "*", then the user is granted the
+# access specified.
+#
+# The "access" is either "allow" or "deny", with obvious meaning.
+#
+# The "program" field is the name of the program (whatever is set in 
+# $main::prog).
+#
+# The "user" field # is the CGI variable REMOTE_USER, or if that is not 
+# set, the current unix user.
+#
+# Similarly, "group" is a group that the "user" belongs to, as
+# implemented in the htpasswd program supplied by the apache web-server.
+#
+# The "ip/host" is either a domain-name, a domain-name prefix (indicated
+# by a leading "."), an IP-number, or an IP-number prefix (indicated by
+# a trailing ".").
+#
+#===========================================================================
+#
+# Allow anyone on the local host to run anything.
+allow * * * 127.0.0.1
+
+# Alerts are only for locals
+allow alert.cgi * * @@LOCALNET@@
+deny alert.cgi * * *
+allow log-event.cgi * * @@LOCALNET@@
+deny log-event.cgi * * *
+
+# Availability-report for anyone who cares
+allow availability-report.cgi * * *
+
+# Dynamic pages for all
+allow dataimage.cgi * * *
+allow datapage.cgi * * *
+
+# And let them browse graphs
+allow graph.cgi * * *
+
+# MAC addresses are getting a bit intimate for outsiders
+allow macinfo.cgi * * @@LOCALNET@@
+
+# Letting people explore anywhere from here?  You choose.
+allow ping.cgi * * *
+#allow ping.cgi * * @@LOCALNET@@
+allow traceroute.cgi * * *
+#allow traceroute.cgi * * @@LOCALNET@@
+allow whois.cgi * * *
+#allow whois.cgi * * @@LOCALNET@@
+
+# Logs should probably be a bit more private
+allow showlog.cgi * * @@LOCALNET@@
+deny showlog.cgi * * *
+
+# You probably want to make this a little bit more permissive, but I'm not
+# going to make that the default, as I can't guess where you'll need to
+# access configuration info from.  You should probably set it to use the
+# htpasswd authentication as well, and specify a user or group here.
+allow show-config.cgi * * 127.0.0.1
+deny show-config.cgi * * *
+
+#================================================================= policy ===
+# This is much more secure and should be what you choose.
+# Anything not explicitly permitted is denied
+deny * * * *
+
+# This is *NOT* secure.  You ought not to choose it.  It's here only to
+# document that it can be done, in the unlikely event that someone needs to.
+# Anything not denied is permitted
+# allow * * * *

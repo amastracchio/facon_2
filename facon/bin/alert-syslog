@@ -1,0 +1,112 @@
+#!/usr/bin/perl -w
+
+# alert-wsyslogmail - log an alert to syslog
+# $Id: alert-syslog.pl,v 1.1 2002/09/10 12:57:51 facon Exp $
+# from facon 1.0.13a
+
+# Copyright (c) 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::program = 'alert-syslog';
+# Where is the logger program?
+my $logger = &oneof('/usr/bin/logger');
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# I'm pretty sure that I've read that there are some syslogs which have
+# fairly short limits.  Let's not go nuts.
+my $max_message_length = 255;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.1 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+my %opt;
+getopts('d:f:hl:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+if (defined $opt{'l'}) { $logger = $opt{'l'}; }
+
+unless (defined $logger) { &abort("can't find logger"); }
+
+unless (@ARGV == 1) { &usage(); }
+my $towho = shift @ARGV;
+
+# Read the message
+my $full_message = join('', <STDIN>);
+$full_message =~ tr/\'\"\;\$\&\(\)\|//d;
+
+my $message;
+if( length($full_message) > $max_message_length) {
+	$message = substr($full_message, 0, $max_message_length);
+}
+else { $message = $full_message; }
+
+# - - -   Mainline   - - -
+
+# Send it.  This is easy.
+my $cmd = $logger .' -t facon -p '. $towho .' >/dev/null 2>&1 \'' .
+	$message . '\'';
+system $cmd;
+
+# What happened when we tried?
+my $exit = $? >> 8;
+if( $exit == 0) { exit 0; }
+else {
+	&abort("can't syslog $towho for $full_message");
+}
+
+#------------------------------------------------------------ usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::program version $main::version from facon 1.0.13a
+usage: $main::program [options] facility:severity
+Where options are:
+  -d ddd  set debugging output to level 'ddd'
+  -f fff  set config-dir to 'fff' [$main::config_dir]
+  -h      show this help
+  -l lll  use 'sss' for logger program
+
+Facility comes from the list:
+	kern user mail daemon auth lpr news uucp cron local0 - local7
+And severity from:
+	emerg alert crit err warning notice info debug
+EOD_USAGE
+	exit 0;
+}
+
+#---------------------------------------------------------- abort ---
+sub abort {
+	my $msg = join('', @_);
+	print STDERR "ABORT: $msg\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------------- oneof ---
+# Looks for a file in the list, and returns the first one it finds
+sub oneof {
+	my @files = @_;
+	my $file;
+	local ($_);
+	foreach (@files) {
+		if ( -f $_ or -l $_) {
+			$file = $_;
+			last;
+		}
+	}
+$file;
+}

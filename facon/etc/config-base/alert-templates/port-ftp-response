@@ -1,0 +1,3 @@
+The ##WILDPART## service on ##HOST## took ##VALUE##ms to respond.
+This is more than the threshold of ##THRESHOLD##ms that it was
+configured to accept.

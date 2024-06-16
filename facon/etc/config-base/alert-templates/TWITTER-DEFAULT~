@@ -1,0 +1,1 @@
+Host: ##HOST## ##HOSTDESC## RRD: ##REALRRD## ##RRDDESC## Variable: ##VAR## Value: ##VALUE## Relation: ##RELATION## Threshold: ##THRESHOLD##

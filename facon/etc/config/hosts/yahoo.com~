@@ -1,0 +1,49 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc	The linux  machine
+ip	98.139.183.24
+group	prod
+tools	availability status
+rrd	ping
+#rrd     pscount-ed857416
+#rrd     pscount-wspheraa
+#rrd     pscount-root
+#rrd	load
+#rrd	process
+#rrd	memory
+#rrd     pssum-ed857416
+#rrd     pssum-wspheraa
+#rrd     pssum-root
+# rrd	bamac-neolane ssh mzpneo01@yval1760  " . /soft/universe/fileso/profile; export DATE=`perl -e '($h,$mi,$d, $m, $y) = (localtime(time - (120*3600)))[2,1,3,4,5]; $y = $y + 1900; print \"$d/\".++$m.\"/$y,\".sprintf (\"%.2d\",$h). sprintf (\"%.2d\",$mi);' `; /soft/universe/PSAV43/exec/uxlst ctl ses=* since=\$DATE"  | /var/remstats/bin/bamac2rem1.pl neolane-yval1760
+#alert	df-/opt percent < 84 84 84
+#rrd	df-/db
+#alert	df-/db percent < 84 84 84
+#rrd	df-/home
+#alert	df-/home percent < 84 84 84
+#rrd	df-/var
+#alert	df-/var percent < 84 84 84
+#rrd	df-/opt/ibm
+#alert	df-/opt/ibm percent < 84 84 84
+#rrd	df-/tmp
+#alert	df-/tmp percent < 84 84 84
+#rrd	df-/usr
+#alert	df-/usr percent < 84 84 84
+##rrd     df-/users17
+##alert   df-/users17 percent < 84 84 84
+#rrd     cftlog-LOGENVOI-cft_0ev_pl.log  /users/login/mzpneo01/3p/logs/cft_0ev_pl.log
+#rrd     cftlog-LOGDISPO-cft_0md_pl.log  /users/login/mzpneo01/3p/logs/cft_0md_pl.log
+#rrd     cftlog-LOGRECEPT-cft_0rc_pl.log /users/login/mzpneo01/3p/logs/cft_0rc_pl.log
+#rrd     cftlog-LOGRECUP-cft_0ma_pl.log  /users/login/mzpneo01/3p/logs/cft_0ma_pl.log
+#rrd     syslog-/users/neo00/log/default/log/watchdog.log /users/neo00/log/default/log/watchdog.log
+#rrd     syslog-/users/neo00/log/default/log/web.log /users/neo00/log/default/log/web.log
+#
+# es normal que use mas memoria porque corre el sfserver
+#alert	pssum-ed857416 procsmemk  < 3000000 5000000 10000000
+#alert	pssum-wspheraa procsmemk  < 3000000 5000000 10000000
+#alert	pssum-root procsmemk  < 3000000 5000000 10000000
+#alert	process ready < 1 1 1
+#rrd     tcpstates
+#alert   tcpstates timewait < 200
+#rrd     wslog-nodeagent-native_stderr.log /opt/IBM/AACoRN_WebSphere60/profiles/RSAppC112/logs/nodeagent/native_stderr.log
+#rrd     wssyslog-nodeagent-systemout.log /opt/IBM/AACoRN_WebSphere60/profiles/RSAppC112/logs/nodeagent/SystemOut.log
+#rrd     testiglog-log /tmp/testig.log

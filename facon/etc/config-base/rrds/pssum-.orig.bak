@@ -1,0 +1,34 @@
+# rrds/smbdprocs - number of smbd's running (part of Samba)
+# CVS $Id: smbdprocs,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# los datos vienen en 1024
+
+source	unix-status
+step	300
+
+data	procs=pssum:* GAUGE:1200:0:U ps sum *\ +(\d+)
+
+# viene en k limite es 100 megas
+alert	procs < 100000
+
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	ps-* desc="This is collected by the unix-status-collector.  It works by running the ps command on the remote host and parsing the output to look for the specified program by name, and counting how many are running.  The smbd process is part of Samba and must be running for Samba to work.  See also nmbdprocs."
+	--title '##HOST## - Memoria usada por ##WILDPART##  (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'memory'
+	DEF:procs=##DB##:procs:AVERAGE
+	CDEF:missing=procs,UN,INF,UNKN,IF
+        CDEF:procsb=procs,1024,*
+	'LINE2:procsb###COLOR2##:memory'
+	'GPRINT:procsb:AVERAGE:avg=%.0lf%s'
+	'GPRINT:procsb:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+
+ 

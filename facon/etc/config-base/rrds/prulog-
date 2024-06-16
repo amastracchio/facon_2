@@ -1,0 +1,34 @@
+# rrds/httpdlog - This looks at a standard web-server log-file, rather sloppily.
+# CVS $Id: httpdlog,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	log
+step	300
+
+data	lines=lineas-* GAUGE:600:0:U	count ORA-
+data	lines1=lineas1-* GAUGE:600:0:U	count error
+data	lines2=lineas2-* GAUGE:600:0:U	count .*
+
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	httpreq desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it reads from a standard web-server log-file and counts the number of requests and successful requests, as determined by the HTTP response code.  I.E. if it begins with a 2, it is considered to be successful"
+	--title '##HOST## - Lines count oralog(##WILDPART## ##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label lines
+	DEF:lines=##DB##:lines:AVERAGE
+	DEF:lines1=##DB##:lines1:AVERAGE
+	DEF:lines2=##DB##:lines2:AVERAGE
+	CDEF:missing=lines,UN,INF,UNKN,IF
+	'LINE1:lines###RED##:count ORA-'
+	'LINE1:lines1###BLUE##:count matching  error'
+	'LINE1:lines2###GREEN##:count not matching'
+	'GPRINT:lines:MAX:max=%.0lf%s'
+	'GPRINT:lines1:MAX:max=%.0lf%s'
+	'GPRINT:lines2:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+

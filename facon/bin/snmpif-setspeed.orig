@@ -1,0 +1,149 @@
+#!/usr/bin/perl -w
+
+# snmpif-setspeed - set the max's for snmpif-* rrds according to
+#	interface.ifSpeed.*
+# $Id: snmpif-setspeed.pl,v 1.12 2002/08/19 18:43:06 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'snmpif-setspeed';
+# Which collector is this
+$main::collector = 'snmp';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.12 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use SNMP_util "0.69";
+use RRDs;
+require "snmpstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+getopts('c:d:f:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $main::community = $opt{'c'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'groups', 'times',
+	'rrds', 'host-templates', 'hosts');
+&snmp_load_oids();
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $comhost);
+foreach $host (keys %{$main::config{HOST}}) {
+	$ip = &get_ip($host);
+	next unless (defined $ip);
+	next unless( &host_collected_by( $host, $main::collector));
+
+	&debug("doing host $host ".&timestamp) if ($main::debug);
+
+	$main::no_interfaces = 0;
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless ($wildrrd eq 'snmpif-*');
+		&debug("  doing rrd $realrrd($wildrrd)") if ($main::debug);
+
+		$comhost = &get_comhost( $host, $realrrd, $wildrrd);
+		&debug("  using '$comhost' for $wildrrd") if ($main::debug>2);
+		next unless (defined $comhost);
+		unless ($main::no_interfaces) {
+			&debug("no interfaces for $host; skipping") if ($main::debug);
+			last;
+		}
+		&do_host($host, $comhost, $realrrd, $wildrrd, $wildpart, $fixedrrd);
+	}
+}
+
+exit 0;
+
+#------------------------------------------------------------ do_host ---
+sub do_host {
+	my ($host, $comhost, $realrrd, $wildrrd, $wildpart, $fixedrrd) = @_;
+
+# Use the ifIndex cache
+	my $i = &get_ifindex ($host, $comhost, $wildpart);
+	return unless (defined $i);
+
+# Get speed
+	my ($ifspeed) = &snmpget($comhost, "ifSpeed.$i");
+	return unless (defined $ifspeed);
+
+# What's the name of the RRD file?
+	my $rrdfile = $main::config{'DATADIR'} .'/'. $host .'/'.
+		$fixedrrd .'.rrd';
+	unless (-f $rrdfile) {
+		&debug("missing rrd $rrdfile; skipped") if ($main::debug);
+		return;
+	}
+
+# Fix the max.  Depends on the definition of snmpif-*, that's why
+# the rrd definition is hard-wired above.
+	my $maxb = $ifspeed / 8; # bps -> Bps
+	my $maxp = $maxb / 64; # min length packet
+	RRDs::tune $rrdfile, 
+		'-a', 'inbytes:'.$maxb,
+		'-a', 'outbytes:'.$maxb,
+		'-a', 'inerrors:'.$maxp,
+		'-a', 'outerrors:'.$maxp,
+		'-a', 'inucastpkts:'.$maxp,
+		'-a', 'outucastpkts:'.$maxp,
+		'-a', 'innucastpkts:'.$maxp,
+		'-a', 'outnucastpkts:'.$maxp;
+	my $error = RRDs::error;
+	if ($error) {
+		&error("$host $realrrd error: $error");
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+	-c ccc  use 'ccc' for the read community string; overrides host
+	-d nnn  enable debugging output at level 'nnn'
+	-f fff  use 'fff' for config-dir [$main::config_dir]
+	-h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::community = 0;
+}

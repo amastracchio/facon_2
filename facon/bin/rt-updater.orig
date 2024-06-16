@@ -1,0 +1,407 @@
+#!/usr/bin/perl -w
+
+# rt-updater - update a temporary RRD "frequently" to allow near-real-time
+# graphing of something.
+# $Id: rt-updater.pl,v 1.1 2002/06/13 15:17:48 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'rt-updater';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# How many times to run the collector in testing.
+$main::test_cycles = 3;
+# Set step from max run time of collector
+$main::auto_calibrate_collector = 0;
+# Multiply max run time by this to get actual step
+$main::calibration_fudge_factor = 1.5;
+# How often to take samples
+$main::step = 5;
+# How many samples to store
+$main::archive_samples = 720; # an hour worth of 5-second samples
+# Needed to create the archive, but uninteresting as we don't consolidate.
+# I create AVERAGE, MIN and MAX RRAs so that existing graphs, which use
+# any of them will still work.  Wastes a bit of CPU on the update and a bit
+# of disk, but is *much* easier than figuring out which CFs we need to
+# create automatically. XXX investigate later
+@main::consolidation_functions = ( 'AVERAGE', 'MIN', 'MAX' );
+$main::xfiles_factor = 0.5;
+# Where is the updater program?
+$main::updater = '/var/facon/bin/updater';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.1 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+use Time::HiRes qw( time );
+use RRDs;
+require "facon.pl";
+require "htmlstuff.pl";
+
+# Parse the command-line
+&parse_command_line();
+
+&initialize();
+
+my( $cmd, $start_time, $run_time, $returned, $exit, $signal, $sleep_time,
+	$runs);
+
+$cmd = $main::collector_file . ' -u -F -H ' . $main::host . ' | ' .
+	$main::updater . ' -H ' . $main::host . ' -R ' . $main::realrrd .
+	' -r ' . $main::rrdfile . ' ' . $main::collector;
+&debug("using update: $cmd") if( $main::debug);
+
+# - - -   Mainline   - - -
+
+$runs = 0;
+while( 1) {
+	++$runs;
+
+	# Run the command and time it
+	$start_time = time();
+	$returned = system $cmd;
+	$run_time = time() - $start_time;
+
+	# What happened to it?
+	$exit = $returned >> 8;
+	$signal = $returned & 127;
+	if( $exit) { &abort("command exited with $exit"); }
+	elsif( $signal) { &abort("command got signal $signal"); }
+	else { &debug("$runs run-time $run_time") if( $main::debug); }
+
+	# Took too long, complain
+	if( $run_time > $main::step) {
+		&error("run-time ($run_time) > step ($main::step)");
+	}
+
+	# Sleep until next time.
+	else {
+		$sleep_time = $main::step - $run_time;
+		&debug("sleeping for $sleep_time") if( $main::debug);
+		sleep $sleep_time;
+	}
+
+	# Don't go forever
+	last if( ! $main::run_forever and ($runs >= $main::archive_samples));
+}
+&clean_up_and_exit();
+
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	my $cfs = join(',', @main::consolidation_functions);
+
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] host rrd graph temp-rrdfile rrdcgi-file
+where options are:
+  -a aaa  keep 'aaa' samples in the archive [$main::archive_samples]
+  -A      auto-set step from max collector test run-time
+  -c ccc  use consolidation functions 'ccc' (comma-separated list) in
+          creating the RRAs [$cfs]
+  -d nnn  enable debugging output at level 'nnn'
+  -e      use existing rrd file
+  -f fff  use 'fff' for config-dir [$main::config_dir]
+  -F      run forever; usually runs until the archive is full
+  -h      show this help
+  -r rrr  make the rrdcgi page refresh every 'rrr' seconds [step]
+  -s sss  update step time of 'sss' seconds [$main::step]
+  -t ttt  how many times to test the collector [$main::test_cycles]
+  -u      unlink rrd-file, rrdcgi-file and image files after run
+
+Note: 'temp-rrdfile' must be a full path to the file or the generated
+'rrdcgi-file' will not work.
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------- parse_command_line ---
+sub parse_command_line {
+	my %opt = ();
+	getopts('a:Ac:d:ef:Fhi:r:s:t:u', \%opt);
+
+	if (defined $opt{'h'}) { &usage(); } # no return
+	if( defined $opt{'a'}) { $main::archive_samples = $opt{'a'}; }
+	if( defined $opt{'A'}) { $main::auto_calibrate_collector = 1; }
+	if( defined $opt{'c'}) {
+		@main::consolidation_functions = split(',', $opt{'c'});
+	}
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if( defined $opt{'e'}) { $main::use_existing_rrd = 1; }
+	else { $main::use_existing_rrd = 0; }
+	if( defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+	if( defined $opt{'F'}) { $main::run_forever = 1; }
+	if( defined $opt{'r'}) { $main::refresh = $opt{'r'}; }
+	if( defined $opt{'s'}) { $main::step = $opt{'s'}; }
+	if( defined $opt{'t'}) { $main::test_cycles = $opt{'t'}; }
+	if( defined $opt{'u'}) { $main::unlink_files = 1; }
+	else { $main::unlink_files = 0; }
+
+	# Now pull the required parts
+	unless( @ARGV == 5) { &usage(); } # no return
+	$main::host = shift @ARGV;
+	$main::realrrd = shift @ARGV;
+	$main::graph = shift @ARGV;
+	$main::rrdfile = shift @ARGV;
+	$main::rrdcgi_file = shift @ARGV;
+}
+
+#------------------------------------------------------------ initialize ---
+sub initialize {
+	my( $errors);
+
+	$errors = 0;
+
+	# No buffering when debugging
+	if ($main::debug) { $| = 1; }
+
+	# Get the configuration
+	&read_config_dir( $main::config_dir, 'general', 'alerts', 'links', 
+	'colors', 'tools', 'html', 'oids', 'times', 'rrds', 'customgraphs',
+		'groups', 'host-templates', 'hosts');
+
+	# Check the host
+	if( defined $main::config{HOST}{$main::host}) {
+		&debug("got the host $main::host") if( $main::debug);
+	}
+	else {
+		&error("unknown host '$main::host'");
+		++$errors;
+	}
+
+	# Check the RRD
+	($main::wildrrd) = &get_rrd( $main::realrrd);
+	if( defined $main::config{RRD}{$main::wildrrd}) {
+		&debug("got the rrd $main::realrrd") if( $main::debug);
+	}
+	else {
+		&error("unknown rrd '$main::realrrd'");
+		++$errors;
+	}
+
+	# Check the graph
+	if( defined $main::config{RRD}{$main::wildrrd}{GRAPH}{$main::graph}) {
+		&debug("got the graph $main::graph") if( $main::debug);
+	}
+	else {
+		&error("unknown graph '$main::graph' in RRD $main::realrrd");
+		++$errors;
+	}
+
+	# Make sure that rrdcgi is where we expect
+	if( -x $main::config{RRDCGI}) {
+		$main::shebang = '#!' . $main::config{RRDCGI} . "\n";
+	}
+	else { &abort("rrdcgi ($main::config{RRDCGI}) is not there"); }
+
+	# Default the refresh time to the step time
+	unless( defined $main::refresh) { $main::refresh = $main::step; }
+
+	# Make sure that the rrdfile is a full path
+	unless( $main::rrdfile =~ m#^/#) {
+		&error("temp-rrdfile ($main::rrdfile), must be a full path");
+		&usage(); # no return
+	}
+
+	# Need this for generating web pages
+	%main::indices = &init_indices();
+
+	# Which program collects the data for this
+	$main::collector = &find_collector();
+	$main::collector_file = '/var/facon/bin/' . $main::collector . '-collector';
+
+	# Test the collector (must support the '-H' flag for host selection)
+	&test_collector( $main::collector_file);
+
+	# Create the RRD file
+	if( $main::use_existing_rrd) {
+		unless( -e $main::rrdfile) {
+			&abort("cannot use existing rrd ($main::rrdfile); not there");
+		}
+		&debug("using existing rrd file $main::rrdfile") if( $main::debug);
+	}
+	else { &create_rrd(); }
+
+	&write_rrdcgi_file();
+
+	# Make sure we clean up after ourselves
+	$SIG{TERM} = \&clean_up_and_exit;
+	$SIG{HUP} = 'IGNORE';
+	$SIG{INT} = \&clean_up_and_exit;
+	$SIG{QUIT} = \&clean_up_and_exit;
+
+	# Don't contiunue if we found errors in init
+	if( $errors) { &abort("errors found"); }
+}
+
+#------------------------------------------------------------- create_rrd ---
+sub create_rrd {
+	my( @args, $data, $ds, $error, $cf);
+
+	@args = ( '--start', int(time() - $main::step), '--step', $main::step);
+	foreach $data (@{$main::config{RRD}{$main::wildrrd}{DATANAMES}}) {
+		$ds = 'DS:' . $data . ':' . 
+			$main::config{RRD}{$main::wildrrd}{DS}{$data}{DSDEF};
+		push @args, $ds;
+	}
+	for $cf (@main::consolidation_functions) {
+		push @args, ('RRA:' . $cf . ':' .  $main::xfiles_factor . ':1:' .
+			$main::archive_samples);
+	}
+	
+	&debug("RRDs::create with:\n\t", join("\n\t", $main::rrdfile, @args))
+		if( $main::debug>1);
+	RRDs::create( $main::rrdfile, @args);
+	if( $error = RRDs::error()) {
+		&abort("RRD::create error: $error");
+	}
+	else { &debug("created $main::rrdfile") if( $main::debug); }
+}
+
+#--------------------------------------------------------- find_collector ---
+# Make a file-name for the collector of this RRD.
+#----------------------------------------------------------------------------
+sub find_collector {
+	my( $collector);
+
+	$collector = $main::config{RRD}{$main::wildrrd}{SOURCE};
+	return $collector;
+}
+
+#--------------------------------------------------------- test_collector ---
+# Make sure that the collector can return samples in the step time specified.
+#----------------------------------------------------------------------------
+sub test_collector {
+	my $collector_file = shift @_;
+	my( $cmd, $returned, $exit, $signal, $start_time, $run_time,
+		$max_run_time);
+
+	# Don't test it
+	if( $main::test_cycles <= 0) {
+		&debug("testing bypassed") if( $main::debug);
+		return 1;
+	}
+
+	# Make sure that it is executable
+	unless( -x $collector_file) {
+		&abort("$collector_file is missing or not executable");
+	}
+
+	# Run it a few times
+	$cmd = $collector_file . ' -H ' . $main::host . ' >/dev/null 2>&1';
+	$max_run_time = $main::step;
+	&debug("testing $cmd ...") if( $main::debug);
+	for (1 .. $main::test_cycles) {
+
+		# Run it and time how long it took
+		$start_time = time();
+		$returned = system $cmd;
+		$run_time = time() - $start_time;
+		&debug("  collector test took $run_time") if( $main::debug);
+
+		# What happened on exit?
+		$exit = $returned >> 8;
+		$signal = $returned & 127;
+		if( $exit) {
+			&abort("non-zero exit from $main::collector_file");
+		}
+		elsif( $signal) {
+			&abort("signal $signal caused exit from $main::collector_file");
+		}
+
+		# Did it take too long?
+		if( $run_time > $main::step) {
+			unless( $main::auto_calibrate_collector) {
+				&abort("$main::collector_file took $run_time seconds to run");
+			}
+			if( $run_time > $max_run_time) {
+				$max_run_time = $run_time;
+			}
+		}
+	}
+
+	# Auto-calibrate
+	if( $main::auto_calibrate_collector) {
+		if( $max_run_time > $main::step) {
+			$main::step = int( $max_run_time * $main::calibration_fudge_factor);
+			&debug("auto-calibrate set step to $main::step") if( $main::debug);
+		}
+	}
+
+}
+
+#------------------------------------------------------ write_rrdcgi_file ---
+# Write a "script" (web page with tags) to be interpreted by rrdcgi.
+sub write_rrdcgi_file {
+	my( $graph, $save_debug);
+	
+	open( RRDCGI, ">$main::rrdcgi_file") or
+		&abort("can't open $main::rrdcgi_file: $!");
+	
+	# Avoid heavy debugging of the html routines
+	$save_debug = $main::debug;
+	if( $main::debug > 0) { $main::debug = 1; }
+
+	# Override the usual facon refresh (used in html_header)
+	$main::config{HTMLREFRESH} = $main::refresh;
+
+	# Write all the page
+	print RRDCGI $main::shebang or
+		&abort("can't write $main::rrdcgi_file: $!");
+	print RRDCGI &html_header( "$main::prog for $main::realrrd", '',
+		%main::indices) or &abort("can't write $main::rrdcgi_file: $!");
+	print RRDCGI '<A HREF="' . $main::config{CGIURL} . '/graph.cgi?' .
+		'host=' . $main::host . '&rrd=' . $main::realrrd . '&graph=' .
+		$main::graph . '&start=-' . $main::archive_samples . '&form=1' . '">' .
+		&make_rrdcgi_graph( 'GRAPHS/TMP', $$, $main::host, $main::realrrd,
+		$main::graph, 'day',
+		"RT graph of $main::realrrd:$main::graph for $main::host",
+		$main::rrdfile, - $main::archive_samples) . '</A>' . "\n"
+		or &abort("can't write $main::rrdcgi_file: $!");
+	print RRDCGI &html_footer() or
+		&abort("can't write $main::rrdcgi_file: $!");
+	close(RRDCGI) or &abort("can't close $main::rrdcgi_file: $!");
+
+	# Reset debugging to normal
+	$main::debug = $save_debug;
+}
+
+#-------------------------------------------------------- clean_up_and_exit ---
+sub clean_up_and_exit {
+	if( $main::unlink_files) {
+		unlink $main::rrdcgi_file or
+			&error("can't unlink $main::rrdcgi_file: $!");
+		unlink $main::rrdfile or
+			&error("can't unlink $main::rrdfile: $!");
+	}
+}
+
+END { &clean_up_and_exit(); }

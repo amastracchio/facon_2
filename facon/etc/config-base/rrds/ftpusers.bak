@@ -1,0 +1,23 @@
+# rrds/ftpusers - Count the number of wu.ftp daemons running right now
+# CVS $Id: ftpusers,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source		unix-status
+step		300
+data		users=ps:users GAUGE:1200:0:500 ps count wu\.ftpd
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+graph		ftpusers
+		--title '##HOST## - FTP Active Sessions (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'sessions'
+		--units-exponent 0
+		DEF:users=##DB##:users:AVERAGE
+		CDEF:missing=users,UN,INF,UNKN,IF
+		'LINE2:users###COLOR1##:sessions'
+		'GPRINT:users:AVERAGE:avg=%.0lf%s'
+		'GPRINT:users:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,419 @@
+#!/usr/bin/perl -w
+
+# graph-paths - make a graph of paths from traceroute
+# $Id: graph-paths.pl,v 1.4 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+$main::width = 800;
+$main::height = 600;
+$main::border_x = 10;
+$main::border_top = 10;
+$main::border_bottom = 10;
+@main::background_color = (0,0,0);
+@main::node_color = (255,255,0);
+@main::edge_color = (255,255,255);
+@main::border_color = (200,200,200);
+@main::dot_color = (200,200,0);
+$main::dot_size = 3;
+
+# How many iterations in a round
+$main::num_trials = 20;
+# How hot is it?
+$main::initial_temperature = $main::temperature = 1;
+# How much to reduce the number of iterations for each round
+my $iteration_rate = .9;
+# How much to reduce the temperature by each time round
+my $temperature_reduction_factor = .9;
+# How close adjacent nodes want to be
+$main::ideal_distance = 30;
+# How close non-adjacent nodes can be
+$main::min_non_adj_distance = $main::ideal_distance * 1.5;
+# What fraction of the image-range can the random factor move a node
+$main::joggle_factor = .2;
+# What is the farthest we can be from any other node
+$main::max_distance = sqrt( $main::width * $main::width + $main::height * $main::height);
+# How much to step toward adjacent nodes
+$main::step_fraction = .1;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'graph-paths';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.4 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+use RRDs;
+use GD;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:ht:T:z:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if( defined $opt{'t'}) { $main::num_trials = $opt{'t'}; }
+if( defined $opt{'T'}) { $main::initial_temperature = $opt{'T'}; }
+if( defined $opt{'z'}) { ($main::width, $main::height) = split('x', $opt{'z'}); }
+
+unless( @main::ARGV == 2) { &usage; }
+my $data_file = shift @main::ARGV;
+my $output_file = shift @main::ARGV;
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+$main::range_x = $main::width - $main::border_x * 2;
+$main::range_y = $main::height - $main::border_top - $main::border_bottom;
+$main::temperature = $main::initial_temperature;
+
+# Read in the data
+my ($host, $ip, @path, $ip_and_asn, $this_ip, $this_asn);
+
+# Initialize the image
+my ($image, $background_color, $node_color, $border_color);
+$image = new GD::Image($main::width, $main::height);
+$background_color = $image->colorAllocate( @main::background_color);
+$node_color = $image->colorAllocate( @main::node_color);
+$main::edge_color = $image->colorAllocate( @main::edge_color);
+$border_color = $image->colorAllocate( @main::border_color);
+$main::dot_color = $image->colorAllocate( @main::dot_color);
+
+# Draw a border for the graph
+$image->interlaced( 'true');
+$image->fill( 1, 1, $border_color);
+$image->filledRectangle( $main::border_x, $main::border_top, 
+	$main::width-$main::border_x, $main::height - $main::border_bottom, 
+	$background_color);
+
+# Some calculated "constants"
+$main::joggle_x = $main::range_x * $main::joggle_factor;
+$main::joggle_y = $main::range_y * $main::joggle_factor;
+
+# Collect the data
+&read_data( $data_file);
+&show_locations( $image, 0);
+
+# - - -   Mainline   - - -
+
+my ($old_cost, $new_cost, $trial, %old_loc, $exp_cost_diff, $rand_fraction);
+
+$old_cost = &cost();
+while( $main::temperature >= .2 * $main::initial_temperature) {
+	$main::temperature_fraction = $main::temperature / $main::initial_temperature;
+	foreach $trial (1 .. $main::num_trials) {
+		%old_loc = %main::loc;
+		&joggle_nodes;
+		$new_cost = &cost();
+		$exp_cost_diff = exp( ($old_cost - $new_cost) / $main::temperature);
+		$rand_fraction = rand();
+		&debug("$trial: new=$new_cost <= old=$old_cost or " .
+			"esd=$exp_cost_diff > rand=$rand_fraction") 
+			if ($main::debug);
+		if( ($new_cost <= $old_cost) or ($exp_cost_diff > $rand_fraction) ) {
+			&debug("  >> using new locations") if( $main::debug);
+			$old_cost = $new_cost;
+		}
+		else {
+			%main::loc = %old_loc; # put the old one back
+			&debug("  << going back to old locations") if( $main::debug);
+		}
+	}
+	$main::num_trials *= $iteration_rate;
+	$main::temperature *= $temperature_reduction_factor;
+	&debug("trials=$main::num_trials temp=$main::temperature") if( $main::debug);
+}
+
+# Show the joggled locations
+&show_locations( $image, 1);
+
+# Output the image
+open( OUTPUT, ">$output_file") or &abort("can't open $output_file: $!");
+binmode OUTPUT;
+print OUTPUT $image->png;
+close(OUTPUT);
+
+#--------------------------------------------- adjacent ---
+# Is ip1 adjacent to ip2
+sub adjacent {
+	my ($ip1, $ip2) = @_;
+
+	if( defined $main::loc{$ip1}{ADJ}{$ip2}) { return 1; }
+	else { return 0; }
+}
+
+#------------------------------------------------ dx ---
+# return difference in X co-ordinates
+sub dx {
+	my ($ip1, $ip2) = @_;
+	my $dx = $main::loc{$ip2}{X} - $main::loc{$ip1}{X};
+	return $dx;
+}
+
+#------------------------------------------------ dy ---
+# return difference in Y co-ordinates
+sub dy {
+	my ($ip1, $ip2) = @_;
+	my $dy = $main::loc{$ip2}{Y} - $main::loc{$ip1}{Y};
+	return $dy;
+}
+
+#---------------------------------------------- clip_x ---
+# Keep X inside its proper bounds
+sub clip_x {
+	my $x = shift @_;
+	if( $x < $main::border_x) {
+		$x = $main::border_x;
+	}
+	elsif( $x > ($main::width - $main::border_x)) {
+		$x = $main::width - $main::border_x;
+	}
+	return $x;
+}
+
+#---------------------------------------------- clip_y ---
+# Keep Y inside its proper bounds
+sub clip_y {
+	my $y = shift @_;
+	if( $y < $main::border_top) {
+		$y = $main::border_top;
+	}
+	elsif( $y > ($main::height - $main::border_bottom)) {
+		$y = $main::height - $main::border_bottom;
+	}
+	return $y;
+}
+
+#-------------------------------------------- joggle_nodes ---
+sub joggle_nodes {
+	my ($ip, $nodeip, $new_x, $new_y, $dx, $dy, $distance, $dd);
+
+	&debug("joggling... x=$main::joggle_x y=$main::joggle_y") if( $main::debug);
+	my $adj_factor = $main::step_fraction * $main::temperature_fraction / 
+		$main::ideal_distance;
+	my $non_adj_factor = $main::step_fraction * $main::temperature_fraction / 
+		$main::min_non_adj_distance;
+
+	foreach $ip (keys %main::loc) {
+		foreach $nodeip (keys %main::loc) {
+			next if( $ip eq $nodeip); # ignore the node itself
+			$dx = &dx( $ip, $nodeip);
+			$dy = &dy( $ip, $nodeip);
+			$distance = &distance( $ip, $nodeip);
+			$new_x = $main::loc{$ip}{X};
+			$new_y = $main::loc{$ip}{Y};
+
+			# Move adjacent nodes towards ideal distance from each other
+			if( &adjacent( $ip, $nodeip)) {
+				$dd = $distance - $main::ideal_distance;
+				$new_x += $dx * $dd;
+				$new_x += $dy * $dd;
+			}
+
+			# Push non-adjacent nodes away
+			else {
+
+				$dd = $distance - $main::min_non_adj_distance;
+				# Push them out to the minimum distance if they're too close
+				if( $distance < $main::min_non_adj_distance) {
+					$new_x -= $dx * (1 - $distance / $main::min_non_adj_distance);
+					$new_y -= $dy * (1 - $distance / $main::min_non_adj_distance);
+				}
+
+				# Always push them
+				$new_x -= $dx * $dd;
+				$new_y -= $dy * $dd;
+			}
+		}
+
+		# Keep them in bounds
+		$new_x = $main::loc{$ip}{X} + rand($main::joggle_x * 2) - $main::joggle_x;
+		$new_x = &clip_x( $new_x);
+
+		$new_y = $main::loc{$ip}{Y} + rand($main::joggle_y * 2) - $main::joggle_y;
+		$new_y = &clip_y( $new_y);
+
+		&debug("moved ($main::loc{$ip}{X},$main::loc{$ip}{Y}) to ($new_x,$new_y)")
+			if($main::debug>2);
+		$main::loc{$ip}{X} = $new_x;
+		$main::loc{$ip}{Y} = $new_y;
+	}
+}
+
+#------------------------------------------------------------- distance ---
+sub distance {
+	my( $ip1, $ip2) = @_;
+	my $delta_x = $main::loc{$ip1}{X} - $main::loc{$ip2}{X};
+	my $delta_y = $main::loc{$ip1}{Y} - $main::loc{$ip2}{Y};
+	my $distance = sqrt( $delta_x * $delta_x + $delta_y * $delta_y);
+	&debug("distance ($main::loc{$ip1}{X}, $main::loc{$ip1}{Y}) - ",
+		"($main::loc{$ip2}{X}, $main::loc{$ip2}{Y}) = $distance")
+		if($main::debug>2);
+	if( $distance > $main::max_distance) {
+		&debug("bad distance $distance for $ip1 - $ip2");
+		&debug(" ip1 at ($main::loc{$ip1}{X}, $main::loc{$ip1}{Y})");
+		&debug(" ip2 at ($main::loc{$ip2}{X}, $main::loc{$ip2}{Y})");
+		&abort("bad distance");
+	}
+
+	return $distance;
+}
+
+#---------------------------------------------------------------- cost ---
+# Low cost is good
+sub cost {
+	my $cost = 0;
+	my ($this_cost, $node_cost, $ip , $nodeip, $distance);
+
+	foreach $ip (keys %main::loc) {
+		$this_cost = 0;
+		&debug("scoring $ip") if( $main::debug>1);
+
+		foreach $nodeip (keys %main::loc) {
+			next if( $ip eq $nodeip); # ignore the node itself
+
+			# Reduce the cost for closeness to ideal distance
+			if( &adjacent( $ip, $nodeip)) {
+				$distance = &distance($ip, $nodeip);
+				$node_cost = 1 / abs( $distance - $main::ideal_distance);
+				&debug("    cost for adj $nodeip is $node_cost") if( $main::debug>2);
+				$this_cost += $node_cost;
+			}
+			
+			# Increase the cost for closeness to others
+			else {
+				$distance = &distance( $ip, $nodeip);
+				$node_cost = 1 / ($distance - $main::min_non_adj_distance);
+				&debug("    cost for nonadj $nodeip is $node_cost") if( $main::debug>2);
+				$this_cost += $node_cost;
+			}
+		}
+		$cost += $this_cost;
+		&debug("  cost for $ip is $this_cost") if( $main::debug>1);
+	}
+	&debug("final cost is $cost") if( $main::debug>1);
+
+	return $cost;
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] data-file output-file
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -h      show this help
+    -t ttt  set number of trials per iteration [$main::num_trials]
+    -T TTT  set initial temperature to TTT [$main::initial_temperature]
+    -z zzz  set image size to 'zzz' [${main::width}x${main::height}]
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------- random_xy ---
+sub random_xy {
+	my $ip = shift @_;
+	unless( defined $main::loc{$ip}{X}) {
+		$main::loc{$ip}{X} = $main::border_x + rand( $main::range_x);
+		$main::loc{$ip}{Y} = $main::border_top + rand( $main::range_y);
+	}
+}
+
+#------------------------------------------------------------- read_data ---
+sub read_data {
+	my $data_file = shift @_;
+	my( $ip, $previp, $host, @path, $ip_and_asn, $this_ip, $this_asn);
+
+	open( DATA, "<$data_file") or &abort("can't open $data_file: $!");
+	while(<DATA>) {
+		chomp;
+		($host, $ip, @path) = split(' ', $_);
+		$main::loc{$ip}{IP} = $ip;
+		&random_xy( $ip);
+		$previp = $ip;
+		foreach $ip_and_asn (@path) {
+			($this_ip, $this_asn) = split(':', $ip_and_asn);
+			if( defined $this_asn) {
+				$main::loc{$this_ip}{ASN} = $this_asn; 
+			}
+			else {
+				$main::loc{$this_ip}{ASN} = 'UNKNOWN';
+			}
+			$main::loc{$this_ip}{ADJ}{$previp} = 1;
+			$main::loc{$previp}{ADJ}{$this_ip} = 1;
+			&random_xy( $this_ip);
+			&debug("  added node $this_ip to path to $ip") 
+				if( $main::debug>1);
+			$previp = $this_ip;
+		}
+		&debug("added path to $ip") if( $main::debug>1);
+	}
+	close(DATA);
+}
+
+#------------------------------------------------------ show_locations ---
+sub show_locations {
+	my( $image, $draw) = @_;
+	my( $ip, $x, $y, $nodeip, $x2, $y2);
+
+	foreach $ip (sort byip keys %main::loc) {
+		$x = $main::loc{$ip}{X};
+		$y = $main::loc{$ip}{Y};
+		&debug("  $ip at ($x,$y)") if( $main::debug);
+
+		if( $draw) {
+			foreach $nodeip (keys %{$main::loc{$ip}{ADJ}}) {
+				$x2 = $main::loc{$nodeip}{X};
+				$y2 = $main::loc{$nodeip}{Y};
+				&debug("    edge to ($x2,$y2)") if( $main::debug>1);
+				$image->line( $x, $y, $x2, $y2, $main::edge_color);
+			}
+			$image->arc( $x, $y, $main::dot_size, 
+				$main::dot_size, 0, 360, $main::dot_color);
+		}
+	}
+
+}
+
+#------------------------------------------------------------ byip ---
+# Sort routine to sort IP numbers (string, not socket-packed)
+sub byip {
+	return -1 if( $b eq '-');
+	return 1 if( $a eq '-');
+
+	my @a = split('\.', $a);
+	my @b = split('\.', $b);
+
+	foreach my $i (0..4) {
+		next if( $a[$i] eq $b[$i]);
+		return $a[$i] <=> $b[$i];
+	}
+	return 0;
+}

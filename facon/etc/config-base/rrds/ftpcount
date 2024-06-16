@@ -1,0 +1,32 @@
+# rrds/ftpcount - counts the number of wu-ftpd processes running by class
+# CVS $Id: ftpcount,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+data	local=ftpcount:anon-local GAUGE:1200:0:500	ftpcount
+data	canet2=ftpcount:anon-canet2 GAUGE:1200:0:500	ftpcount
+data	other=ftpcount:anon-away GAUGE:1200:0:500	ftpcount
+archives	day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times		day yesterday week month 3month year
+graph	ftpclass
+	--title '##HOST## FTP Users by Class'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--units-exponent 0
+	DEF:local=##DB##:local:AVERAGE
+	DEF:canet2=##DB##:canet2:AVERAGE
+	DEF:other=##DB##:other:AVERAGE
+	CDEF:missing=local,UN,INF,UNKN,IF
+	LINE1:local###COLOR1##:local
+	'LINE1:canet2###COLOR2##:CA*Net2'
+	LINE1:other###COLOR3##:other
+	'GPRINT:canet2:AVERAGE:canet2 (avg,max,cur)  %.0lf%s'
+	'GPRINT:canet2:MAX:%.0lf%s'
+	'GPRINT:canet2:LAST:%.0lf%s'
+	'GPRINT:other:AVERAGE:other (avg,max,cur)  %.0lf%s'
+	'GPRINT:other:MAX:%.0lf%s'
+	'GPRINT:other:LAST:%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

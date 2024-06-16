@@ -1,0 +1,170 @@
+#!/usr/bin/perl -w
+
+# check-rrdlast - see when RRD files were last updated
+# $Id: check-rrdlast.pl,v 1.3 2002/08/14 14:31:51 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'check-rrdlast';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Which consolidation functions to try to get data from
+@main::cfs = ( 'AVERAGE', 'MIN', 'MAX', 'LAST' );
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.3 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:Df:h', \%opt);
+
+if (defined $opt{'h'}) { &usage(); } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+else { $main::debug = 0; }
+if( defined $opt{'D'}) { $main::show_last_data = 1; }
+else { $main::show_last_data = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+&read_config_dir($main::config_dir, 'general', 'groups', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd );
+
+foreach $host (sort keys %{$main::config{HOST}}) {
+	next if ($host eq '_facon_');
+
+	&debug("doing host $host") if ($main::debug);
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, undef, $fixedrrd) = &get_rrd($realrrd);
+
+	# Check it
+		&check_rrd( $host, $realrrd, $wildrrd, $fixedrrd);
+	}
+}
+
+exit 0;
+
+#-------------------------------------------------------------- check_rrd ---
+sub check_rrd {
+	my( $host, $realrrd, $wildrrd, $fixedrrd) = @_;
+	my( $file, $last_update, $now, $error, $diff, $status, $step);
+
+	# Get the last-update time
+	$file = $main::config{DATADIR} . '/' . $host . '/' . $fixedrrd . '.rrd';
+	$last_update = RRDs::last $file;
+	$error = RRDs::error;
+	if( $error) {
+		&error("RRD error for $file: $error");
+		return 0;
+	}
+
+	# When was that, relative to now?
+	$now = time();
+	$diff = $now - $last_update;
+	$step = $main::config{RRD}{$wildrrd}{STEP};
+
+	# Last update in the future?
+	if( $diff < 0) { $status = 'TIMEWARP'; }
+
+	# Last update "long ago"?
+	elsif( $diff > $step) { $status = 'STALE'; }
+
+	# All cool
+	else { $status = 'OK'; }
+
+	print $host, ' ', $realrrd, ' ', $last_update, ' ',
+		&timestamp2($last_update), ' ', $diff, ' ', $step, ' ', $status, "\n";
+
+	# Show the last update?
+	if( $main::show_last_data) {
+		&show_last_data( $host, $realrrd, $wildrrd, $file, $last_update, $step);
+	}
+}
+
+#--------------------------------------------------------- show_last_data ---
+sub show_last_data {
+	my( $host, $realrrd, $wildrrd, $file, $last_update, $step) = @_;
+	my( $cf, $start, $namesref, $dataref, $line, $name, $data, $error);
+
+	foreach $cf (@main::cfs) {
+		($start, undef, $namesref, $dataref) = RRDs::fetch $file, $cf,
+			'--start', $last_update, '--end', $last_update + $step;
+		if( $error = RRDs::error) {
+			&debug("can't get data for $cf from $file: $error")
+				if( $main::debug);
+			next;
+		}
+		$line =  '  ' . &timestamp2($start);
+
+		# Pull the first line (i.e. last-update)
+		$dataref = shift @$dataref;
+		foreach $name (@$namesref) {
+			$data = shift @$dataref;
+			unless( defined $data) { $data = 'NODATA'; }
+			$line .= ' ' . $name . '=' . $data;
+		}
+		print $line, "\n";
+
+		# Since we're only  getting one sample, all CFs will return the
+		# same data, so only print the first one we find.
+		last;
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	my $cfs = join(',', @main::cfs);
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -D      show the data for the last update
+  -f fff  use 'fff' for config-dir [$main::config_dir]
+  -h      show this help
+Note: the output is one line for each rrd showing: host, rrd, last-update,
+a pretty-printed version of last-update, (now - last-update), step, and
+status( OK is ok, STALE means that it is overdue for an update and TIMEWARP
+means that the last-update time is in the future.  The data will be on its
+own line like: 
+  timestamp dsname=value ...
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

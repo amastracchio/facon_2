@@ -1,0 +1,188 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1194389=1194389  GAUGE:1200:0:U
+data    ddata1194389=1194389  DERIVE:1200:0:U
+alert    data1194389 delta< 10 10 10 
+data    data1171387=1171387  GAUGE:1200:0:U
+data    ddata1171387=1171387  DERIVE:1200:0:U
+alert    data1171387 delta< 10 10 10 
+data    data1171386=1171386  GAUGE:1200:0:U
+data    ddata1171386=1171386  DERIVE:1200:0:U
+alert    data1171386 delta< 10 10 10 
+data    data1194387=1194387  GAUGE:1200:0:U
+data    ddata1194387=1194387  DERIVE:1200:0:U
+alert    data1194387 delta< 10 10 10 
+data    data1232462=1232462  GAUGE:1200:0:U
+data    ddata1232462=1232462  DERIVE:1200:0:U
+alert    data1232462 delta< 10 10 10 
+data    data1214915=1214915  GAUGE:1200:0:U
+data    ddata1214915=1214915  DERIVE:1200:0:U
+alert    data1214915 delta< 10 10 10 
+data    data1214917=1214917  GAUGE:1200:0:U
+data    ddata1214917=1214917  DERIVE:1200:0:U
+alert    data1214917 delta< 10 10 10 
+data    data1128709=1128709  GAUGE:1200:0:U
+data    ddata1128709=1128709  DERIVE:1200:0:U
+alert    data1128709 delta< 10 10 10 
+data    data1128712=1128712  GAUGE:1200:0:U
+data    ddata1128712=1128712  DERIVE:1200:0:U
+alert    data1128712 delta< 10 10 10 
+data    data1172914=1172914  GAUGE:1200:0:U
+data    ddata1172914=1172914  DERIVE:1200:0:U
+alert    data1172914 delta< 10 10 10 
+data    data1128711=1128711  GAUGE:1200:0:U
+data    ddata1128711=1128711  DERIVE:1200:0:U
+alert    data1128711 delta< 10 10 10 
+data    data1128721=1128721  GAUGE:1200:0:U
+data    ddata1128721=1128721  DERIVE:1200:0:U
+alert    data1128721 delta< 10 10 10 
+data    data1128708=1128708  GAUGE:1200:0:U
+data    ddata1128708=1128708  DERIVE:1200:0:U
+alert    data1128708 delta< 10 10 10 
+data    data1183311=1183311  GAUGE:1200:0:U
+data    ddata1183311=1183311  DERIVE:1200:0:U
+alert    data1183311 delta< 10 10 10 
+data    data1227459=1227459  GAUGE:1200:0:U
+data    ddata1227459=1227459  DERIVE:1200:0:U
+alert    data1227459 delta< 10 10 10 
+data    data1172915=1172915  GAUGE:1200:0:U
+data    ddata1172915=1172915  DERIVE:1200:0:U
+alert    data1172915 delta< 10 10 10 
+data    data1128717=1128717  GAUGE:1200:0:U
+data    ddata1128717=1128717  DERIVE:1200:0:U
+alert    data1128717 delta< 10 10 10 
+data    data1128716=1128716  GAUGE:1200:0:U
+data    ddata1128716=1128716  DERIVE:1200:0:U
+alert    data1128716 delta< 10 10 10 
+data    data1128715=1128715  GAUGE:1200:0:U
+data    ddata1128715=1128715  DERIVE:1200:0:U
+alert    data1128715 delta< 10 10 10 
+data    data1128714=1128714  GAUGE:1200:0:U
+data    ddata1128714=1128714  DERIVE:1200:0:U
+alert    data1128714 delta< 10 10 10 
+data    data1128720=1128720  GAUGE:1200:0:U
+data    ddata1128720=1128720  DERIVE:1200:0:U
+alert    data1128720 delta< 10 10 10 
+data    data1128718=1128718  GAUGE:1200:0:U
+data    ddata1128718=1128718  DERIVE:1200:0:U
+alert    data1128718 delta< 10 10 10 
+data    data1093422=1093422  GAUGE:1200:0:U
+data    ddata1093422=1093422  DERIVE:1200:0:U
+alert    data1093422 delta< 10 10 10 
+data    data1128719=1128719  GAUGE:1200:0:U
+data    ddata1128719=1128719  DERIVE:1200:0:U
+alert    data1128719 delta< 10 10 10 
+data    responsetime=1194389-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/webapp/wcs/stores/servlet/es/SearchDisplay?storeId=10151&catalogId=10051&langId=-5&pageSize=100&beginIndex=0&searchSource=Q&sType=SimpleSearch&resultCatEntryType=2&showResultsPage=true&pageView=image&searchTerm=einhell+pxc ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1194389=##DB##:data1194389:AVERAGE
+      'LINE2:data1194389###COLOR1##:Aspiradora Inalambrica Pxc Einhell Solo  SKU 1194389 ' 
+      'GPRINT:data1194389:LAST: last=%.1lf\n'
+      DEF:data1171387=##DB##:data1171387:AVERAGE
+      'LINE2:data1171387###COLOR2##:Cargador Usb 18 Li Solo Pxc Einhell  SKU 1171387 ' 
+      'GPRINT:data1171387:LAST: last=%.1lf\n'
+      DEF:data1171386=##DB##:data1171386:AVERAGE
+      'LINE2:data1171386###COLOR3##:Radio 18 Li Solo Pxc Einhell  SKU 1171386 ' 
+      'GPRINT:data1171386:LAST: last=%.1lf\n'
+      DEF:data1194387=##DB##:data1194387:AVERAGE
+      'LINE2:data1194387###COLOR4##:Sierra Circular Pxc Einhell 18V Solo  SKU 1194387 ' 
+      'GPRINT:data1194387:LAST: last=%.1lf\n'
+      DEF:data1232462=##DB##:data1232462:AVERAGE
+      'LINE2:data1232462###COLOR5##:Ingletadora Einhell Pxc Te-Ms 18V Solo  SKU 1232462 ' 
+      'GPRINT:data1232462:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/webapp/wcs/stores/servlet/es/SearchDisplay?storeId=10151&catalogId=10051&langId=-5&pageSize=100&beginIndex=0&searchSource=Q&sType=SimpleSearch&resultCatEntryType=2&showResultsPage=true&pageView=image&searchTerm=einhell+pxc ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1214915=##DB##:data1214915:AVERAGE
+      'LINE2:data1214915###COLOR1##:Cultivador Inalambrico Pxc  SKU 1214915 ' 
+      'GPRINT:data1214915:LAST: last=%.1lf\n'
+      DEF:data1214917=##DB##:data1214917:AVERAGE
+      'LINE2:data1214917###COLOR2##:Tijera Y Cortacerco Pxc  SKU 1214917 ' 
+      'GPRINT:data1214917:LAST: last=%.1lf\n'
+      DEF:data1128709=##DB##:data1128709:AVERAGE
+      'LINE2:data1128709###COLOR3##:Bateria Pxc 18V 3 Ah  SKU 1128709 ' 
+      'GPRINT:data1128709:LAST: last=%.1lf\n'
+      DEF:data1128712=##DB##:data1128712:AVERAGE
+      'LINE2:data1128712###COLOR4##:Bateria Pxc 18V 1.5 Ah + Cargador  SKU 1128712 ' 
+      'GPRINT:data1128712:LAST: last=%.1lf\n'
+      DEF:data1172914=##DB##:data1172914:AVERAGE
+      'LINE2:data1172914###COLOR5##:Rotomartillo Pxc 18V Te-Hd 18 Li Solo  SKU 1172914 ' 
+      'GPRINT:data1172914:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/webapp/wcs/stores/servlet/es/SearchDisplay?storeId=10151&catalogId=10051&langId=-5&pageSize=100&beginIndex=0&searchSource=Q&sType=SimpleSearch&resultCatEntryType=2&showResultsPage=true&pageView=image&searchTerm=einhell+pxc ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1128711=##DB##:data1128711:AVERAGE
+      'LINE2:data1128711###COLOR1##:Cargador Pxc 18V 30 M  SKU 1128711 ' 
+      'GPRINT:data1128711:LAST: last=%.1lf\n'
+      DEF:data1128721=##DB##:data1128721:AVERAGE
+      'LINE2:data1128721###COLOR2##:Lámpara Inalámbrica Pxc Te-Cl 18 Li Solo...  SKU 1128721 ' 
+      'GPRINT:data1128721:LAST: last=%.1lf\n'
+      DEF:data1128708=##DB##:data1128708:AVERAGE
+      'LINE2:data1128708###COLOR3##:Bateria Pxc 18V 1.5 Ah  SKU 1128708 ' 
+      'GPRINT:data1128708:LAST: last=%.1lf\n'
+      DEF:data1183311=##DB##:data1183311:AVERAGE
+      'LINE2:data1183311###COLOR4##:Taladro Percutor 13 Mm Pxc 18 V Bl Solo  SKU 1183311 ' 
+      'GPRINT:data1183311:LAST: last=%.1lf\n'
+      DEF:data1227459=##DB##:data1227459:AVERAGE
+      'LINE2:data1227459###COLOR5##:Cortacesped Pxc GE-CM 33 Li Solo  SKU 1227459 ' 
+      'GPRINT:data1227459:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/webapp/wcs/stores/servlet/es/SearchDisplay?storeId=10151&catalogId=10051&langId=-5&pageSize=100&beginIndex=0&searchSource=Q&sType=SimpleSearch&resultCatEntryType=2&showResultsPage=true&pageView=image&searchTerm=einhell+pxc ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1172915=##DB##:data1172915:AVERAGE
+      'LINE2:data1172915###COLOR1##:Taladro Pxc 18V Te-Cd 18/2 Li 1.5Ah Kit  SKU 1172915 ' 
+      'GPRINT:data1172915:LAST: last=%.1lf\n'
+      DEF:data1128717=##DB##:data1128717:AVERAGE
+      'LINE2:data1128717###COLOR2##:Sierra Sable Pxc Te-Ap 18 Li Solo  SKU 1128717 ' 
+      'GPRINT:data1128717:LAST: last=%.1lf\n'
+      DEF:data1128716=##DB##:data1128716:AVERAGE
+      'LINE2:data1128716###COLOR3##:Taladro Percutor Pxc Te-Ci 18 Li Solo  SKU 1128716 ' 
+      'GPRINT:data1128716:LAST: last=%.1lf\n'
+      DEF:data1128715=##DB##:data1128715:AVERAGE
+      'LINE2:data1128715###COLOR4##:Taladro Percutor Pxc Te-Cd 18-2 Li Solo  SKU 1128715 ' 
+      'GPRINT:data1128715:LAST: last=%.1lf\n'
+      DEF:data1128714=##DB##:data1128714:AVERAGE
+      'LINE2:data1128714###COLOR5##:Taladro Inalámbrico Pxc Te-Cd 18/1 Solo  SKU 1128714 ' 
+      'GPRINT:data1128714:LAST: last=%.1lf\n'
+
+graph   value5-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/webapp/wcs/stores/servlet/es/SearchDisplay?storeId=10151&catalogId=10051&langId=-5&pageSize=100&beginIndex=0&searchSource=Q&sType=SimpleSearch&resultCatEntryType=2&showResultsPage=true&pageView=image&searchTerm=einhell+pxc ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1128720=##DB##:data1128720:AVERAGE
+      'LINE2:data1128720###COLOR1##:Lijadora Orbital Pxc Te-Os 18 Li Solo  SKU 1128720 ' 
+      'GPRINT:data1128720:LAST: last=%.1lf\n'
+      DEF:data1128718=##DB##:data1128718:AVERAGE
+      'LINE2:data1128718###COLOR2##:Sierra Caladora Pxc Te-Js 18 Li Solo  SKU 1128718 ' 
+      'GPRINT:data1128718:LAST: last=%.1lf\n'
+      DEF:data1093422=##DB##:data1093422:AVERAGE
+      'LINE2:data1093422###COLOR3##:Rotomartillo Te-Rh 32 E  SKU 1093422 ' 
+      'GPRINT:data1093422:LAST: last=%.1lf\n'
+      DEF:data1128719=##DB##:data1128719:AVERAGE
+      'LINE2:data1128719###COLOR4##:Amoladora Powerxchange Te-Ag 18 Li Solo  SKU 1128719 ' 
+      'GPRINT:data1128719:LAST: last=%.1lf\n'
+

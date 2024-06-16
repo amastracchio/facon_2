@@ -1,0 +1,425 @@
+#!/usr/bin/perl -w
+
+# check-config - verify the configuration, make directories and
+#	create new RRDs.
+# $Id: check-config.pl,v 1.25 2003/05/15 11:57:39 facon Exp $
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for messages and files
+$main::prog = 'check-config';
+# Where is the default config dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# Which type of shell is this, for writing environment variables
+$main::shell_type = 'sh';
+@main::host_files = ('UPTIMEFLAG.html', 'ALERTFLAG.html', 'STATUS.html',
+	'STATUS-BACKGROUND.html', 'UPTIME.html');
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.25 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+#use Data::Dumper;
+use Getopt::Std;
+use RRDs;
+require "private.pl";
+require "miscstuff.pl";
+require "alertstuff.pl";
+require "htmlstuff.pl";
+
+my (@list, %opt, $gid);
+%opt = ();
+getopts('cC:d:eDf:Fhl:s:t', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $main::write_communities = 1; }
+if (defined $opt{'C'}) { $main::config_debug = $opt{'C'}; }
+else { $main::config_debug = 0; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+else { $main::debug = 0; }
+if (defined $opt{'D'}) { $main::dumpit = 1; } else { $main::dumpit = 0; }
+if (defined $opt{'e'}) { $main::write_environment = 1; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force = 1; } else { $main::force = 0; }
+if (defined $opt{'l'}) { @list = split(',', $opt{'l'}); }
+if (defined $opt{'s'}) { $main::shell_type = $opt{'s'}; }
+if (defined $opt{'t'}) { $main::testonly = 1; } else { $main::testonly = 0; }
+
+if ($main::debug > 1) { $main::config_debug = 1; }
+else { $main::config_debug = 0; }
+
+if ($main::shell_type =~ /csh$/i) { $main::shell_type = 'csh'; }
+elsif ($main::shell_type =~ /sh$/i) { $main::shell_type = 'sh'; }
+else { &abort("unknown shell type ($main::shell_type); not sh or csh"); }
+
+my ($list_hosts, $list_ips, $list_rrds, $do_list);
+
+$list_hosts = $list_ips = $list_rrds = $do_list = 0;
+foreach my $list (@list) {
+	if ($list =~ /^hosts?$/i) { $list_hosts = 1; }
+	elsif ($list =~ /^ips?$/i) { $list_ips = 1; }
+	elsif ($list =~ /^rrds?$/i) { $list_rrds = 1; }
+	$do_list = 1;
+}
+
+if ($do_list and defined $main::write_environment) {
+	print STDERR "-e and -l aren't compatible\n";
+	&usage; # no return
+}
+
+# - - -   Mainline   - - -
+
+&read_config_dir( $main::config_dir, 'general', 'html', 'times',
+	'colors', 'archives', 'links', 'tools', 'remotepings',
+	'scripts', 'alerts', 'oids', 'rrds', 'customgraphs',
+	'groups', 'host-templates', 'hosts', 'view-templates', 'views',
+	'availability', 'alert-destination-map', 'discovery', 'ntops',
+	'environment', 'run', 'run-stages');
+
+#print Dumper(\%main::config) if (defined $main::dumpit);
+
+my ($host, $ip, $dir, $realrrd, $file);
+
+# Make the required directories (this really ought to already be there)
+unless (-d '/root/3p/facon') {
+	&make_a_dir('/root/3p/facon');
+}
+
+# A place to put the data
+unless (-d $main::config{DATADIR}) {
+	&make_a_dir($main::config{DATADIR});
+}
+
+# A place to put the pages
+unless (-d $main::config{HTMLDIR}) {
+	&make_a_dir($main::config{HTMLDIR});
+}
+
+# Used by page-writer
+unless( -d $main::config{HTMLDIR} . '/GRAPHS') {
+	&make_a_dir($main::config{HTMLDIR} . '/GRAPHS');
+	&webgroup_dir( $main::config{HTMLDIR} . '/GRAPHS');
+}
+
+# Used by rt-updater's rrdcgi scripts
+unless( -d $main::config{HTMLDIR} . '/GRAPHS/TMP') {
+	&make_a_dir($main::config{HTMLDIR} . '/GRAPHS/TMP');
+	&webgroup_dir( $main::config{HTMLDIR} . '/GRAPHS/TMP');
+}
+
+# Used by view-writer (XXX remove when it's phased out)
+unless( -d $main::config{HTMLDIR} . '/VIEWS') {
+	&make_a_dir($main::config{HTMLDIR} . '/VIEWS');
+}
+
+# A place to put the custom graphs
+$dir = $main::config{HTMLDIR}.'/CUSTOM';
+unless (-d $dir) { &make_a_dir($dir); }
+
+# Make a place to store the dynamic pages
+unless (-d $main::config{DATAPAGEDIR}) {
+	&make_a_dir($main::config{DATAPAGEDIR});
+}
+
+# Make a place to store the last collected data
+unless (-d $main::config{DATADIR}. '/LAST') {
+	&make_a_dir($main::config{DATADIR} .'/LAST');
+}
+
+# Make a directory for logs
+unless (-d $main::config{LOGDIR}) {
+	&make_a_dir($main::config{LOGDIR});
+}
+
+# Make the temp directory
+unless (-d $main::config{TEMPDIR}) {
+	&make_a_dir($main::config{TEMPDIR});
+}
+
+# Make sure that the temp dir has a 'dataimage' sub-dir for the "out" directive
+$dir = $main::config{TEMPDIR} . '/dataimage';
+unless (-d $dir) {
+	&make_a_dir($dir);
+	$gid = getgrnam( 'facon');
+	if( defined $gid) {
+		chown -1, $gid, $dir or do {
+			&error('cannot chown ', $dir, ': ', $!);
+		};
+		chmod 02775, $dir or do {
+			&error('cannot chmod 2775 ', $dir, ': ', $!);
+		};
+	}
+	else {
+		&error('cannot getgrnam for facon, to chown ', $dir);
+	}
+}
+
+# And a "run-stages" sub-dir
+$dir = $main::config{TEMPDIR} . '/run-stages';
+unless (-d $dir) { &make_a_dir($dir); }
+
+# Make the views directory
+unless (-d $main::config{HTML}{VIEWDIR}) {
+	&make_a_dir($main::config{HTML}{VIEWDIR});
+}
+
+# Make _facon_ directories
+$dir = $main::config{DATADIR} .'/_facon_';
+unless (-d $dir) { &make_a_dir( $dir); }
+$dir = $main::config{HTMLDIR} .'/_facon_';
+unless (-d $dir) { &make_a_dir( $dir); }
+
+# Has the config-file changed since last time check-config was run?
+my ($last_change_logged, $config_dir_changed, $config_changed);
+($last_change_logged) = &get_status('LAST', 'CONFIGCHANGE');
+if ((!defined $last_change_logged) or $last_change_logged !~ /^\d+\s*$/) {
+	$last_change_logged = 0;
+}
+$config_dir_changed = time - int((-M $main::config_dir)*24*60*60);
+if ($last_change_logged < $config_dir_changed) {
+	$config_changed = 1;
+	&put_status('LAST', 'CONFIGCHANGE', $config_dir_changed);
+	&debug("config-file changed ". &timestamp($config_dir_changed))
+		if ($main::debug);
+}
+else {
+	$config_changed = 0;
+	&debug("config-file hasn't changed since $config_dir_changed")
+		if ($main::debug);
+}
+
+if (defined $main::write_environment) {
+	&write_env( $main::shell_type, 'PAGESAS', 'cgi');
+	&write_env( $main::shell_type, 'DATADIR', $main::config{DATADIR});
+	&write_env( $main::shell_type, 'HTMLDIR', $main::config{HTMLDIR});
+	&write_env( $main::shell_type, 'TEMPDIR', $main::config{TEMPDIR});
+	&write_env( $main::shell_type, 'CONFIGDIR', $main::config_dir);
+	&write_env( $main::shell_type, 'CONFIGCHANGED', $config_changed);
+	&write_env( $main::shell_type, 'DATAPAGEDIR', $main::config{DATAPAGEDIR});
+	&write_env( $main::shell_type, 'WATCHDOGTIMER',
+		$main::config{WATCHDOGTIMER});
+	if ($main::shell_type eq 'sh') {
+		print "export PAGESAS DATADIR CONFIGDIR CONFIGCHANGED ",
+			"DATAPAGEDIR WATCHDOGTIMER\n";
+	}
+}
+
+# Make sure the directories are there for each host
+my ($listing, $community, $wildrrd, $fixedrrd, @dirs);
+foreach $host (sort keys %{$main::config{HOST}}) {
+	&debug("checking $host") if ($main::debug);
+	$ip = &get_ip($host);
+	if( $list_ips && ! defined $ip) {
+		&debug("can't get IP number for $host; skipped") if ($main::debug);
+		next unless ($main::force);
+	}
+	$listing = '';
+	if ($list_hosts) { $listing .= ' '. $host; }
+	if ($list_ips) { $listing .= ' '. $ip; }
+
+	# We need these dirsctories for each host
+	@dirs = (
+		$main::config{DATADIR} . '/' . $host,
+		$main::config{HTMLDIR} . '/' . $host,
+		$main::config{HTMLDIR} . '/GRAPHS/' . $host,
+		$main::config{HTMLDIR} . '/GRAPHS/TMP/' . $host,
+	);
+	foreach $dir (@dirs) {
+		unless (-d $dir) {
+			print STDERR "making $dir\n";
+			next unless (&make_a_dir($dir));
+			if( $dir =~ m#/GRAPHS/#) {
+				&webgroup_dir( $dir);
+			}
+		}
+	}
+
+# Make sure that the html flags exist; through they're in the datadir
+	$dir = $main::config{DATADIR} . '/' . $host;
+	foreach (@main::host_files) {
+		$file = $dir .'/'. $_;
+		next if (-f $file);
+		if (open (FILE, ">$file")) {
+			close(FILE);
+			&debug("created $file") if( $main::debug);
+		}
+		else { &error("can't open $file: $!"); }
+	}
+
+# SNMP community listing?
+	if (defined $main::write_communities) {
+		if (defined $main::config{HOST}{$host}{COMMUNITY}) {
+			$community = $main::config{HOST}{$host}{COMMUNITY};
+		}
+		elsif (defined $main::config{COMMUNITY}) {
+			$community = $main::config{COMMUNITY};
+		}
+		else { undef $community; }
+		if (defined $community) {
+			print "$host $community\n";
+		}
+	}
+
+# Now make any missing RRDs
+	&debug("making missing RRDs for $host") if ($main::debug);
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, undef, $fixedrrd) = &get_rrd($realrrd);
+		&debug("  rrd $realrrd") if ($main::debug);
+		if ($list_rrds) { $listing .= ' '. $realrrd; }
+		if (defined $wildrrd) {
+			my $rrdfile = $main::config{DATADIR} . '/' . $host . '/' .
+				$fixedrrd . '.rrd';
+			unless (-f $rrdfile) {
+				&make_rrd($rrdfile, $host, $realrrd, $wildrrd);
+			}
+		}
+		else {
+			&error("can't get RRD definition for $realrrd on $host");
+		}
+	}
+	if ($do_list) { print substr($listing,1) ."\n"; }
+}
+
+# Save new version of the ip_cache
+&write_ip_cache;
+
+# Make sure that all the view directories are there
+my $viewdir;
+foreach my $view (keys %{$main::config{VIEW}}) {
+	$viewdir = $main::config{HTML}{VIEWDIR} .'/'. 
+		&to_filename($view);
+	unless (-d $viewdir) { &make_a_dir($viewdir); }
+}
+
+# Make an empty ALERTS file, if it's missing
+$file = $main::config{DATADIR} .'/ALERTS';
+unless (-f $file) {
+	open (FILE, ">$file") or &abort("can't create $file: $!");
+	print FILE "VERSION $main::alert_version\n";
+	close (FILE);
+	&debug("created ALERTS file") if ($main::debug);
+}
+
+# Check that port-collector scripts with patterns have send strings
+foreach $wildrrd (sort keys %{$main::config{RRD}}) {
+	next unless( &rrd_collected_by( $wildrrd, 'port'));
+	if( defined $main::config{SCRIPT}{$wildrrd}{TEST} and
+			not defined $main::config{SCRIPT}{$wildrrd}{SEND}) {
+		&abort("RRD $wildrrd has pattern tests, but no send string");
+	}
+}
+
+# Say everything's OK
+&put_status('_facon_', 'STATUS.html', 'Checked');
+
+#------------------------------------------------------ debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+	-c      write SNMP communities
+	-C CCC  set configuration-debugging output to level 'CCC'
+	-d ddd  enable debugging output at level 'ddd'
+	-D      dump configuration (must have DEBUG enabled in fixup.config)
+	-e      print environment variables to stdout
+	-f fff  use config-dir 'fff' [$main::config_dir]
+	-h      show this help
+	-l lll	list 'lll' on stdout (comma-separated list of: host, ip, rrd)
+	-s sss  shell type to use for -e [$main::shell_type]
+	-t      test-mode; do not make any changes
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------ make_rrd ---
+sub make_rrd {
+	my ($rrdfile, $host, $realrrd, $wildrrd) = @_;
+	my ($data, @args, $ds, $archive, $now, $start, );
+
+	if (defined $main::testmode and $main::testmode) {
+		&testout('make_rrd: ', $rrdfile, ',', $host, ',', $realrrd,
+			',', $wildrrd, '; skipped: test-mode');
+		return 1;
+	}
+
+# Now collect the info to create the database
+	unless (defined $main::config{RRD}{$wildrrd}{STEP}) {
+		&error("rrd $wildrrd has no step size defined; skipped creation");
+		return;
+	}
+	$start = int( time / $main::config{RRD}{$wildrrd}{STEP}) *
+		$main::config{RRD}{$wildrrd}{STEP} - $main::config{RRD}{$wildrrd}{STEP};
+	@args = ( '--start', $start, '--step', $main::config{RRD}{$wildrrd}{STEP});
+		
+# Add on the Data-Source descriptions
+	foreach $data (@{$main::config{RRD}{$wildrrd}{DATANAMES}}) {
+		$ds = 'DS:' . $data . ':' . 
+			$main::config{RRD}{$wildrrd}{DS}{$data}{DSDEF};
+		push @args, $ds;
+	}
+
+# And the archive descriptions
+	foreach $archive (@{$main::config{RRD}{$wildrrd}{ARCHIVES}}) {
+		if (defined $main::config{ARCHIVE}{$archive}) {
+			push @args, ('RRA:'.$main::config{ARCHIVE}{$archive});
+		}
+		else {
+			&error("make_rrd: $realrrd($wildrrd) wants archive '$archive', but it's not defined; skipped create");
+			return 0;
+		}
+	}
+
+# Now create it; anticlimax after the build-up
+	RRDs::create $rrdfile, @args;
+	my $error = RRDs::error;
+
+	if ($error) {
+		&error("make_rrd: couldn't create $rrdfile: $error");
+		return 0;
+	}
+	else {
+		print STDERR "created $rrdfile for $host\n";
+	}
+1;	
+}
+
+#---------------------------------------------------------- write_env ---
+sub write_env {
+	my ($shell_type, $var, $value) = @_;
+
+	if ($shell_type eq 'sh') { print "$var='$value'\n"; }
+	elsif ($shell_type eq 'csh') { print "setenv $var '$value'\n"; }
+	else { &abort("unknown shell-type ($shell_type)"); }
+
+}
+
+#-------------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::alert_version = 0; 
+}

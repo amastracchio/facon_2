@@ -1,0 +1,198 @@
+#!/usr/bin/perl -w
+
+# new-snmp-hosts - add snmpif-* rrds to hosts
+# $Id: new-snmp-hosts.pl,v 1.14 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'new-snmp-hosts';
+# Where is the config-dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.14 $'))[1];
+
+# - - -   Setup   - - -
+
+require 5.004;
+use lib '.', '/var/facon/lib';
+use Getopt::Std;
+use Socket;
+use SNMP_util "0.69";
+require "facon.pl";
+require "snmpstuff.pl";
+
+# Parse the command-line
+getopts('d:f:h');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+
+unless ($#ARGV >= 1) { &usage; }
+my $group = shift @ARGV;
+my $community = shift @ARGV;
+
+unless (-d $main::config_dir) {
+	&abort("missing config-dir $main::config_dir");
+}
+&read_config_dir( $main::config_dir, 'general', 'oids');
+
+&add_group_if_missing( $group);
+&snmp_load_oids;
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $hostfile, $ifnumber, $oid);
+
+# These ones can be detected
+my %snmp_rrds = (
+	'APCUpsBasicBatteryTimeOnBattery' => 'apcups',
+	'APCmUpsEnvironAmbientTemperature' => 'apcenv',
+	'CiscoTempInlet' => 'ciscotemperatures',
+	'CiscoCpmActiveDS0s' => 'dsinuse',
+	'NetappCpuBusyTime' => 'netappcpu',
+	'PixUsedMem', => 'pixmem',
+	'PixSessions' => 'pixsessions',
+	'CiscoCpuLoad' => 'snmpcpu',
+	'CiscoFreeMem' => 'snmpmem',
+	'sysUptime' => 'snmpuptime',
+);
+
+while (<>) {
+	chomp;
+	next if (/^#/ or /^\s*$/);
+	$host = lc $_;
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&error("couldn't find IP number for $host; skipped");
+		next;
+	}
+
+	$hostfile = $main::config_dir .'/hosts/'. $host;
+	if ( -f $hostfile) {
+		open (HOST, ">>$hostfile") or &abort("can't open $hostfile: $!");
+		print HOST "community $community\n";
+	}
+	else {
+		open (HOST, ">$hostfile") or &abort("can't open $hostfile: $!");
+		print HOST <<"EOD";
+# hosts/$host
+#ip	$ip
+desc\tSNMP host
+group\t$group
+tools\tping traceroute telnet availability status
+rrd\tping
+community $community
+EOD
+	}
+
+# Now figure out what interfaces this thing has
+	my $comhost = $community .'@'. $host;
+	($ifnumber) = &snmpget( $comhost, 'ifNumber');
+	unless (defined $ifnumber) {
+		warn "no response for $host; is the community-string correct?\n";
+		next;
+	}
+
+# Get the ifIndex for each interface; they aren't always contiguous
+	my @indices = ();
+	my $ix;
+	foreach my $i (&snmpwalk( $comhost, 'ifIndex')) {
+		next unless (defined $i);
+		($ix) = split(':', $i,2);
+		push @indices, $ix;
+	}
+
+# Collect the interface names
+	my %ifnames = ();
+	foreach my $i (@indices) {
+		my ($ifname, $ifalias, $desc);
+
+		$ifname = &get_ifname( $comhost, $i);
+		if (defined $ifnames{$ifname}) {
+			print STDERR "  interface $ifname already defined; skipped\n";
+			next;
+		}
+		$ifnames{$ifname} = 1;
+
+		($ifalias) = &snmpget($comhost, "ifAlias.$i");
+		if (defined $ifalias and $ifalias !~ /^\s*$/) {
+			$ifalias =~ tr/"'//d;
+			$ifalias =~ tr/ -~/ /c;
+			$desc = ' desc="' . $ifalias . '"';
+		}
+		else { $desc = ''; }
+		next unless (defined $ifname);
+		print HOST "rrd\tsnmpif-$ifname$desc\n";
+		&debug("  added interface $ifname") if ($main::debug);
+	}
+
+# Collect special RRDs
+	my $data;
+	foreach $oid (keys %snmp_rrds) {
+		&debug("  looking for oid $oid") if ($main::debug);
+		($data) = &snmpget( $comhost, $oid);
+		if (defined $data) {
+			print HOST "rrd\t", $snmp_rrds{$oid}, "\n";
+			&debug("  found; added $snmp_rrds{$oid}") if ($main::debug);
+		}
+		else {
+			&debug("  not found") if ($main::debug);
+		}
+	}
+
+	close(HOST);
+}
+
+# Save new version of ip_cache
+&write_ip_cache;
+
+# Touch config_dir for update time
+my $now = time;
+utime $now, $now, $main::config_dir or
+	&abort("can't touch $main::config_dir for update time");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] group community-string [hostfile ...]
+where options are:
+    -d      enable debugging output
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h     	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#-------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}
+
+#----------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

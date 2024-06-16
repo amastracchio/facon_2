@@ -1,0 +1,82 @@
+#!/usr/bin/perl -w
+
+# html2pod - roughly translate HTML to POD
+# $Id: htmlpod.pl,v 1.7 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Setup   - - -
+
+my $htmlfile = shift @ARGV;
+open (HTML, "<$htmlfile") or die "$0: can't open $htmlfile: $!\n";
+my @temp = split('/', $htmlfile);
+my $basename = pop @temp;
+$basename =~ s/\.[^\.]+$//;
+$basename =~ s/\.html$//;
+
+# - - -   Mainline   - - -
+my $skipping=1;
+while (<HTML>) {
+	if ($skipping and /(<body>|<h1>)/i) {
+		$skipping = 0;
+		print <<"EOD_HEAD";
+=cut
+
+TITLE=$basename
+DESCRIPTION=
+KEYWORDS=$basename
+DOCTOP=index
+DOCPREV=
+DOCNEXT=
+
+=pod
+
+EOD_HEAD
+		next;
+	}
+	next if ($skipping);
+
+	s#^\s*<h(\d)>#=head$1 #ig;
+	s#</h\d>##ig;
+	s#<ul>#=over 4#ig;
+	s#</ul>#=back 4#ig;
+	s#<ol>#=over 4#ig;
+	s#</ol>#=back 4#ig;
+	s#<dl>#=over 4#ig;
+	s#</dl>#=back 4#ig;
+	s#<dt>#=item #ig;
+	s#</dt>##ig;
+	s#<dd>#\n#ig;
+	s#</dd>##ig;
+	s#<li>#=item #ig;
+	s#</li>##ig;
+	s#</?pre>##ig;
+	s#<i>#I<#ig;
+	s#</i>#>#ig;
+	s#<b>#B<#ig;
+	s#</b>#>#ig;
+	s#<em>#B<#ig;
+	s#</em>#>#ig;
+	s#<strong>#B<#ig;
+	s#</strong>#>#ig;
+	s#<tt>#C<#ig;
+	s#</tt>#>#ig;
+	s#</?p>#\n#ig;
+	s#<hr>#\n\n=for html <HR>\n\n=for text\n-------------------------------------------------------------------\n\n#ig;
+	s#<a\s+href="([^"]+)">(.*?)</a>#L<$2|$1>#igm;
+	print $_;
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+

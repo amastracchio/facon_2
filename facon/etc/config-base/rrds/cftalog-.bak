@@ -1,0 +1,37 @@
+# rrds/httpdlog - This looks at a standard web-server log-file, rather sloppily.
+# CVS $Id: httpdlog,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	log
+step	300
+
+data	reject=reject-* GAUGE:600:0:U	count connect reject
+data	error=error-* GAUGE:600:0:U	count error
+data	found=found-* GAUGE:600:0:U	count Not found
+data	else=else-* GAUGE:600:0:U	count .*
+
+
+
+alert	error < 1 1 1
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	httpreq desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it reads from a standard web-server log-file and counts the number of requests and successful requests, as determined by the HTTP response code.  I.E. if it begins with a 2, it is considered to be successful"
+	--title '##HOST## - Lines count cftlog(##WILDPART## ##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP' --upper-limit 10 --rigid
+	--vertical-label lines
+	DEF:error=##DB##:error:AVERAGE
+	DEF:found=##DB##:found:AVERAGE
+	DEF:else=##DB##:else:AVERAGE
+	DEF:reject=##DB##:reject:AVERAGE
+	CDEF:missing=else,UN,INF,UNKN,IF
+	'LINE1:else###COLOR2##:count not matching'
+	'LINE2:found###BLUE##:count Not found'
+	'LINE2:reject###YELLOW##:count connect reject'
+	'LINE2:error###RED##:count matching error'
+	'GPRINT:error:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+

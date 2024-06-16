@@ -1,0 +1,202 @@
+#!/usr/bin/perl -w
+
+# facon-rrdtune - tune up all the RRD files to match the facon 
+#	RRD definitions.  Well, as much as "RRDs::tune" can do.
+# $Id: facon-rrdtune.pl,v 1.4 2002/08/14 11:33:57 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'facon-rrdtune';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.4 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+require "facon.pl";
+use RRDs;
+
+# Parse the command-line
+my( @hosts, @groups, @keys);
+my %opt = ();
+getopts('d:hG:H:K:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# Read in the configuration
+unless( -d $main::config_dir) {
+	&abort("missing config-dir $main::config_dir");
+}
+&read_config_dir( $main::config_dir, 'general', 'scripts', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+my ($host, $realrrd, $wildrrd, $fixedrrd);
+
+# - - -   Mainline   - - -
+
+foreach $host (@hosts) {
+	&debug("host $host") if( $main::debug>1);
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, undef, $fixedrrd) = &get_rrd( $realrrd);
+		&debug("  rrd $realrrd ($wildrrd)") if( $main::debug>1);
+		&tune_rrd( $host, $realrrd, $wildrrd, $fixedrrd);
+	}
+}
+
+#-------------------------------------------------------------- tune_rrd ---
+sub tune_rrd {
+	my( $host, $realrrd, $wildrrd, $fixedrrd) = @_;
+	my( $ds, $dsdef, $def_type, $def_heartbeat, $def_min, $def_max,
+		$file_type, $file_heartbeat, $file_min, $file_max, $file_name,
+		@updates, $error);
+
+	foreach $ds (keys %{$main::config{RRD}{$wildrrd}{DS}}) {
+		$dsdef = $main::config{RRD}{$wildrrd}{DS}{$ds}{DSDEF};
+		($def_type, $def_heartbeat, $def_min, $def_max) = split(':', $dsdef);
+		&debug("    ds $ds ($dsdef)") if( $main::debug>1);
+
+		# Since RRDs::info only works on the whole file, I'm going to cache
+		# the info from it.
+		unless( defined $main::dsinfo{$host}{$realrrd}{$ds}) {
+			&load_dsinfo( $host, $realrrd, $fixedrrd);
+		}
+
+		# It ought to be defined by now, or we don't have this file
+		unless( defined $main::dsinfo{$host}{$realrrd}{$ds}) {
+			&error("missing dsinfo for $ds; skipped");
+			next;
+		}
+
+		# Get the info for this DS on the current file
+		($file_type, $file_heartbeat, $file_min, $file_max) =
+			&get_dsinfo( $host, $realrrd, $ds);
+		next unless( defined $file_type and defined $file_heartbeat and
+			defined $file_min and defined $file_max);
+		
+		# Compare with the defined values
+		@updates = ();
+		if( $file_type ne $def_type) {
+			push @updates, '-d', $ds . ':' . $def_type;
+		}
+		if( $file_heartbeat ne $def_heartbeat) {
+			push @updates, '-h', $ds . ':' . $def_heartbeat;
+		}
+		if( $file_min ne $def_min) {
+			push @updates, '-i', $ds . ':' . $def_min;
+		}
+		if( $file_max ne $def_max) {
+			push @updates, '-a', $ds . ':' . $def_max;
+		}
+
+	}
+
+	# Anything need changing?
+	if( @updates) {
+		&debug('tuning ', $host, ' ', $realrrd, ' with ', 
+			join(' ', @updates)) if( $main::debug);
+
+		# RRDs::tune $file_name, @updates;
+		$file_name = $main::config{DATADIR} . '/' . $host . '/' . 
+			$fixedrrd . '.rrd';
+		RRDs::tune $file_name, @updates;
+		$error = RRDs::error();
+		&error("can't tune $file_name: $error") if($error);
+	}
+
+	else {
+		&debug("      no changes") if( $main::debug>1);
+	}
+}
+
+#---------------------------------------------------------- get_dsinfo ---
+sub get_dsinfo {
+	my( $host, $realrrd, $ds) = @_;
+	my( @result, $which);
+
+	foreach $which ('TYPE', 'MINIMAL_HEARTBEAT', 'MIN', 'MAX') {
+		if( defined $main::dsinfo{$host}{$realrrd}{$ds}{$which}) {
+			push @result, $main::dsinfo{$host}{$realrrd}{$ds}{$which}
+		}
+		else {
+			&error("no value for ds $ds $which in $realrrd on $host");
+			push @result, undef;
+		}
+	}
+	return @result;
+}
+
+#--------------------------------------------------------- load_dsinfo ---
+sub load_dsinfo {
+	my( $host, $realrrd, $fixedrrd) = @_;
+	my( $file_name, $href, $ds, $which, $value, $key);
+
+	$file_name = $main::config{DATADIR} . '/' . $host . '/' .
+		$fixedrrd . '.rrd';
+	&debug("LOAD: loading $file_name") if( $main::debug>2);
+	$href = RRDs::info $file_name;
+	foreach $key (keys %$href) {
+		next unless( $key =~ 
+			/^ds\[([^\]]+)\]\.(min|max|minimal_heartbeat|type)$/);
+		($ds, $which, $value) = ($1, uc $2, $$href{$key});
+		# Make them U for unlimited
+		if(( $which eq 'MIN' or $which eq 'MAX') and ! defined $value) {
+			$value = 'U';
+		}
+		$main::dsinfo{$host}{$realrrd}{$ds}{$which} = $value;
+		&debug("LOAD: $ds $which = $value") if( $main::debug>2);
+	}
+}
+	
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -h      show this help
+	-G GGG  only apply to hosts in groups 'GGG' (a comma-separated list)
+	-H HHH  only apply to hosts 'HHH' (a comma-separated list)
+	-K KKK  only apply to hosts with a key in 'KKK' (a comma-separated list)
+Note:  Only one of -G and -H can be used simultaneously.  If -K us used with
+-H or -G, the keys will select a subset of the hosts selected by -H or -G.
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

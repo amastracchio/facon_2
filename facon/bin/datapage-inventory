@@ -1,0 +1,161 @@
+#!/usr/bin/perl -w
+
+# datapage-inventory - make an inventory page of what the various 
+#		machines we monitor are.  Uses SNMP system.sysDescr and
+#		unix uname -a results, for now.
+# $Id: datapage-inventory.pl,v 1.13 2003/05/15 11:58:30 facon Exp $
+# from facon 1.0.13a
+
+# Copyright (c) 1999, 2000, 2001, 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'datapage-inventory';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.13 $');
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+
+# Parse the command-line
+# STRICT use vars qw( $opt_d $opt_h $opt_f );
+getopts('d:f:h');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+
+my $pagefile = $main::config{'DATAPAGEDIR'} .'/inventory.page';
+
+# - - -   Mainline   - - -
+
+my $top = '# written by '. $main::prog .' version '. $main::version .' on '. 
+	&timestamp ."\n\n";
+my $bottom = "\nBEGIN-PAGE\ncontent-type: text/html\n\n" .
+	"<DATAPAGE::HEADER Systems Inventory>" .
+	"<H1>Systems Inventory</H1>\n" .
+	"\n<table border=1>\n" .
+	"<TR>\n<TH>Host</TH>\n<TH>Uptime</TH>\n<TH>Hardware</TH>\n<TH>Software</TH>\n";
+
+# Collect the hosts, in the config-specified order
+my @hosts = ();
+foreach my $group (@{$main::config{GROUPS}}) {
+# In case there is a group with no hosts
+	next unless (@{$main::config{GROUP}{$group}});
+	push @hosts, @{$main::config{GROUP}{$group}};
+}
+
+my ($host, $ip, $fixed_host, $previous_group, $sw, $hw, $uptime);
+$previous_group = '';
+foreach $host (@hosts) {
+	$ip = &get_ip( $host);
+	next unless (defined $ip);
+	($fixed_host = $host) =~ tr/A-Z./a-z_/;
+
+	unless ($previous_group eq $main::config{HOST}{$host}{GROUP}) {
+		$previous_group = $main::config{HOST}{$host}{GROUP};
+		$bottom .= <<"EOD_NEWGROUP";
+<tr>
+	<td valign=top align=left colspan=3><b><font size=+2>$previous_group</font></b></td>
+</tr>
+EOD_NEWGROUP
+	}
+
+# We might have unix-status info
+	if( &host_collected_by( $host, 'unix-status') or
+			&host_collected_by( $host, 'nt-status')) {
+		$top .= <<"EOD_UNIX_TOP";
+status  hw_$fixed_host $host HARDWARE
+status  sw_$fixed_host $host SOFTWARE
+EOD_UNIX_TOP
+		$sw = 'sw_'. $fixed_host;
+		$hw = 'hw_'. $fixed_host;
+		$uptime = 'uptime_'. $fixed_host;
+	}
+
+# We might have SNMP data for this host instead
+	elsif( &host_collected_by( $host, 'snmp')) {
+		$top .= <<"EOD_SNMP_TOP";
+oid     sw_$fixed_host $host sysDescr
+EOD_SNMP_TOP
+		$sw = 'sw_'. $fixed_host;
+		$hw = ' &nbsp; ';
+		$uptime = 'uptime_'. $fixed_host;
+	}
+
+	else {
+		undef $sw;
+		undef $hw;
+		undef $uptime;
+		next;
+	}
+
+# Might not have either
+	next unless (defined $sw or defined $hw or defined $uptime);
+	$top .= <<"EOD_UPTIME";
+status	uptime_$fixed_host $host UPTIME.html
+EOD_UPTIME
+
+# Now add them to the page;
+	$bottom .= <<"EOD_HOST";
+<tr>
+	<td valign=top><b><a href="$main::config{HTMLURL}/$host/index.cgi">$host</a></b></td>
+	<td valign=top><DATAPAGE::VAR $uptime></td>
+	<td valign=top><DATAPAGE::VAR $hw></td>
+	<td valign=top><DATAPAGE::VAR $sw></td>
+</tr>
+EOD_HOST
+}
+
+# show it
+open (INVENTORY, ">$pagefile") or &abort("can't write $pagefile: $!");
+print INVENTORY $top . $bottom . "</table>\n<DATAPAGE::FOOTER>\n";
+close (INVENTORY);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] file ...
+where options are:
+	-d	enable debugging output
+	-f fff use 'fff' for config-dir [$main::config_dir]
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

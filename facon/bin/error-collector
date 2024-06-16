@@ -1,0 +1,166 @@
+#!/usr/bin/perl -w
+
+# error-collector - note errors in other collectors
+# $Id: error-collector.pl,v 1.1 2002/08/19 20:07:54 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'error-collector';
+# Which collector is this
+$main::collector = 'error';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.1 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+
+# Parse the command-line
+my (@hosts, @groups, @keys, $run_pid, %opt);
+%opt = ();
+getopts('d:f:FG:hH:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+unless( @ARGV == 1) { &usage(); } # no return
+$run_pid = shift @ARGV;
+
+&read_config_dir($main::config_dir, 'general', 'groups', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $now,
+	$start_time, $run_time, $file, $line, $errors, $aborts, $this_collector,
+	$last_collector, $printed);
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+$host = '_facon_';
+$last_collector = '';
+$printed = 0;
+for $file ( &list_files( $main::config{TEMPDIR} . '/run-stages',
+		'^collectors-.+-out-' . $run_pid . '\.\d+$')) {
+	open( FILE, "<$file") or do {
+		&error("can't open $file to read: $!");
+		next;
+	};
+
+	# Which collector is this for?
+	if( $file =~ /collectors-(.+)-out-/o) {
+		$this_collector = $1;
+	}
+
+	# Is this file for a different collector?  Print what we've got.
+	if( $last_collector ne $this_collector) {
+		unless( $last_collector eq '') {
+			$now = time();
+			print <<"EOD_ERRORS";
+$host $now $last_collector-errors $errors
+$host $now $last_collector-aborts $aborts
+EOD_ERRORS
+			print TMP <<"EOD_ERRORS";
+$host $now $last_collector-errors $errors
+$host $now $last_collector-aborts $aborts
+EOD_ERRORS
+		}
+		$errors = $aborts = 0;
+		$last_collector = $this_collector;
+		$printed = 1;
+	}
+
+	# Another file for this collector
+	else { $printed = 0; }
+
+	# Count the errors/aborts
+	while(defined( $line = <FILE>)) {
+		if( $line =~ /^ERROR:/) { ++$errors; }
+		elsif( $line =~ /^ABORT:/) { ++$aborts; }
+	}
+	close(FILE);
+
+}
+
+# Make sure we print the last one.
+unless( $printed) {
+	print <<"EOD_ERRORS";
+$host $now $last_collector-errors $errors
+$host $now $last_collector-aborts $aborts
+EOD_ERRORS
+	print TMP <<"EOD_ERRORS";
+$host $now $last_collector-errors $errors
+$host $now $last_collector-aborts $aborts
+EOD_ERRORS
+}
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] run-pid
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it is not time
+   	-G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

@@ -1,0 +1,146 @@
+#!/usr/bin/perl -w
+
+# genmenu - make the menu-bar for the documentation
+# $Id: genmenu.pl,v 1.7 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'genmenu';
+# What style to apply to the current page?
+$main::style = 'background-color: 0xffffff';
+# What does an indent look like?
+$main::indenter = '&nbsp;&nbsp;&nbsp;&nbsp;';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.7 $');
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+
+# Parse the command-line
+# STRICT use vars qw( $opt_d $opt_h );
+getopts('d:h');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+
+if ($#ARGV != 1) { &usage; } # no return
+my $thispage = shift @ARGV;
+my $menufile = shift @ARGV;
+open (MENU, "<$menufile") or &abort("can't open $menufile: $!");
+
+# - - -   Mainline   - - -
+
+# Build the tree
+my (%up, %pagename, %indent, %path, @pages, @path, $lastindent, $prev,
+	$indent, $page, $pagename, %expand);
+%up = %pagename = %indent = %path = @pages = ();
+$up{'index'} = undef;
+$up = 'index';
+@path = ('index');
+$lastindent = 0;
+$prev = 'index';
+while (<MENU>) {
+	chomp;
+	next if (/^#/ or /^\s*$/);
+
+	if (/^(\t*)(\S+)(\s+(\S.*))?/) {
+		$indent = length($1);
+		$page = $2;
+		$pagename = $4;
+		unless (defined $pagename) { $pagename = $page; }
+		$pagename =~ s/ /&nbsp;/g;
+
+		push @pages, $page;
+		$pagename{$page} = $pagename;
+		$indent{$page} = $indent;
+		$path{$page} = [@path, $page];
+
+		if ($indent > $lastindent) {
+			push @path, $prev;
+			$up = $prev;
+		}
+		elsif ($indent < $lastindent) {
+			$#path = $indent;
+			$up = $path[$#path];
+		}
+		$up{$page} = $up;
+		&debug("page=$page, indent=$indent, up=$up, prev=$prev\n\t".join(', ',@path)) if ($main::debug);;
+
+		$lastindent = $indent;
+		$prev = $page;
+	}
+	else {
+		&error("bad line: $_");
+	}
+}
+close (MENU);
+
+# Where is this page?
+%expand = ();
+my $it = $thispage;
+while (defined $it) {
+	$expand{$it} = 1;
+	last if (defined $up{$it} and $it eq $up{$it});
+	$it = $up{$it};
+}
+	
+foreach $page (@pages) {
+	$pagename = $pagename{$page};
+	$indent = $indent{$page};
+	@path = @{$path{$page}};
+	$up = $up{$page};
+
+	next unless ($expand{$up});
+
+	$indent_text = $indenter x $indent;
+	if ($page eq $thispage) {
+		print "&nbsp;&nbsp;$indent_text<A HREF=\"$page.html\"><SPAN STYLE=\"$style\">$pagename</SPAN></A><BR>\n";
+	}
+	else {
+		print "&nbsp;&nbsp;$indent_text<A HREF=\"$page.html\">$pagename</A><BR>\n";
+	}
+
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] pagename menufile
+where options are:
+	-d	enable debugging output
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

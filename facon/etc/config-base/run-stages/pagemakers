@@ -1,0 +1,25 @@
+# run-stages/pagemakers - make web-pages various ways
+# $Id: pagemakers,v 1.2 2002/07/11 11:59:41 remstats Exp $
+#
+# Note: we are chdir'd to @@TMPDIR@@ first
+# Note2: stderr will be sent to NAME.$$
+#
+# NAME ASYNC FREQ COMMAND
+#
+# The page-writer takes longest, so start it first
+page-writer no 300 page-writer
+# The rest of them are small, so order doesn't matter
+datapage-status no 300 datapage-status
+datapage-alert-writer no 300 datapage-alert-writer
+datapage-interfaces no 300 datapage-interfaces
+datapage-inventory no 300 datapage-inventory
+#
+# This doesn't need to be done frequently here
+snmpif-setspeed no 86400 snmpif-setspeed
+#
+# This isn't really necessary any more, but it has some advantages in
+# creating pages simply.  At least I think so.  Let me check...
+view-writer no 300 view-writer
+#
+# Use page-writer instead.  It's much more flexible.
+#graph-writer no 300 graph-writer

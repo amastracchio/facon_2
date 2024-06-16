@@ -1,0 +1,12 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc	The linux  machine
+ip	192.168.0.2
+group	prod
+tools	availability status
+rrd	snmpuptime
+rrd	snmpif-ether1
+rrd	snmpif-ether2
+rrd	snmpif-ether3
+rrd	snmpif-ether4
+rrd	snmpif-ether5

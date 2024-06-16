@@ -1,0 +1,236 @@
+#!/usr/bin/perl -w
+
+# discover - find network nodes and their role
+# $Id: discover.pl,v 1.1 2002/08/25 16:52:18 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'discover';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# Where is nmap?
+my $nmap = '/usr/bin/nmap';
+my $nmap_options = '-sP';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.1 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+require "snmpstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:hp', \%opt);
+
+my $ping_them;
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'p'}) { $ping_them = 0; } else { $ping_them = 1; }
+
+# read configuration
+&read_config_dir( $main::config_dir, 'general', 'oids');
+
+my ($network_file, $community_file);
+if (@main::ARGV == 2) {
+	$network_file = shift @main::ARGV;
+	$community_file = shift @main::ARGV;
+}
+else { &usage; } # no return
+&read_network_file( $network_file);
+&read_community_file( $community_file);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# Load in the oids config-file
+&snmp_load_oids;
+
+# - - -   Mainline   - - -
+
+# ping the supplied networks/hosts so we only try to talk to ones which are up
+my ($cmd, $name, $ip, @lines, $line);
+if ($ping_them) {
+	$cmd = $nmap . ' ' . $nmap_options . ' ' . $main::networks;
+	&debug("cmd is: $cmd") if ($main::debug);
+	@lines = `$cmd`;
+	# Host stone.sourceworks.com (205.189.80.230) appears to be up.
+	%main::node = ();
+	foreach $line (@lines) {
+		if ($line =~ /^Host\s+((\S+)\s+)\(([^\)]+)\)\s+appears to be up/) {
+			$name = $2;
+			$ip = $3;
+			if (defined $name) { $main::node{$ip}{NAME} = $name; }
+			else { $main::node{$ip}{NAME} = $ip; }
+			$main::node{$ip}{DONE} = 0;
+			&debug("$ip up") if ($main::debug>1);
+		}
+	}
+}
+
+# Just load the IP numbers
+else {
+	foreach $ip (split(' ', $main::networks)) {
+		$main::node{$ip}{DONE} = 0;
+		$main::node{$ip}{NAME} = $ip;
+	}
+}
+
+# Now talk SNMP and find out community string
+my ($community, $description, $comhost, $forwarding, $default_route,
+	$interfaces);
+foreach $ip (keys %main::node) {
+	&debug("querying $ip") if ($main::debug);
+	foreach $community (@main::communities) {
+		$comhost = $community . '@' . $ip;
+		($description, $interfaces, $forwarding) = snmpget( 
+			$comhost, 'sysDescr', 'ifNumber', 'ipForwarding');
+		unless (defined $description) {
+			&debug("  no description from $comhost") 
+				if ($main::debug>1);
+			next;
+		}
+		$main::node{$ip}{DESCRIPTION} = $description;
+		$main::node{$ip}{COMMUNITY} = $community;
+		&debug("  $ip: $description") if ($main::debug);
+	
+# Now collect router-determining info
+		($default_route) = &snmpget( $comhost, 'DefaultIpRouteNextHop');
+		if (defined $forwarding) {
+			$main::node{$ip}{FORWARDING} = &map_forwarding($forwarding);
+			&debug("  forwarding: $forwarding") if ($main::debug);
+		}
+		else { $main::node{$ip}{FORWARDING} = 0; }
+
+		if (defined $default_route) {
+			$main::node{$ip}{DEFAULTROUTE} = $default_route;
+			&debug("  default route: $default_route") if ($main::debug);
+		}
+		else { $main::node{$ip}{DEFAULTROUTE} = ''; }
+
+		if (defined $interfaces) {
+			$main::node{$ip}{INTERFACES} = $interfaces;
+			&debug("  interfaces: $interfaces") if ($main::debug);
+		}
+		else { $main::node{$ip}{INTERFACES} = 1; } # must have one
+		last;
+	}
+
+# No community-string?  try the next host
+	unless (defined $main::node{$ip}{COMMUNITY}) {
+		&debug("  no description for $ip; skipped") if ($main::debug);
+		next;
+	}
+}
+
+foreach $ip (sort keys %main::node) {
+	unless (defined $main::node{$ip}{DESCRIPTION}) { $main::node{$ip}{DESCRIPTION} = '-'; }
+	unless (defined $main::node{$ip}{COMMUNITY}) { $main::node{$ip}{COMMUNITY} = '-'; }
+	unless (defined $main::node{$ip}{FORWARDING}) { $main::node{$ip}{FORWARDING} = '-'; }
+	unless (defined $main::node{$ip}{DEFAULTROUTE}) { $main::node{$ip}{DEFAULTROUTE} = '-'; }
+	unless (defined $main::node{$ip}{INTERFACES}) { $main::node{$ip}{INTERFACES} = '-'; }
+
+	# Clean up multi-line descriptions
+	$main::node{$ip}{DESCRIPTION} =~ s/\r?\n/\\n/g;
+
+	# Now say waht we found
+#	print <<"EOD";
+#=============================================
+#ip:         $ip
+#name:       $main::node{$ip}{NAME}
+#community:  $main::node{$ip}{COMMUNITY}
+#forwarding: $main::node{$ip}{FORWARDING}
+#route:      $main::node{$ip}{DEFAULTROUTE}
+#interfaces: $main::node{$ip}{INTERFACES}
+#desc:       $main::node{$ip}{DESCRIPTION}
+#EOD
+	print join(' ', $ip, $main::node{$ip}{NAME}, $main::node{$ip}{COMMUNITY},
+		$main::node{$ip}{FORWARDING}, $main::node{$ip}{INTERFACES},
+		$main::node{$ip}{DEFAULTROUTE}), "\n"
+}
+
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] networks-file communities-file
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for the configuration directory [$main::config_dir]
+    -h      show this help
+    -p      don't ping them; assume the networks-file is IP numbers
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------- read_network_file ---
+sub read_network_file {
+	my $network_file = shift @_;
+	$main::networks = '';
+	open (NETWORKS, "<$network_file") or
+		die "can't open $network_file: $!\n";
+	while (<NETWORKS>) {
+		chomp;
+		next if (/^#/ or /^\s*$/); # no comments
+		s/^\s+//;
+		s/\s+$//;
+		$main::networks .= ' ' . $_;
+	}
+	close (NETWORKS);
+	if (length($main::networks) > 0) {
+		$main::networks = substr($main::networks,1);
+	}
+}
+#---------------------------------------------------- read_community_file ---
+sub read_community_file {
+	my $community_file = shift @_;
+	@main::communities = ();
+	open (COMMUNITIES, "<$community_file") or
+		die "can't open $community_file: $!\n";
+	while (<COMMUNITIES>) {
+		chomp;
+		next if (/^#/ or /^\s*$/); # no comments
+		s/^\s+//;
+		s/\s+$//;
+		push @main::communities, $_;
+	}
+	close (COMMUNITIES);
+}
+
+#------------------------------------------------------ map_forwarding ---
+sub map_forwarding {
+	my $forwarding = shift @_;
+	if ($forwarding > 0 and $forwarding <= 2) {
+		$forwarding = ('0', 'true', 'false')[$forwarding];
+	}
+	return $forwarding;
+}

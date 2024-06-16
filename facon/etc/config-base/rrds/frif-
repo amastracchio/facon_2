@@ -1,0 +1,67 @@
+# rrds/frif-* - info from a frame-relay interface
+# CVS $Id: frif-,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source		snmp
+step		300
+
+data		inbytes=frCircuitReceivedOctets.* COUNTER:600:0:U
+data		outbytes=frCircuitSentOctets.* COUNTER:600:0:U
+data		inframes=frCircuitReceivedFrames.* COUNTER:600:0:U
+data		outframes=frCircuitSentFrames.* COUNTER:600:0:U
+data		speed=frCircuitExcessBurst.* GAUGE:600:0:U
+data		status=frCircuitState.* GAUGE:600:0:3
+
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times		day yesterday week month 3month year
+oid		frCircuitState.*
+oid		frCircuitSentFrames.*
+oid		frCircuitSentOctets.*
+oid		frCircuitReceivedFrames.*
+oid		frCircuitReceivedOctets.*
+oid		frCircuitCommittedBurst.*
+oid		frCircuitExcessBurst.*
+
+graph		frbytes-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs. This information comes from the Frame-Relay MIB."
+		--title '##HOST## - Interface ##WILDPART## Bytes (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bps'
+		DEF:inbytes=##DB##:inbytes:AVERAGE
+		DEF:outbytes=##DB##:outbytes:AVERAGE
+		DEF:inbits=inbytes,8,*
+		DEF:outbits=outbits,8,*
+		HRULE:1540000###LINECOLOR##:T1
+		CDEF:missing=inbytes,UN,INF,UNKN,IF
+		'AREA:inbits###INCOLOR##:in'
+		'LINE2:outbits###OUTCOLOR##:out'
+		'GPRINT:inbits:AVERAGE:in avg=%.0lf%s'
+		'GPRINT:outbits:AVERAGE:out avg=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph		frames-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs. This information comes from the Frame-Relay MIB."
+		--title '##HOST## - Interface ##WILDPART## Frames (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'fps'
+		DEF:inframes=##DB##:inframes:AVERAGE
+		DEF:outframes=##DB##:outframes:AVERAGE
+		CDEF:missing=inframes,UN,INF,UNKN,IF
+		'AREA:inframes###INCOLOR##:in'
+		'LINE2:outframes###OUTCOLOR##:out'
+		'GPRINT:inframes:AVERAGE:in avg=%.0lf%s'
+		'GPRINT:outframes:AVERAGE:out avg=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph		status-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs. This information comes from the Frame-Relay MIB."
+		--title '##HOST## - Interface ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 3 --rigid
+		--vertical-label 'status'
+		DEF:status=##DB##:status:AVERAGE
+		CDEF:missing=status,UN,INF,UNKN,IF
+		'LINE2:status###COLOR1##'
+		'COMMENT:(1=invalid, 2=active, 3=inactive)'
+		'AREA:missing###MISSING##:missing'
+

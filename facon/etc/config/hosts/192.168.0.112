@@ -1,0 +1,8 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc    facon
+ip	192.168.0.112
+group	prod
+tools	availability status
+rrd	ping
+rrd	speed /root/precios/speed.pl

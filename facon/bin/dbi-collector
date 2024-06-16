@@ -1,0 +1,400 @@
+#!/usr/bin/perl -w
+# dbi-collector - a facon collector for remote databases
+# $Id: dbi-collector.pl,v 1.8 2003/05/15 12:00:19 facon Exp $
+# from facon 1.0.13a
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'dbi-collector';
+# Which collector is this
+$main::collector = 'dbi';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+%main::dbi_attributes = (
+	'RaiseError' => 0,
+	'PrintError' => 0,
+	'AutoCommit' => 1,
+);
+@main::extra_dbi_parts = (
+	'CONNECT', 'USER', 'PASSWORD', 'DATABASE', 'SELECT',
+);
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.8 $'))[1];
+
+# - - -   Setup   - - -
+
+# DBI-Collector Status constants
+# Everything OK
+$main::DBICS_OK = 1;
+# OK, but select returned more than one row; this may or may not be OK.
+# It depends on the select and the RRD.
+$main::DBICS_MULTIROW = 2;
+# No rows returned; not so good, but no "errors"
+$main::DBICS_NOROWS = 3;
+# Error on the select
+$main::DBICS_SELECT = 4;
+# Error on the connect
+$main::DBICS_CONNECT = 5;
+# Error in the configuration of the connect/select/rrd/host
+$main::DBICS_CONFIG = 6;
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use DBI;
+use RRDs;
+use Time::HiRes qw( time );
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FG:hH:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'groups', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts', 'dbi');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $now,
+	$start_time, $run_time, $status);
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next if ($host eq '_facon_');
+	next unless( &host_collected_by( $host, $main::collector));
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing host $host") if ($main::debug);
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+		# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+
+		# Collect it
+		($status, $run_time) = &collect_rrd($host, $ip, $realrrd, 
+			$wildrrd, $wildpart, $fixedrrd);
+		$now = time();
+		print <<"EOD_RRD";
+$host $now ${fixedrrd}:status $status
+$host $now ${fixedrrd}:response $run_time
+EOD_RRD
+	}
+}
+
+# Now facon instrumentation info
+$now = time();
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#------------------------------------------------ parse_host_extra_for_dbi ---
+sub parse_host_extra_for_dbi {
+	my $extra = shift @_;
+	return () unless($extra);
+	my( $source, $user, $password, $database_name, $select_name, $what, 
+		@extras, $it);
+
+	@extras = ();
+	foreach $what (@main::extra_dbi_parts) {
+		push @extras, $what; # it'll be a hash for whatever uses it
+		if( $extra =~ /\b$what="([^"]*)"/i) {
+			$it = $1;
+			$extra =~ s/\b$what="[^"]*)"//i;
+			push @extras, $it;
+			&debug("    extra $what='$it'") if( $main::debug>1);
+		}
+		else {
+			push @extras, undef;
+		}
+	}
+	return @extras;
+}
+
+#------------------------------------------------------- collect_rrd ---
+sub collect_rrd {
+	my( $host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd) = @_;
+	my ($now, $variable, $value, $line, $source, $user, $password, 
+		$connect_name, $select_name, %extras, $select_handle,
+		$status, $start_time, $end_time, $row, @row, $col, $select, $ds,
+		$rows, $extra, $multi_row_id, $multi_row_ok, $data_row, $data_col);
+
+	# When did we start
+	$start_time = time();
+
+	# Figure out what we're connecting to
+#	CONNECT, USER, PASSWORD, DATABASE, SELECT
+	
+	# Start with the RRD-specified connection/selection
+	if( defined $main::config{RRD}{$wildrrd}{DBICONNECT}) {
+		$connect_name = $main::config{RRD}{$wildrrd}{DBICONNECT};
+	}
+	if( defined $main::config{RRD}{$wildrrd}{DBISELECT}) {
+		$select_name = $main::config{RRD}{$wildrrd}{DBISELECT};
+	}
+
+	# Parse out the host overrides on the connection/selection
+	%extras = &parse_host_extra_for_dbi( 
+		$main::config{HOST}{$host}{EXTRA}{$wildrrd});
+	
+	# Now merge in the host overrides
+	if( defined $extras{CONNECT}) { $connect_name = $extras{CONNECT}; }
+	if( defined $extras{SELECT}) { $select_name = $extras{SELECT}; }
+
+	# Make sure that we've got a connect and select by now
+	unless( defined $connect_name) {
+		&error("rrd $realrrd doesn't define a connect-name; skipped");
+		return ( $main::DBICS_CONFIG, time() - $start_time );
+	}
+	unless( defined $select_name) {
+		&error("rrd $realrrd doesn't define a select-name; skipped");
+		return ( $main::DBICS_CONFIG, time() - $start_time );
+	}
+
+	# Pull the select in
+	$select = $main::config{DBISELECT}{$select_name};
+
+	# Now get the connection string
+	$source = $main::config{DBICONNECT}{$connect_name}{SOURCE} or do {
+		&error("rrd $realrrd: dbi-connect $connect_name doesn't define " .
+			"a source; skipped");
+		return ( $main::DBICS_CONFIG, time() - $start_time );
+	};
+
+	# Get the user and password
+	$user = $main::config{DBICONNECT}{$connect_name}{USER};
+	$password = $main::config{DBICONNECT}{$connect_name}{PASSWORD};
+	if( defined $extras{USER}) { $user = $extras{USER}; }
+	if( defined $extras{PASSWORD}) { $password = $extras{PASSWORD}; }
+
+	# Edit the connection string
+	if( defined $extras{DATABASE}) {
+		$source =~ s/##DATABASE##/$extras{DATABASE}/g;
+	}
+	$source =~ s/##HOST##/$host/g;
+	
+	# Re-use connection, if we're already connected to that source
+	if( defined $main::connect_source and 
+			$main::connect_source eq $source and
+			$main::connect_user eq $user) {
+		&debug("  re-using connection to $source as $user") if( $main::debug);
+	}
+
+	# Cache the database connection, if possible, as it may be heavy
+	else {
+		$main::connect_dbh = DBI->connect( $source, $user, $password,
+			\%main::dbi_attributes);
+		if( defined $main::connect_dbh) {
+			$main::connect_source = $source;
+			$main::connect_user = $user;
+			&debug( "  connected to $source as $user") if( $main::debug);
+			&clear_error( $host, $fixedrrd);
+		}
+		else {
+			&put_error($host, $fixedrrd, "can't connect to $source as $user");
+			return ( $main::DBICS_CONNECT, time() - $start_time );
+		}
+	}
+
+	# Wow!  We can finally get around to selecting some data
+	$select_handle = $main::connect_dbh->prepare( $select);
+	unless( defined $select_handle) {
+		&put_error($host, $fixedrrd, 
+			"can't prepare select for $realrrd on $host: $DBI::errstr");
+		return( $main::DBICS_SELECT, time() - $start_time );
+	}
+	&clear_error( $host, $fixedrrd);
+	$select_handle->execute() or do {
+		&put_error($host, $fixedrrd,
+			"can't execute select for $realrrd on $host; $DBI::errstr");
+		return( $main::DBICS_SELECT, time() - $start_time );
+	};
+	&clear_error( $host, $fixedrrd);
+	++$main::requests;
+
+	$row = 0;
+	$multi_row_id = $main::config{RRD}{$wildrrd}{DBIMULTIROWID};
+	$multi_row_ok = defined $multi_row_id;
+	while( @row = $select_handle->fetchrow_array) {
+
+		# Only take one row back
+		if( ++$row > 1 and ! $multi_row_ok) {
+			&debug("  more than one row returned") if( $main::debug>1);
+			return( $main::DBICS_MULTIROW, time() - $start_time );
+			last;
+		}
+
+		# Got some data; figure out what parts we're interested in
+		foreach $ds ( keys %{$main::config{RRD}{$wildrrd}{DS}}) {
+
+			# Get the column-number from extra
+			$extra = $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA};
+			($data_row, $data_col) = &parse_dbi_data_extra( $extra);
+			if( defined $data_col and $data_col =~ /(\d+)/) {
+				$col = $1 - 1;
+				if( $col >= 0 and $col < @row) {
+					$value = $row[$col];
+					$now = time();
+					$variable = $realrrd . ':' . $ds;
+					if( $multi_row_ok) {
+						if( $multi_row_id == -1) {
+							next unless( $data_row == $row);
+							$variable .= ':' . $row;
+						}
+						elsif( $multi_row_id >= 0 and $multi_row_id < @row) {
+							next unless( $data_row eq $row[$multi_row_id]);
+							$variable .= ':' . $row[$multi_row_id];
+						}
+						else {
+							&error("invalid multirowid ($multi_row_id) for " .
+								"$realrrd on $host");
+							last;
+						}
+					}
+					print "$host $now $variable $value\n";
+					print TMP "$host $now $variable $value\n";
+					++$main::entries_collected;
+					++$main::entries_used;
+				}
+				else {
+					&error("col ($col) for ds $ds in $wildrrd isn't in the " .
+						"columns returned");
+					return( $main::DBICS_CONFIG, time() - $start_time );
+				}
+			}
+
+			# Ignore STATUS and RESPONSE variables.  They're filled in
+			# at the next level up.
+			elsif( defined $data_col and $data_col =~ /^STATUS|RESPONSE$/) {
+			}
+
+			# Anything except a column number, STATUS or RESPONSE is an error
+			else {
+				&error("no column defined in $wildrrd for ds $ds; skipped");
+				return( $main::DBICS_CONFIG, time() - $start_time );
+			}
+		}
+	}
+
+	if( $row == 0) {
+		&debug("  no rows returned") if( $main::debug>1);
+		return( $main::DBICS_NOROWS, time() - $start_time );
+	}
+	elsif( $row == 1) {
+		&debug("  one row returned") if( $main::debug>1);
+		return( $main::DBICS_OK, time() - $start_time );
+	}
+	else {
+		&debug("  more than one row returned") if( $main::debug>1);
+		return( $main::DBICS_MULTIROW, time() - $start_time );
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it's not time
+   	-G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------- parse_dbi_data_extra ---
+sub parse_dbi_data_extra {
+	my( $extra) = shift @_;
+	my( $data_row, $data_col);
+
+	if( defined $extra and $extra =~ /\bROW=((\S+)|'([^']+)'|"([^"]+)")/) {
+		$data_row = (defined $2) ? $2 : (defined $3) ? $3 : $4;
+	}
+	if( defined $extra and $extra =~ /\bCOL=(\d+|STATUS|RESPONSE)/) {
+		$data_col = $1;
+	}
+
+	return( $data_row, $data_col);
+}

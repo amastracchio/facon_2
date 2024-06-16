@@ -1,0 +1,9 @@
+Date: ##TEXTNOW##
+Message-ID: <alert-##HOST##-##FIXEDRRD##-##VAR##-##NOW##@##ALERTHOST##>
+From: Remstats Alert Monitor <remstats-alerts@##ALERTHOST##>
+Reply-to: Remstats Alert Quencher <remstats-quench-##HOST##-##FIXEDRRD##-##VAR##@##ALERTHOST##>
+Subject: ALERT: ##STATUS## ##HOST## ##REALRRD## ##VAR## 
+To: Alertees <##TOWHO##>
+
+This is a remstats ##STATUS## alert.
+

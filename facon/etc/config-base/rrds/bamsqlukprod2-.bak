@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	ibo=ibo:* GAUGE:1800:0:U  bamsql *
+data	neo_temp_3=neo_temp_3:* GAUGE:1800:0:U  bamsql *
+data	temp_7=temp_7:* GAUGE:1800:0:U  bamsql *
+data	temp_4=temp_4:* GAUGE:1800:0:U  bamsql *
+data	ibamac_4m=ibamac_4m:* GAUGE:1800:0:U  bamsql *
+data	bamac_4m=bamac_4m:* GAUGE:1800:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1800:0:U  bamsql *
+data	mk1_index=mk1_index:* GAUGE:1800:0:U  bamsql *
+data	neo_index=neo_index:* GAUGE:1800:0:U  bamsql *
+data	temp_3=temp_3:* GAUGE:1800:0:U  bamsql *
+data	neo_temp=neo_temp:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:ibo=##DB##:ibo:AVERAGE
+	 DEF:neo_temp_3=##DB##:neo_temp_3:AVERAGE
+	 DEF:temp_7=##DB##:temp_7:AVERAGE
+	 DEF:temp_4=##DB##:temp_4:AVERAGE
+	 DEF:ibamac_4m=##DB##:ibamac_4m:AVERAGE
+	 DEF:bamac_4m=##DB##:bamac_4m:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:mk1_index=##DB##:mk1_index:AVERAGE
+	 DEF:neo_index=##DB##:neo_index:AVERAGE
+	 DEF:temp_3=##DB##:temp_3:AVERAGE
+	 DEF:neo_temp=##DB##:neo_temp:AVERAGE
+      CDEF:missing=ibo,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:ibo###COLOR1##:ibo'
+	'LINE2:neo_temp_3###COLOR2##:neo_temp_3'
+	'LINE2:temp_7###COLOR3##:temp_7'
+	'LINE2:temp_4###COLOR4##:temp_4'
+	'LINE2:ibamac_4m###COLOR5##:ibamac_4m'
+	'LINE2:bamac_4m###COLOR6##:bamac_4m'
+	'LINE2:rbs###COLOR7##:rbs'
+	'LINE2:mk1_index###COLOR8##:mk1_index'
+	'LINE2:neo_index###COLOR9##:neo_index'
+	'LINE2:temp_3###COLOR10##:temp_3'
+	'LINE2:neo_temp###COLOR11##:neo_temp'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:ibo:LAST:ibo         = %.2lf\l'
+	'GPRINT:neo_temp_3:LAST:neo_temp_3         = %.2lf\l'
+	'GPRINT:temp_7:LAST:temp_7         = %.2lf\l'
+	'GPRINT:temp_4:LAST:temp_4         = %.2lf\l'
+	'GPRINT:ibamac_4m:LAST:ibamac_4m         = %.2lf\l'
+	'GPRINT:bamac_4m:LAST:bamac_4m         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:mk1_index:LAST:mk1_index         = %.2lf\l'
+	'GPRINT:neo_index:LAST:neo_index         = %.2lf\l'
+	'GPRINT:temp_3:LAST:temp_3         = %.2lf\l'
+	'GPRINT:neo_temp:LAST:neo_temp         = %.2lf\l'

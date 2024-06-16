@@ -1,0 +1,19 @@
+
+
+my $prod = "123";
+
+
+my $temp = <<EOF
+	DEF:VARIABLE=##DB##:VARIABLE:AVERAGE
+        DEF:VARIABLEuno=##DB##:VARIABLEuno:AVERAGE
+        DEF:VARIABLEdos=##DB##:VARIABLEdos:AVERAGE
+
+        'LINE2:VARIABLE###COLOR4##:Jumbo'
+        'LINE2:VARIABLEuno###COLOR5##:Jumbo puno'
+        'LINE2:VARIABLEdos###COLOR6##:Jumbo pdos'
+
+EOF
+
+$temp ~= s/VARIABLE/$prod/g;
+
+

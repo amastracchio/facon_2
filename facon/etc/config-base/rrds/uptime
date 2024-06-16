@@ -1,0 +1,24 @@
+# rrds/uptime - unix host system uptime
+# CVS $Id: uptime,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+#
+desc	uptime for a unix host
+source	unix-status
+step	300
+
+data	uptime GAUGE:600:0:U	uptime
+
+alert	uptime delta> 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	uptime desc='This is collected by the unix-status-collector.  It works by running the <B>uptime</B> command on the remote host and parsing the output.  The graph is uninteresting.  It simply shows the uptime (measured in seconds).'
+	--title '##HOST## - Up-time (##GRAPHTIME##)'
+	--vertical-label 'sec'
+	DEF:uptime=##DB##:uptime:AVERAGE
+	CDEF:missing=uptime,UN,INF,UNKN,IF
+	'LINE1:uptime###COLOR1##:uptime'
+	'GPRINT:uptime:LAST:current=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

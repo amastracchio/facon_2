@@ -1,0 +1,81 @@
+# rrds/ntactivity - some indications of activity on NT boxen
+# CVS $Id: ntactivity,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+data	interrupts=system:total_interrupts-sec COUNTER:600:0:U perfcounters
+data	contextsw=system:context_switches-sec COUNTER:600:0:U perfcounters
+data	syscalls=system:system_calls-sec COUNTER:600:0:U perfcounters
+data	sessions=server:server_sessions GAUGE:600:0:U perfcounters
+data	filesopen=server:files_open GAUGE:600:0:U perfcounters
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	interrupts
+	--title '##HOST## - Interrupts (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'interrupts/sec'
+	DEF:interrupts=##DB##:interrupts:AVERAGE
+	CDEF:missing=interrupts,UN,INF,UNKN,IF
+	'LINE2:interrupts###COLOR1##:Interrupts'
+	'GPRINT:interrupts:LAST:interrupts=%.0lf%s'
+	'GPRINT:interrupts:AVERAGE:avg=%.0lf%s'
+	'GPRINT:interrupts:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	contextsw
+	--title '##HOST## - Context Switches (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'switches/sec'
+	DEF:contextsw=##DB##:contextsw:AVERAGE
+	CDEF:missing=contexts,UN,INF,UNKN,IF
+	'LINE2:contextsw###COLOR1##:Context Switches'
+	'GPRINT:contextsw:LAST:Context Switches=%.0lf%s'
+	'GPRINT:contextsw:AVERAGE:avg=%.0lf%s'
+	'GPRINT:contextsw:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	syscalls
+	--title '##HOST## - System Calls (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'syscalls/sec'
+	DEF:syscalls=##DB##:syscalls:AVERAGE
+	CDEF:missing=syscalls,UN,INF,UNKN,IF
+	'LINE2:syscalls###COLOR1##:System Calls'
+	'GPRINT:syscalls:LAST:System Calls=%.0lf%s'
+	'GPRINT:syscalls:AVERAGE:avg=%.0lf%s'
+	'GPRINT:syscalls:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	sessions
+	--title '##HOST## - Sessions (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'sessions'
+	DEF:sessions=##DB##:sessions:MAX
+	CDEF:missing=sessions,UN,INF,UNKN,IF
+	'LINE2:sessions###COLOR1##:Sessions'
+	'GPRINT:sessions:LAST:Sessions=%.0lf%s'
+	'GPRINT:sessions:AVERAGE:avg=%.0lf%s'
+	'GPRINT:sessions:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	filesopen
+	--title '##HOST## - Files Open (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'files'
+	DEF:filesopen=##DB##:filesopen:MAX
+	CDEF:missing=filesopen,UN,INF,UNKN,IF
+	'LINE2:filesopen###COLOR1##:Files Open'
+	'GPRINT:filesopen:LAST:Files=%.0lf%s'
+	'GPRINT:filesopen:AVERAGE:avg=%.0lf%s'
+	'GPRINT:filesopen:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

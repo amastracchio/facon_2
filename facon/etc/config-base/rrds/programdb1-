@@ -1,0 +1,41 @@
+# rrds/program-* - generic get-value-from-running-a-program RRD
+# CVS $Id: program-,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	program
+step	300
+
+data	snrdown=snrdown GAUGE:1200:0:U
+data	snrup=snrup GAUGE:1200:0:U
+data	responsetime=snrup-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+graph	value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	--title '##HOST## - ##WILDPART## SNR Margin (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos' 
+	--vertical-label '1 db'
+	DEF:snrdown=##DB##:snrdown:AVERAGE
+	DEF:snrup=##DB##:snrup:AVERAGE
+	CDEF:missing=snrdown,UN,INF,UNKN,IF
+	'LINE2:snrdown###COLOR1##:snrdown'
+	'LINE2:snrup###COLOR2##:snrup'
+	'GPRINT:snrdown:MIN:(min,avg,max) = (%.0lf,\g'
+	'GPRINT:snrdown:AVERAGE:%.0lf,\g'
+	'GPRINT:snrdown:MAX:%.0lf)\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	response-* desc="This is collected by the program-collector.  It works by running the specified program and timing how long the program took to run; that is the response-time reported here."
+	--title '##HOST## - ##WILDPART## response-time (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos' 
+	--vertical-label 'seg'
+	DEF:responsetime=##DB##:responsetime:AVERAGE
+	CDEF:missing=responsetime,UN,INF,UNKN,IF
+	'LINE2:responsetime###COLOR1##:responsetime'
+	'GPRINT:responsetime:MIN:(min,avg,max) = (%.0lf,\g'
+	'GPRINT:responsetime:AVERAGE:%.0lf,\g'
+	'GPRINT:responsetime:MAX:%.0lf)\l'
+	'AREA:missing###MISSING##:missing'
+

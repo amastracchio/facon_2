@@ -1,0 +1,273 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1049150=1049150  GAUGE:1200:0:U
+data    data1049151=1049151  GAUGE:1200:0:U
+data    data1049152=1049152  GAUGE:1200:0:U
+data    data1049154=1049154  GAUGE:1200:0:U
+data    data1049155=1049155  GAUGE:1200:0:U
+data    data1049156=1049156  GAUGE:1200:0:U
+data    data1049157=1049157  GAUGE:1200:0:U
+data    data1049158=1049158  GAUGE:1200:0:U
+data    data1049159=1049159  GAUGE:1200:0:U
+data    data1049160=1049160  GAUGE:1200:0:U
+data    data1049161=1049161  GAUGE:1200:0:U
+data    data1049162=1049162  GAUGE:1200:0:U
+data    data1049163=1049163  GAUGE:1200:0:U
+data    data1049164=1049164  GAUGE:1200:0:U
+data    data1049153=1049153  GAUGE:1200:0:U
+data    data1158755=1158755  GAUGE:1200:0:U
+data    data1158754=1158754  GAUGE:1200:0:U
+data    data1158753=1158753  GAUGE:1200:0:U
+data    data1158752=1158752  GAUGE:1200:0:U
+data    data1158751=1158751  GAUGE:1200:0:U
+data    data1158750=1158750  GAUGE:1200:0:U
+data    data1158749=1158749  GAUGE:1200:0:U
+data    data1158748=1158748  GAUGE:1200:0:U
+data    data1195334=1195334  GAUGE:1200:0:U
+data    data1144319=1144319  GAUGE:1200:0:U
+data    data1144318=1144318  GAUGE:1200:0:U
+data    data1144315=1144315  GAUGE:1200:0:U
+data    data1144314=1144314  GAUGE:1200:0:U
+data    data1323916=1323916  GAUGE:1200:0:U
+data    data1323914=1323914  GAUGE:1200:0:U
+data    data1323939=1323939  GAUGE:1200:0:U
+data    data1323920=1323920  GAUGE:1200:0:U
+data    data1323918=1323918  GAUGE:1200:0:U
+data    data1323910=1323910  GAUGE:1200:0:U
+data    data1323908=1323908  GAUGE:1200:0:U
+data    data1323898=1323898  GAUGE:1200:0:U
+data    data1323896=1323896  GAUGE:1200:0:U
+data    data1323894=1323894  GAUGE:1200:0:U
+data    data1323880=1323880  GAUGE:1200:0:U
+data    data1323878=1323878  GAUGE:1200:0:U
+data    data1323876=1323876  GAUGE:1200:0:U
+data    data1323864=1323864  GAUGE:1200:0:U
+data    data1323862=1323862  GAUGE:1200:0:U
+data    data1323860=1323860  GAUGE:1200:0:U
+data    data1323854=1323854  GAUGE:1200:0:U
+data    data1323852=1323852  GAUGE:1200:0:U
+data    data1323850=1323850  GAUGE:1200:0:U
+data    data1996350=1996350  GAUGE:1200:0:U
+data    data1996349=1996349  GAUGE:1200:0:U
+data    data1323955=1323955  GAUGE:1200:0:U
+data    responsetime=1049150-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1049150=##DB##:data1049150:AVERAGE
+      'LINE2:data1049150###COLOR1##:Machimbre Cedrella Grit200 1/2X4X2.44-2.48M2 '
+      'GPRINT:data1049150:LAST: last=%.1lf'
+      DEF:data1049151=##DB##:data1049151:AVERAGE
+      'LINE2:data1049151###COLOR2##:Machimbre Cedrella Grit200 1/2X4X3.05-3.10M2 '
+      'GPRINT:data1049151:LAST: last=%.1lf'
+      DEF:data1049152=##DB##:data1049152:AVERAGE
+      'LINE2:data1049152###COLOR3##:Machimbre Cedrella Grit200 1/2X4X3.66-3.72M2 '
+      'GPRINT:data1049152:LAST: last=%.1lf'
+      DEF:data1049154=##DB##:data1049154:AVERAGE
+      'LINE2:data1049154###COLOR4##:Machimbre Cedrella Grit200 1/2X5X2.44-3.10M2 '
+      'GPRINT:data1049154:LAST: last=%.1lf'
+      DEF:data1049155=##DB##:data1049155:AVERAGE
+      'LINE2:data1049155###COLOR5##:Machimbre Cedrella Grit200 1/2X5X3.05-3.87M2 '
+      'GPRINT:data1049155:LAST: last=%.1lf'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1049156=##DB##:data1049156:AVERAGE
+      'LINE2:data1049156###COLOR1##:Machimbre Cedrella Grit200 1/2X5X3.66-4.65M2 '
+      'GPRINT:data1049156:LAST: last=%.1lf'
+      DEF:data1049157=##DB##:data1049157:AVERAGE
+      'LINE2:data1049157###COLOR2##:Machimbre Cedrella Grit200 1X6X2.44-1.86M2 '
+      'GPRINT:data1049157:LAST: last=%.1lf'
+      DEF:data1049158=##DB##:data1049158:AVERAGE
+      'LINE2:data1049158###COLOR3##:Machimbre Cedrella Grit200 1X6X3.05-2.32M2 '
+      'GPRINT:data1049158:LAST: last=%.1lf'
+      DEF:data1049159=##DB##:data1049159:AVERAGE
+      'LINE2:data1049159###COLOR4##:Machimbre Cedrella Grit200 1X6X3.66-2.79M2 '
+      'GPRINT:data1049159:LAST: last=%.1lf'
+      DEF:data1049160=##DB##:data1049160:AVERAGE
+      'LINE2:data1049160###COLOR5##:Machimbre Cedrella Grit200 3/4X4X3.05-2.17M2 '
+      'GPRINT:data1049160:LAST: last=%.1lf'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1049161=##DB##:data1049161:AVERAGE
+      'LINE2:data1049161###COLOR1##:Machimbre Cedrella Grit200 3/4X4X3.66-2.60M2 '
+      'GPRINT:data1049161:LAST: last=%.1lf'
+      DEF:data1049162=##DB##:data1049162:AVERAGE
+      'LINE2:data1049162###COLOR2##:Machimbre Cedrella Grit200 3/4X5X2.44-2.17M2 '
+      'GPRINT:data1049162:LAST: last=%.1lf'
+      DEF:data1049163=##DB##:data1049163:AVERAGE
+      'LINE2:data1049163###COLOR3##:Machimbre Cedrella Grit200 3/4X5X3.05-2.71M2 '
+      'GPRINT:data1049163:LAST: last=%.1lf'
+      DEF:data1049164=##DB##:data1049164:AVERAGE
+      'LINE2:data1049164###COLOR4##:Machimbre Cedrella Grit200 3/4X5X3.66-3.25M2 '
+      'GPRINT:data1049164:LAST: last=%.1lf'
+      DEF:data1049153=##DB##:data1049153:AVERAGE
+      'LINE2:data1049153###COLOR5##:Machimbre Cedrella Grit200 1/2X5X1.83-2.32M2 '
+      'GPRINT:data1049153:LAST: last=%.1lf'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1158755=##DB##:data1158755:AVERAGE
+      'LINE2:data1158755###COLOR1##:Cuadro Chata Foil Verde 20X20X1.50M '
+      'GPRINT:data1158755:LAST: last=%.1lf'
+      DEF:data1158754=##DB##:data1158754:AVERAGE
+      'LINE2:data1158754###COLOR2##:Cuadro Chata Foil Mandarina 20X20X1.50M '
+      'GPRINT:data1158754:LAST: last=%.1lf'
+      DEF:data1158753=##DB##:data1158753:AVERAGE
+      'LINE2:data1158753###COLOR3##:Cuadro Chata Foil Gris 40X8.5X1.50M '
+      'GPRINT:data1158753:LAST: last=%.1lf'
+      DEF:data1158752=##DB##:data1158752:AVERAGE
+      'LINE2:data1158752###COLOR4##:Cuadro Chata Foil Rojo 40X8.5X1.50M '
+      'GPRINT:data1158752:LAST: last=%.1lf'
+      DEF:data1158751=##DB##:data1158751:AVERAGE
+      'LINE2:data1158751###COLOR5##:Cuadro Italiana Foil Abedul 44X14X1.50M '
+      'GPRINT:data1158751:LAST: last=%.1lf'
+
+graph   value5-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1158750=##DB##:data1158750:AVERAGE
+      'LINE2:data1158750###COLOR1##:Cuadro Chata Foil Negro 40X8.5 3.05M '
+      'GPRINT:data1158750:LAST: last=%.1lf'
+      DEF:data1158749=##DB##:data1158749:AVERAGE
+      'LINE2:data1158749###COLOR2##:Cuadro Chanfle Foil Blanca 29X8.5 3.05M '
+      'GPRINT:data1158749:LAST: last=%.1lf'
+      DEF:data1158748=##DB##:data1158748:AVERAGE
+      'LINE2:data1158748###COLOR3##:Cuadro Ele Natural 20X30 3.05M '
+      'GPRINT:data1158748:LAST: last=%.1lf'
+      DEF:data1195334=##DB##:data1195334:AVERAGE
+      'LINE2:data1195334###COLOR4##:Contramarco Liso Curvo 8x44x2.44M '
+      'GPRINT:data1195334:LAST: last=%.1lf'
+      DEF:data1144319=##DB##:data1144319:AVERAGE
+      'LINE2:data1144319###COLOR5##:Machimbre Pino AA 1/2x5x2.44 (3.10M2) '
+      'GPRINT:data1144319:LAST: last=%.1lf'
+
+graph   value6-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #6 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1144318=##DB##:data1144318:AVERAGE
+      'LINE2:data1144318###COLOR1##:Machimbre Pino AA 1/2x5x1.52 (1.95M2) '
+      'GPRINT:data1144318:LAST: last=%.1lf'
+      DEF:data1144315=##DB##:data1144315:AVERAGE
+      'LINE2:data1144315###COLOR2##:Machimbre Pino AA 1/2x4x2.44 (2.48M2) '
+      'GPRINT:data1144315:LAST: last=%.1lf'
+      DEF:data1144314=##DB##:data1144314:AVERAGE
+      'LINE2:data1144314###COLOR3##:Machimbre Pino AA 1/2x4x1.52 (1.52M2) '
+      'GPRINT:data1144314:LAST: last=%.1lf'
+      DEF:data1323916=##DB##:data1323916:AVERAGE
+      'LINE2:data1323916###COLOR4##:Machimbre Pino Comercial 1/2x5x3.05 (3.87M2) '
+      'GPRINT:data1323916:LAST: last=%.1lf'
+      DEF:data1323914=##DB##:data1323914:AVERAGE
+      'LINE2:data1323914###COLOR5##:Machimbre Pino Comerc. 1/2X5X2.44 (3.10M2) '
+      'GPRINT:data1323914:LAST: last=%.1lf'
+
+graph   value7-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #7 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1323939=##DB##:data1323939:AVERAGE
+      'LINE2:data1323939###COLOR1##:Machimbre Pino Comercial 1x6x3.66 (2.79M2) '
+      'GPRINT:data1323939:LAST: last=%.1lf'
+      DEF:data1323920=##DB##:data1323920:AVERAGE
+      'LINE2:data1323920###COLOR2##:Machimbre Pino Comercial 1/2x5x4.27 (5.42M2) '
+      'GPRINT:data1323920:LAST: last=%.1lf'
+      DEF:data1323918=##DB##:data1323918:AVERAGE
+      'LINE2:data1323918###COLOR3##:Machimbre Pino Comercial 1/2x5x3.66 (4.65M2) '
+      'GPRINT:data1323918:LAST: last=%.1lf'
+      DEF:data1323910=##DB##:data1323910:AVERAGE
+      'LINE2:data1323910###COLOR4##:Machimbre Pino Comercial 1/2x4x4.27 (4.34M2) '
+      'GPRINT:data1323910:LAST: last=%.1lf'
+      DEF:data1323908=##DB##:data1323908:AVERAGE
+      'LINE2:data1323908###COLOR5##:Machimbre Pino Comercial 1/2x4x3.66 (3.72M2) '
+      'GPRINT:data1323908:LAST: last=%.1lf'
+
+graph   value8-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #8 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1323898=##DB##:data1323898:AVERAGE
+      'LINE2:data1323898###COLOR1##:Machimbre Pino 3/4x5x3.66 (3.20M2) '
+      'GPRINT:data1323898:LAST: last=%.1lf'
+      DEF:data1323896=##DB##:data1323896:AVERAGE
+      'LINE2:data1323896###COLOR2##:Machimbre Pino 3/4x5x3.05 (2.67M2) '
+      'GPRINT:data1323896:LAST: last=%.1lf'
+      DEF:data1323894=##DB##:data1323894:AVERAGE
+      'LINE2:data1323894###COLOR3##:Machimbre Pino 3/4x5x2.44 (2.14M2) '
+      'GPRINT:data1323894:LAST: last=%.1lf'
+      DEF:data1323880=##DB##:data1323880:AVERAGE
+      'LINE2:data1323880###COLOR4##:Machimbre de Pino A 1x6x3.66 (2.79M2) '
+      'GPRINT:data1323880:LAST: last=%.1lf'
+      DEF:data1323878=##DB##:data1323878:AVERAGE
+      'LINE2:data1323878###COLOR5##:Machimbre de Pino A 1x6x3.05 (2.32M2) '
+      'GPRINT:data1323878:LAST: last=%.1lf'
+
+graph   value9-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #9 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1323876=##DB##:data1323876:AVERAGE
+      'LINE2:data1323876###COLOR1##:Machimbre de Pino A 1x6x2.44 (1.86M2) '
+      'GPRINT:data1323876:LAST: last=%.1lf'
+      DEF:data1323864=##DB##:data1323864:AVERAGE
+      'LINE2:data1323864###COLOR2##:Machimbre de Pino A 1/2x5X3.66 (4.65M2) '
+      'GPRINT:data1323864:LAST: last=%.1lf'
+      DEF:data1323862=##DB##:data1323862:AVERAGE
+      'LINE2:data1323862###COLOR3##:Machimbre de Pino A 1/2x5x3.05 (3.87M2) '
+      'GPRINT:data1323862:LAST: last=%.1lf'
+      DEF:data1323860=##DB##:data1323860:AVERAGE
+      'LINE2:data1323860###COLOR4##:Machimbre de Pino A 1/2x5x2.44 (3.10M2) '
+      'GPRINT:data1323860:LAST: last=%.1lf'
+      DEF:data1323854=##DB##:data1323854:AVERAGE
+      'LINE2:data1323854###COLOR5##:Machimbre de Pino A 1/2x4x3.66 (3.72M2) '
+      'GPRINT:data1323854:LAST: last=%.1lf'
+
+graph   value10-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=85657&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #10 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1323852=##DB##:data1323852:AVERAGE
+      'LINE2:data1323852###COLOR1##:Machimbre de Pino A 1/2x4x3.05 (3.10M2) '
+      'GPRINT:data1323852:LAST: last=%.1lf'
+      DEF:data1323850=##DB##:data1323850:AVERAGE
+      'LINE2:data1323850###COLOR2##:Machimbre de Pino A 1/2x4x2.44 (2.48M2) '
+      'GPRINT:data1323850:LAST: last=%.1lf'
+      DEF:data1996350=##DB##:data1996350:AVERAGE
+      'LINE2:data1996350###COLOR3##:Machimbre Pino Clear 1/2x5x1.22 (2.32M2) '
+      'GPRINT:data1996350:LAST: last=%.1lf'
+      DEF:data1996349=##DB##:data1996349:AVERAGE
+      'LINE2:data1996349###COLOR4##:Machimbre Pino Clear 1/2x4x1.22 (1.86M2) '
+      'GPRINT:data1996349:LAST: last=%.1lf'
+      DEF:data1323955=##DB##:data1323955:AVERAGE
+      'LINE2:data1323955###COLOR5##:Machimbre Pino Comercial 3/4x5x3.05 (2.71M2) '
+      'GPRINT:data1323955:LAST: last=%.1lf'

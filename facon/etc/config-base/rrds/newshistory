@@ -1,0 +1,49 @@
+# rrds/newshistory - show which hierarchies are biggest
+# CVS $Id: newshistory,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# FIXME - This is specific to your new-server setup (INN) and which hierarchies
+# you get.
+
+source	log
+step	300
+data	alt	DERIVE:600:0:U	count \talt\.
+data	comp	DERIVE:600:0:U	count \tcomp\.
+data	crc	DERIVE:600:0:U	count \tcrc(?!\.talk)\.
+data	news	DERIVE:600:0:U	count \tnews\.
+data	ont	DERIVE:600:0:U	count \tont\.
+data	rec	DERIVE:600:0:U	count \trec\.
+data	sci	DERIVE:600:0:U	count \tsci\.
+data	soc	DERIVE:600:0:U	count \tsoc\.
+data	talk	DERIVE:600:0:U	count \ttalk\.
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+graph	grouparticles
+	--title '##HOST## - Articles by Hierarchy'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'articles/s'
+	--height 300
+	DEF:alt=##DB##:alt:AVERAGE
+	DEF:comp=##DB##:comp:AVERAGE
+	DEF:crc=##DB##:crc:AVERAGE
+	DEF:news=##DB##:news:AVERAGE
+	DEF:ont=##DB##:ont:AVERAGE
+	DEF:rec=##DB##:rec:AVERAGE
+	DEF:sci=##DB##:sci:AVERAGE
+	DEF:soc=##DB##:soc:AVERAGE
+	DEF:talk=##DB##:talk:AVERAGE
+	CDEF:missing=alt,UN,INF,UNKN,IF
+	AREA:alt###COLOR1##:alt
+	AREA:comp###COLOR2A##:comp
+	AREA:crc###COLOR3##:crc
+	AREA:news###COLOR4##:news
+	AREA:ont###COLOR1A##:ont
+	AREA:rec###COLOR2##:rec
+	AREA:sci###COLOR3A##:sci
+	AREA:soc###COLOR5##:soc
+	AREA:talk###COLOR6##:talk
+	'AREA:missing###MISSING##:missing'
+

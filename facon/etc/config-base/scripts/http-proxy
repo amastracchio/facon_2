@@ -1,0 +1,12 @@
+# scripts/http-proxy - web-server accessibility (via proxy)
+# $Id: http-proxy,v 1.4 2002/09/10 12:53:04 remstats Exp $
+
+# This currently DOES NOT WORK.  Under investigation.
+# This script fetches a page through a proxy, which is wired into the script.
+
+send	GET http://##HOST##/ HTTP/1.1\r\nUser-Agent: Remstats/1.0.13a\r\nHost: ##HOST##\r\nConnection: close\r\n\r\n
+proxy	FIXME-proxy-in-config/scripts/http-proxy
+port	80
+timeout	5
+ok      ^HTTP/\d\.\d 200
+

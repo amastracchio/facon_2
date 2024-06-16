@@ -1,0 +1,13 @@
+# scripts/airqualityontario-* - isn't it nice that there is no standard 
+# for any information?
+# $Id: airqualityontario-,v 1.2 2002/04/16 15:21:13 remstats Exp $
+
+# Gets info from the web-site until they change the format of their pages. :-(
+
+port	80
+timeout	10
+send	GET http://www.airqualityontario.com/reports/today.cfm?sites=##WILDPART## HTTP/1.0\nUser-Agent: Remstats/1.0.13a\nHost: ##HOST##\nConnection: close\n\n
+
+valuepattern	AQI:<.*?<B>(\d+)</B>
+
+OK	</HTML>

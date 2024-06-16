@@ -1,0 +1,113 @@
+# html - web-page generation related stuff
+# $Id: html,v 1.16 2003/03/13 14:35:34 facon Exp $
+
+#-------------------------------------------------------- locations ---
+# the html stuff is stored under "HTMLDIR/$hostname/xxx.{html|gif|png|cgi}"
+htmldir		/root/3p/facon/html
+# How to refer to the HTMLDIR in a URL
+htmlurl		/facon
+# The static CGI scripts live here
+cgidir		/root/3p/facon/cgi-bin
+# How to refer to cgidir in a URL
+cgiurl		/facon
+#cgiurl		/cgi-bin
+# where is the logo for this site (a URL)
+#logourl		/facon/IMAGES/logo.png
+logourl		/img/sanatorio.jpg
+# Where is the "home" for this site
+homeurl		/facon/quick-index.cgi
+# Where should pages go back to for top
+topurl		/facon/quick-index.cgi
+# Where to get facon
+srcurl		http://facon.sourceforge.net/release/
+
+#----------------------------------------------------- how-to ---
+# How big to make the thumbnails
+thumbnail	30x30
+# Where the CERN-style meta-data is stored (metadir metasuffix)
+metadata	.web .meta
+# Who to blame for this mess, just a bare email address, no <>
+webmaster	ari
+# How often to refresh html pages
+htmlrefresh	600
+# Where is rrdcgi (part of rrdtool, but it could be installed anywhere)
+rrdcgi		/root/3p/rrdtool/bin/rrdcgi
+# Which format to use for graphs (gif or png)
+imagetype	png
+# Show Indices in View pages
+viewindices	yes
+# Show interfaces in host pages?
+showinterfaces	yes
+# What tools to show for a host with none specified
+default-tools	ping traceroute availability status
+
+#------------------------------------------------------- markers ---
+# What the background is to look like, gets inserted into <body XXX>
+background	background="/facon/IMAGES/background.jpg"
+
+# The various statuses and how to show them
+upstatus	<SPAN CLASS="UP">Up</SPAN>
+upunstablestatus <SPAN CLASS="UPUNSTABLE">Up,&nbsp;unstable</SPAN>
+downunstablestatus <SPAN CLASS="DOWNUNSTABLE">Down,&nbsp;unstable</SPAN>
+downstatus	<SPAN CLASS="DOWN">Down</SPAN>
+okstatus	<SPAN CLASS="OK">OK</SPAN>
+warnstatus	<SPAN CLASS="WARN">Warning</SPAN>
+errorstatus	<SPAN CLASS="ERROR">Error</SPAN>
+criticalstatus	<SPAN CLASS="CRITICAL">CRITICAL</SPAN>
+
+# These are included conditionally in web-pages
+
+# The uptime flag appears when a host has been up less than minuptime
+# (see general config-file)
+uptimeflag	&nbsp;<SPAN CLASS="ALERT">U</SPAN>
+# The alertflags appears when a given host has an alert of that level
+alertflagwarn	&nbsp;<SPAN CLASS="WARN">A</SPAN>
+alertflagerror	&nbsp;<SPAN CLASS="ERROR">A</SPAN>
+alertflagcritical &nbsp;<SPAN CLASS="CRITICAL">A</SPAN>
+
+# These next two surround the names of groups in the indices
+groupprefix	<TABLE WIDTH="100%"><TR><TD BGCOLOR="#DDDDDD"><FONT="+1"><B>
+groupsuffix	</B></FONT></TD></TR></TABLE>\n
+
+# These surround an index entry in the Indices line
+# indexprefix	default is a space
+# indexsuffix	default is a space
+
+# These surround a tool name
+# toolprefix	default is a space
+# toolsuffix	default is a space
+
+# These surround a host entry in the quick or overall index
+hostprefix	[
+hostsuffix	]
+
+# These surround the link name in the links line
+# linkprefix	default is a space
+# linksuffix	default is a space
+
+#-------------------------------------------------------- labels ---
+# override these to change the labels in the HTML, e.g. to translate
+alertindex		Alert Index
+alertreport		Alert Report
+comment			Comment
+contact			Contact
+customindex		Custom Index
+description		Description
+groupindex		Group Index
+hardware		Hardware
+hostindex		Host Index
+indices			Indices
+interfaces		Interfaces
+ipnumber		IP #
+lastupdateon		This page last updated on
+links			Links
+logreport		Log Report
+operatingsystem		Operating System
+overallindex		Overall Index
+pingindex		Ping Index
+quickindex		Quick Index
+rrdindex		RRD Index
+status			Status
+tools			Tools
+uptime			Uptime
+

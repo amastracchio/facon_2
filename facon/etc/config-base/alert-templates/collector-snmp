@@ -1,0 +1,6 @@
+The snmp-collector is not returning any data.  Could
+all the hosts you query via SNMP be down?  DNS broken?
+Some-one added an SNMP filter to a router?
+
+This started at ##START## and has been in this state
+for ##DURATION##.

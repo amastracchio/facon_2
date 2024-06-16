@@ -1,0 +1,228 @@
+#!/usr/bin/perl -w
+
+# dns-collector - a facon collector for DNS info
+# $Id: dns-collector.pl,v 1.2 2003/05/15 12:02:31 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'dns-collector';
+# Which collector is this
+$main::collector = 'dns';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# How long to wait for a response
+$main::timeout = 10;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.2 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+use Net::DNS;
+use Time::HiRes qw( time );
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FG:hH:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'groups', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+$main::resolver = Net::DNS::Resolver->new;
+$main::resolver->tcp_timeout( $main::timeout);
+$main::resolver->udp_timeout( $main::timeout);
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $now,
+	$start_time, $run_time);
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing host $host") if ($main::debug);
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+		# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+
+		# Collect it
+		&collect_rrd($host, $ip, $realrrd, $wildpart );
+	}
+}
+
+# Now facon instrumentation info
+$now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#------------------------------------------------------- collect_rrd ---
+sub collect_rrd {
+	my( $host, $ip, $realrrd, $wildpart ) = @_;
+	my ($now, @types, $type, $count, $response, $start, $query, $errors,
+		$timeouts, $error, );
+
+	++$main::requests;
+	$start = time();
+
+	# Switch name-server if required
+	if( $main::current_server and
+			($main::current_server eq $host or $main::current_server eq $ip)) {
+		&debug("using current DNS server $main::current_server")
+			if( $main::debug);
+	}
+	else {
+		$main::current_server = (defined $ip) ? $ip : $host;
+		$main::resolver->nameservers( $main::current_server);
+		&debug("using nameserver $main::current_server") if( $main::debug);
+	}
+
+	# Figure out which type of record to look up
+	if( $main::config{HOST}{$host}{EXTRA}{$realrrd}) {
+		@types = split(' ',
+			uc $main::config{HOST}{$host}{EXTRA}{$realrrd});
+	}
+	else { @types = ('A'); }
+
+	# Look it up
+	foreach $type (@types) {
+		$query = $main::resolver->send( $wildpart, $type);
+		$errors = $timeouts = $count = 0;
+		$now = time();
+		if( $query) {
+			foreach my $rr ( $query->answer) {
+				++$main::entries_collected;
+				if( $rr->type eq $type) {
+					++ $count;
+					++ $main::entries_used;
+				}
+				else {
+					&debug("  got " . $rr->type) if( $main::debug>1);
+				}
+			}
+			$response = $now - $start;
+
+			# Tell what we found
+			print qq!$host $now dns-$type:$wildpart $count
+$host $now dns-$type-response:$wildpart $response\n!;
+			print TMP qq!$host $now dns-$type:$wildpart $count
+$host $now dns-$type-response:$wildpart $response\n!;
+		}
+		else {
+			$error = $main::resolver->errorstring;
+			&debug( "can't fetch $type for $wildpart from $host: $error")
+				if( $main::debug);
+			if( $error eq 'query timed out') { ++ $timeouts; }
+			else { ++ $errors; }
+		}
+		print qq!$host $now dns-errors:$wildpart $errors
+$host $now dns-timeouts:$wildpart $timeouts\n!;
+		print TMP qq!$host $now dns-errors:$wildpart $errors
+$host $now dns-timeouts:$wildpart $timeouts\n!;
+	}
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it's not time
+   	-G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

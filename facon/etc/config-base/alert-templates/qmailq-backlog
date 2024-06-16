@@ -1,0 +1,5 @@
+The qmail queue on ##HOST##(##IP##) has ##VALUE## 
+messages that haven't been preprocessed.  Any significant backlog 
+over time is bad as it means that the daemons aren't keeping up 
+with the message injection rate.  If this keeps up, eventually the 
+server will stop working.

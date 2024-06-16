@@ -1,0 +1,177 @@
+#!/usr/bin/perl -w
+
+# rename-host - rename all the various files and directories used by a host
+# $Id: rename-host.pl,v 1.1 2002/05/17 18:45:02 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'rename-host';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.1 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+require "facon.pl";
+
+# Parse the command-line
+&parse_command_line();
+
+&initialize();
+
+&read_config_dir( $main::config_dir, 'general', 'html');
+
+my( $old_host_config, $new_host_config, $old, $new);
+
+# - - -   Mainline   - - -
+
+# Take the host out of configuration
+$old = $main::config_dir . '/hosts/' . $main::old_hostname;
+$new = $main::config_dir . '/hosts/' . $main::old_hostname . '~';
+rename $old, $new or
+	&abort("can't rename $old to $new: $!");
+&debug("disabled host config ...") if( $main::debug);
+&debug("  old=$old") if( $main::debug>1);
+&debug("  new=$new") if( $main::debug>1);
+
+# Rename the data directory
+$old = $main::config{DATADIR} . '/' . $main::old_hostname;
+$new = $main::config{DATADIR} . '/' . $main::new_hostname;
+rename $old, $new or
+	&abort("can't rename $old to $new: $!");
+&debug("renamed data directory ...") if( $main::debug);
+&debug("  old=$old") if( $main::debug>1);
+&debug("  new=$new") if( $main::debug>1);
+
+# Rename the html directory
+$old = $main::config{HTMLDIR} . '/' . $main::old_hostname;
+$new = $main::config{HTMLDIR} . '/' . $main::new_hostname;
+rename $old, $new or
+	&abort("can't rename $old to $new: $!");
+&debug("renamed html directory ...") if( $main::debug);
+&debug("  old=$old") if( $main::debug>1);
+&debug("  new=$new") if( $main::debug>1);
+
+# Rename the html/GRAPHS directory
+$old = $main::config{HTMLDIR} . '/GRAPHS/' . $main::old_hostname;
+$new = $main::config{HTMLDIR} . '/GRAPHS/' . $main::new_hostname;
+rename $old, $new or
+	&abort("can't rename $old to $new: $!");
+&debug("renamed html/GRAPHS directory ...") if( $main::debug);
+&debug("  old=$old") if( $main::debug>1);
+&debug("  new=$new") if( $main::debug>1);
+
+# Copy the host config-file
+$old = $main::config_dir . '/hosts/' . $main::old_hostname . '~';
+$new = $main::config_dir . '/hosts/' . $main::new_hostname . '~';
+&copy_file( $old , $new);
+&debug("copied old host config to $new ...") if( $main::debug);
+&debug("  old=$old") if( $main::debug>1);
+&debug("  new=$new") if( $main::debug>1);
+
+# Re-enable as new name
+$old = $main::config_dir . '/hosts/' . $main::new_hostname . '~';
+$new = $main::config_dir . '/hosts/' . $main::new_hostname;
+rename $old, $new or &abort("can't rename $old to $new: $!");
+&debug("re-enabled host config") if( $main::debug);
+&debug("  old=$old") if( $main::debug>1);
+&debug("  new=$new") if( $main::debug>1);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -h      show this help
+  -i iii  change the IP number in the new config-file to 'iii'
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------- parse_command_line ---
+sub parse_command_line {
+	my %opt = ();
+	getopts('d:h:i:', \%opt);
+
+	if (defined $opt{'h'}) { &usage(); } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if( defined $opt{'i'}) { $main::new_ip = $opt{'i'}; }
+
+	unless( @ARGV == 2) { &usage(); }
+
+	$main::old_hostname = shift @ARGV;
+	$main::new_hostname = shift @ARGV;
+}
+
+#-------------------------------------------------------------- initialize ---
+sub initialize {
+
+	# No buffering when debugging
+	if ($main::debug) { $| = 1; }
+}
+
+#-------------------------------------------------------------- copy_file ---
+# Copy the file, changing the IP number, if a new one was provided.
+sub copy_file {
+	my( $old, $new) = @_;
+	my( $line, $renumbered);
+
+	open( OLD, "<$old") or &abort("can't open $old: $!");
+	open( NEW, ">$new") or &abort("can't open $new: $!");
+
+	$renumbered = 0;
+	while($line = <OLD>) {
+		if( $main::new_ip and $line =~ /^ip\s*(\S+)/) {
+			# Keep the old indentation
+			my $old = $1;
+			$line =~ s/$old/$main::new_ip/;
+			$renumbered = 1;
+			&debug("changed IP number") if( $main::debug);
+			&debug("  old=$old") if( $main::debug>1);
+			&debug("  new=$main::new_ip") if( $main::debug>1);
+		}
+		print NEW $line or &abort("can't write $new: $!");
+	}
+
+	# If we were given a new IP number, but there is none in the config, do it
+	if( $main::new_ip and ! $renumbered) {
+		print NEW "ip\t", $main::new_ip, "\n" or
+			&abort("can't write $new: $!");
+	}
+
+	close(NEW) or &abort("can't close $new: $!");
+	close(OLD) or &abort("can't close $old: $!");
+}

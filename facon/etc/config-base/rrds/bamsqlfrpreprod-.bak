@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	mk1_data_ex=mk1_data_ex:* GAUGE:1200:0:U  bamsql *
+data	iinterfaces=iinterfaces:* GAUGE:1200:0:U  bamsql *
+data	rbs_1=rbs_1:* GAUGE:1200:0:U  bamsql *
+data	ibamac4=ibamac4:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_7=temp_mv_7:* GAUGE:1200:0:U  bamsql *
+data	referentiel1=referentiel1:* GAUGE:1200:0:U  bamsql *
+data	exploit=exploit:* GAUGE:1200:0:U  bamsql *
+data	bamac=bamac:* GAUGE:1200:0:U  bamsql *
+data	bamac5=bamac5:* GAUGE:1200:0:U  bamsql *
+data	referentiel=referentiel:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_6=temp_mv_6:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:mk1_data_ex=##DB##:mk1_data_ex:AVERAGE
+	 DEF:iinterfaces=##DB##:iinterfaces:AVERAGE
+	 DEF:rbs_1=##DB##:rbs_1:AVERAGE
+	 DEF:ibamac4=##DB##:ibamac4:AVERAGE
+	 DEF:temp_mv_7=##DB##:temp_mv_7:AVERAGE
+	 DEF:referentiel1=##DB##:referentiel1:AVERAGE
+	 DEF:exploit=##DB##:exploit:AVERAGE
+	 DEF:bamac=##DB##:bamac:AVERAGE
+	 DEF:bamac5=##DB##:bamac5:AVERAGE
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+	 DEF:temp_mv_6=##DB##:temp_mv_6:AVERAGE
+      CDEF:missing=mk1_data_ex,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:mk1_data_ex###COLOR1##:mk1_data_ex'
+	'LINE2:iinterfaces###COLOR2##:iinterfaces'
+	'LINE2:rbs_1###COLOR3##:rbs_1'
+	'LINE2:ibamac4###COLOR4##:ibamac4'
+	'LINE2:temp_mv_7###COLOR5##:temp_mv_7'
+	'LINE2:referentiel1###COLOR6##:referentiel1'
+	'LINE2:exploit###COLOR7##:exploit'
+	'LINE2:bamac###COLOR8##:bamac'
+	'LINE2:bamac5###COLOR9##:bamac5'
+	'LINE2:referentiel###COLOR10##:referentiel'
+	'LINE2:temp_mv_6###COLOR11##:temp_mv_6'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:mk1_data_ex:LAST:mk1_data_ex         = %.2lf\l'
+	'GPRINT:iinterfaces:LAST:iinterfaces         = %.2lf\l'
+	'GPRINT:rbs_1:LAST:rbs_1         = %.2lf\l'
+	'GPRINT:ibamac4:LAST:ibamac4         = %.2lf\l'
+	'GPRINT:temp_mv_7:LAST:temp_mv_7         = %.2lf\l'
+	'GPRINT:referentiel1:LAST:referentiel1         = %.2lf\l'
+	'GPRINT:exploit:LAST:exploit         = %.2lf\l'
+	'GPRINT:bamac:LAST:bamac         = %.2lf\l'
+	'GPRINT:bamac5:LAST:bamac5         = %.2lf\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'
+	'GPRINT:temp_mv_6:LAST:temp_mv_6         = %.2lf\l'

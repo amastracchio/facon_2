@@ -1,0 +1,123 @@
+2732: DEBUG: 10:15:53: ====== loaded nt-status-server ======
+2732: DEBUG: 10:15:53: started; waiting for connection on 9001
+2732: DEBUG: 10:16:47: do_state: entering state polling loop
+2732: DEBUG: 10:16:47: connection from B701613.inetpsa.com [127.0.0.1] from port 4458 at 1254921407
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: raw command: GO
+2732: DEBUG: 10:16:49: beginning data acquistition
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: do_state: entering state polling loop
+2732: DEBUG: 10:16:49: re-exec: ./nt-status-server.pl -d 999 -p 9001 -s
+548: DEBUG: 10:20:02: ====== loaded nt-status-server ======
+548: DEBUG: 10:20:02: started; waiting for connection on 9001
+548: DEBUG: 10:20:05: do_state: entering state polling loop
+548: DEBUG: 10:20:05: connection from B701613.inetpsa.com [127.0.0.1] from port 4521 at 1254921605
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: raw command: GO
+548: DEBUG: 10:20:06: beginning data acquistition
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: do_state: entering state polling loop
+548: DEBUG: 10:20:06: re-exec: ./nt-status-server.pl -d 999 -p 9001 -s
+3072: DEBUG: 10:21:43: ====== loaded nt-status-server ======
+3072: DEBUG: 10:21:43: started; waiting for connection on 9001
+3072: DEBUG: 10:21:46: do_state: entering state polling loop
+3072: DEBUG: 10:21:47: connection from B701613.inetpsa.com [127.0.0.1] from port 4591 at 1254921707
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: raw command: GO
+3072: DEBUG: 10:21:48: beginning data acquistition
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: do_state: entering state polling loop
+3072: DEBUG: 10:21:48: re-exec: /cygdrive/c/Perl/bin/perl -w ./nt-status-server.pl -d 999 -p 9001 -s
+3092: DEBUG: 10:22:09: ====== loaded nt-status-server ======
+3092: DEBUG: 10:22:09: started; waiting for connection on 9001
+3292: DEBUG: 10:22:34: ====== loaded nt-status-server ======
+3292: DEBUG: 10:22:34: started; waiting for connection on 9001
+3292: DEBUG: 10:22:38: do_state: entering state polling loop
+3292: DEBUG: 10:22:38: connection from B701613.inetpsa.com [127.0.0.1] from port 4611 at 1254921758
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: raw command: GO
+3292: DEBUG: 10:22:40: beginning data acquistition
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: do_state: entering state polling loop
+3292: DEBUG: 10:22:40: re-exec: /cygdrive/c/Perl/bin/perl -w ./nt-status-server.pl -d 999 -p 9001 -s
+548: DEBUG: 10:22:55: ====== loaded nt-status-server ======
+548: DEBUG: 10:22:55: started; waiting for connection on 9001
+548: DEBUG: 10:22:57: do_state: entering state polling loop
+548: DEBUG: 10:22:57: connection from B701613.inetpsa.com [127.0.0.1] from port 4615 at 1254921777
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: raw command: GO
+548: DEBUG: 10:22:58: beginning data acquistition
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:58: do_state: entering state polling loop
+548: DEBUG: 10:22:59: do_state: entering state polling loop
+548: DEBUG: 10:22:59: re-exec: /cygdrive/c/Perl/bin/perl -w nt-status-server.pl -d 999 -p 9001 -s
+2292: DEBUG: 10:23:18: ====== loaded nt-status-server ======
+2292: DEBUG: 10:23:18: started; waiting for connection on 9001
+2292: DEBUG: 10:23:22: do_state: entering state polling loop
+2292: DEBUG: 10:23:22: connection from B701613.inetpsa.com [127.0.0.1] from port 4626 at 1254921802
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: raw command: GO
+2292: DEBUG: 10:23:23: beginning data acquistition
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: do_state: entering state polling loop
+2292: DEBUG: 10:23:23: re-exec: /cygdrive/c/Perl/bin/perl -w /var/facon/bin/nt-status-server.pl -d 999 -p 9001 -s
+3160: DEBUG: 10:24:41: ====== loaded nt-status-server ======
+3160: DEBUG: 10:24:41: started; waiting for connection on 9001
+3160: DEBUG: 10:24:44: do_state: entering state polling loop
+3160: DEBUG: 10:24:44: connection from B701613.inetpsa.com [127.0.0.1] from port 4643 at 1254921884
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: raw command: GO
+3160: DEBUG: 10:24:45: beginning data acquistition
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: do_state: entering state polling loop
+3160: DEBUG: 10:24:45: re-exec: c:\perl\bin\perl -w c:\cygwin1\var\facon\bin\nt-status-server.pl -d 999 -p 9001 -s
+3092: DEBUG: 10:24:45: ====== loaded nt-status-server ======
+3092: DEBUG: 10:24:45: started; waiting for connection on 9001

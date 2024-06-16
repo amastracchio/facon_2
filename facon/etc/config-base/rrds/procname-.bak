@@ -1,0 +1,29 @@
+# rrds/procname-* - number of * named process running
+# CVS $Id: procname-,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	procs=procname:* GAUGE:1200:0:U procname *
+
+alert	procs < 50 70 90
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	procs-* desc="This is collected by the unix-status-collector.  It works by running the <B>ps</B> command on the remote host and parsing the output to look for the specified program by name, and counting how many are running."
+	--title '##HOST## - ##WILDPART## processes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:procs=##DB##:procs:AVERAGE
+	CDEF:missing=procs,UN,INF,UNKN,IF
+	'LINE2:procs###COLOR1##:##WILDPART##'
+	'GPRINT:procs:AVERAGE:avg=%.0lf%s\g'
+	'GPRINT:procs:MAX: max=%.0lf%s\g'
+	'GPRINT:procs:LAST: cur=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

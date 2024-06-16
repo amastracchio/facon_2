@@ -1,0 +1,68 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	response=vatican-response GAUGE:1200:0:U
+data	vatican=vatican GAUGE:1200:0:U
+data	enticon=enticon GAUGE:1200:0:U
+data	infocat=infocat GAUGE:1200:0:U
+data	relliber=relliber GAUGE:1200:0:U
+
+
+
+
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	response desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Response (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'ariel mastracchio' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:response:AVERAGE:%.0lf%s,'
+	'GPRINT:response:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Paginas Indexadas por sitio  (##GRAPHTIME##)'
+	--vertical-label 'paginas'
+	--watermark 'ariel mastracchio' 
+	DEF:vatican=##DB##:vatican:AVERAGE
+	DEF:enticon=##DB##:enticon:AVERAGE
+	DEF:infocat=##DB##:infocat:AVERAGE
+	DEF:relliber=##DB##:relliber:AVERAGE
+	CDEF:missing=vatican,UN,INF,UNKN,IF
+	'LINE1:vatican###COLOR1##:vatican.va'
+	'LINE1:enticon###COLOR2##:www.enticonfio.org'
+	'LINE1:infocat###COLOR3##:www.infocat.com'
+	'LINE1:relliber###COLOR4##:www.religionenlibertad.com'
+	'GPRINT:vatican:MIN:vatican\: min=%.1lf'
+	'GPRINT:vatican:AVERAGE:avg=%.1lf'
+	'GPRINT:vatican:MAX:max=%.1lf\l'
+	'GPRINT:enticon:MIN:enticon\: min=%.1lf'
+	'GPRINT:enticon:AVERAGE:avg=%.1lf'
+	'GPRINT:enticon:MAX:max=%.1lf\l'
+	'GPRINT:infocat:MIN:infocat\: min=%.1lf'
+	'GPRINT:infocat:AVERAGE:avg=%.1lf'
+	'GPRINT:infocat:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+	'AREA:missing###MISSING##:missing'
+
+
+
+

@@ -1,0 +1,63 @@
+# rrds/sendmaillog - message, byte and delivery counts for sendmail
+# CVS $Id: sendmaillog,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+#
+# This is only useful if you're running sendmail.  It will count the new
+# messages and message bytes and the deliveries attempted and how they fared.
+# I need some data to improve the patterns for delfail and deldefer.  Send me
+# lines from the log which were defered and failed, different kinds if there
+# is more than one kind of message.
+
+source	log
+step	300
+
+data	messages ABSOLUTE:600:0:U	count sendmail\[\d+\]:\s+\S+\s+from=
+data	bytes	ABSOLUTE:600:0:U	sum sendmail\[\d+\]:\s+\S+\s+from=\S+, size=(\d+)
+data	del	ABSOLUTE:600:0:U	count sendmail\[\d+\]:\s+\S+\s+to=
+data	delok	ABSOLUTE:600:0:U	count sendmail\[\d+\]:\s+\S+\s+to=.*, stat=Sent
+data	delfail	ABSOLUTE:600:0:U	count sendmail\[\d+\]:\s+\S+\s+to=.*, stat=[A-RT-Z]
+data	deldefer ABSOLUTE:600:0:U	count sendmail\[\d+\]:\s+\S+\s+to=.*, stat=0
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	sendmailmsg desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it looks at the logs produced by some version of sendmail and counts the number of new messages arriving at the host."
+		--title '##HOST## - Sendmail Messages (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'messages'
+		DEF:messages=##DB##:messages:AVERAGE
+		CDEF:missing=messages,UN,INF,UNKN,IF
+		'LINE2:messages###COLOR1##:Messages'
+		'GPRINT:messages:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph	sendmailmsgbytes desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it looks at the logs produced by some version of sendmail and totals the number of bytes in new messages."
+		--title '##HOST## - Sendmail Msg-bytes (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'bytes'
+		DEF:bytes=##DB##:bytes:AVERAGE
+		CDEF:missing=bytes,UN,INF,UNKN,IF
+		'LINE2:bytes###COLOR1##:Msg Bytes'
+		'GPRINT:bytes:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph	sendmaildel desc="This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve.  In this case, it looks at the logs produced by some version of sendmail and counts the delivery attempts, categorizing them as successes, deferrals (temporarary errors which will be replaced in the queue and the delivery re-tried) and failures (permanent errors which will be bounced to the sender)"
+		--title '##HOST## - Sendmail Deliveries (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'deliveries'
+		DEF:del=##DB##:del:AVERAGE
+		DEF:delok=##DB##:delok:AVERAGE
+		DEF:deldefer=##DB##:deldefer:AVERAGE
+		DEF:delfail=##DB##:delfail:AVERAGE
+		CDEF:missing=del,UN,INF,UNKN,IF
+		'LINE2:delfail###PROBLEMCOLOR##:failures'
+		'LINE2:deldefer###COLOR1##:deferrals'
+		'LINE2:delok###COLOR2##:successes'
+		'LINE2:del###COLOR3##:total'
+		'GPRINT:del:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,9 @@
+# scripts/ldap - LDAP directory server
+# $Id: ldap,v 1.2 2002/04/16 15:21:20 remstats Exp $
+
+# I don't know the LDAP protocol to code a query here; just check that
+# something answers the port
+
+port	389
+timeout	5
+

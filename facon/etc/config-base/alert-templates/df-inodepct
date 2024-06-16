@@ -1,0 +1,3 @@
+The file-system ##WILDPART## on ##HOST##(##IP##) has used 
+##VALUE##% of the allocated inodes.  
+At 100% no more files/directories can be created.

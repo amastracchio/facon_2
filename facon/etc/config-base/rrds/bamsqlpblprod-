@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	ano=ano:* GAUGE:1200:0:U  bamsql *
+data	ibamac=ibamac:* GAUGE:1200:0:U  bamsql *
+data	iano=iano:* GAUGE:1200:0:U  bamsql *
+data	iinterfaces=iinterfaces:* GAUGE:1200:0:U  bamsql *
+data	temp=temp:* GAUGE:1200:0:U  bamsql *
+data	bamac_h=bamac_h:* GAUGE:1200:0:U  bamsql *
+data	ibo_install=ibo_install:* GAUGE:1200:0:U  bamsql *
+data	bamac=bamac:* GAUGE:1200:0:U  bamsql *
+data	exploit=exploit:* GAUGE:1200:0:U  bamsql *
+data	system=system:* GAUGE:1200:0:U  bamsql *
+data	referentiel=referentiel:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:ano=##DB##:ano:AVERAGE
+	 DEF:ibamac=##DB##:ibamac:AVERAGE
+	 DEF:iano=##DB##:iano:AVERAGE
+	 DEF:iinterfaces=##DB##:iinterfaces:AVERAGE
+	 DEF:temp=##DB##:temp:AVERAGE
+	 DEF:bamac_h=##DB##:bamac_h:AVERAGE
+	 DEF:ibo_install=##DB##:ibo_install:AVERAGE
+	 DEF:bamac=##DB##:bamac:AVERAGE
+	 DEF:exploit=##DB##:exploit:AVERAGE
+	 DEF:system=##DB##:system:AVERAGE
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+      CDEF:missing=ano,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:ano###COLOR1##:ano'
+	'LINE2:ibamac###COLOR2##:ibamac'
+	'LINE2:iano###COLOR3##:iano'
+	'LINE2:iinterfaces###COLOR4##:iinterfaces'
+	'LINE2:temp###COLOR5##:temp'
+	'LINE2:bamac_h###COLOR6##:bamac_h'
+	'LINE2:ibo_install###COLOR7##:ibo_install'
+	'LINE2:bamac###COLOR8##:bamac'
+	'LINE2:exploit###COLOR9##:exploit'
+	'LINE2:system###COLOR10##:system'
+	'LINE2:referentiel###COLOR11##:referentiel'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:ano:LAST:ano         = %.2lf\l'
+	'GPRINT:ibamac:LAST:ibamac         = %.2lf\l'
+	'GPRINT:iano:LAST:iano         = %.2lf\l'
+	'GPRINT:iinterfaces:LAST:iinterfaces         = %.2lf\l'
+	'GPRINT:temp:LAST:temp         = %.2lf\l'
+	'GPRINT:bamac_h:LAST:bamac_h         = %.2lf\l'
+	'GPRINT:ibo_install:LAST:ibo_install         = %.2lf\l'
+	'GPRINT:bamac:LAST:bamac         = %.2lf\l'
+	'GPRINT:exploit:LAST:exploit         = %.2lf\l'
+	'GPRINT:system:LAST:system         = %.2lf\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'

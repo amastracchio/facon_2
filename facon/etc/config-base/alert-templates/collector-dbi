@@ -1,0 +1,6 @@
+The dbi-collector is not returning any data.  Perhaps all
+the machines running the log-server are down?  Maybe DNS 
+isn't working?
+
+This started at ##START## and has been in this state
+for ##DURATION##.

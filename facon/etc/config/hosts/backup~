@@ -1,0 +1,5 @@
+desc    The linux  machine
+ip      192.168.0.113
+group   prod
+tools   availability status
+rrd	quemaquinaes-quemaquinaes.log /grade/logs/quemaquinaes.log

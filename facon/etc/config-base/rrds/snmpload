@@ -1,0 +1,54 @@
+# rrds/load - load averages on unix boxen
+# CVS $Id: load,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Load-average over the past 1, 5 and 15 minutes, respectively.  The 
+# load-average is, roughly, the number of processes waiting that could have
+# used the CPU if it had been available.  Which it wasn't if it's greater
+# than one.
+
+source		snmp
+step		300
+
+data		load1=laLoadInt1 GAUGE:600:0:U	uptime
+data		load5=laLoadInt2 GAUGE:600:0:U	uptime
+data		load15=laLoadInt3 GAUGE:600:0:U uptime
+
+alert		load5 < 20
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+oid            laLoadInt1
+oid            laLoadInt2
+oid            laLoadInt3
+
+graph		load desc="This is collected by the unix-status-collector.  It works by running the <B>uptime</B> program on the remote host and pulling out the load-average.  The load-average is the number of processes that were waiting to use the CPU, but couldn't because another process was using it.  It's available averaged over the last 1 minute, 5 minute and 15 minute periods."
+	--title '##HOST## - Load Average (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'processes'
+	DEF:load1=##DB##:load1:AVERAGE
+	DEF:load5=##DB##:load5:AVERAGE
+	DEF:load15=##DB##:load15:AVERAGE
+	CDEF:missing=load1,UN,INF,UNKN,IF
+	'LINE1:load1###COLOR1##:1 Minute'
+	'LINE1:load5###COLOR2##:5 Minute'
+	'LINE1:load15###COLOR3##:15 Minute'
+	'GPRINT:load1:AVERAGE:avg=%.2lf%s'
+	'GPRINT:load1:MAX:max=%.2lf%s'
+	'AREA:missing###MISSING##:missing'
+
+#graph	users  desc="This is collected by the unix-status-collector.  It works by running the <B>uptime</B> program on the remote host and pulling out the number of users logged on to the host.  If the same user logs in more than once, each session will count as a user.  Think of it as number of simultaneous interactive sessions."
+#	--title '##HOST## - Users (##GRAPHTIME##)'
+#	--lower-limit 0
+#	--watermark 'Sanatorio San Carlos'
+#	--vertical-label 'users'
+#	--units-exponent 0
+#	DEF:users=##DB##:users:AVERAGE
+#	CDEF:missing=users,UN,INF,UNKN,IF
+#	'LINE1:users###COLOR1##:users'
+#	'GPRINT:users:AVERAGE:avg=%.2lf%s'
+#	'GPRINT:users:MAX:max=%.2lf%s'
+#	'AREA:missing###MISSING##:missing'
+

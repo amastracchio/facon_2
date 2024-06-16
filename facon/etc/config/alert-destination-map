@@ -1,0 +1,89 @@
+# alert-destination-map - how alerts get to their final destination
+# $Id: alert-destination-map,v 1.8 2002/09/10 13:03:51 facon Exp $
+
+# There are three kinds of lines in this config-file: "map"s "alias"s and 
+# "method"s.  Map lines map from an abstract alert destination, listed in 
+# the alerts config-file, to a less abstract alias, listed here.  The 
+# alias lines allow a crude list capability and also permit the use of 
+# different methods to deliver the alert.  Method lines tell what program 
+# to run with what arguments in order to deliver to that type of address.
+#
+# A map line looks like:
+#
+#	map DEST TIME DOW DOM MON ALIAS
+#
+# Where:
+#	DEST is an abstract alert destination, listed in the alerts config-file
+#	TIME is a time-of-day specification, comma-separated time-ranges or '*'
+#		meaning all times.  A range looks like HHMM-HHMM.
+#	DOW is a day-of-the-week spec, a comma-separated list of weekdays, in
+#		numeric form (0=sunday, 1=monday, ...) or '*' for all weekdays.
+#	DOM is a day-of-the-month spec.  It's a comma-separated list of day-ranges,
+#		where a range is a day or DD-DD, or '*' ofr all days.
+#	MON is a month spec.  It's a comma-separated list of month-ranges, in
+#		numeric form, like MM or MM-MM or '*' for all months.
+#	ALIAS is the alias that this DESTination maps to during the specified
+#		time-period.  It's defined in an alias line.
+#
+# This permits different DESTinations to be sent to different people at 
+# different times, depending on who's on duty.
+#
+# An alias line looks like:
+#
+#	alias ALIAS METHOD:ADDR ...
+#
+# Where:
+#	ALIAS is the alias being defined
+#	METHOD is an alert-delivery method (see methods below)
+#	ADDR is an address which is valid for that method
+#
+# This indirection permits delivery of the same alert via multiple 
+# methods, in case one or more of the methods isn't available, as 
+# well as to different people.
+#
+# A method line looks like:
+#
+#	method METHOD COMMAND-LINE
+#
+# Where
+#	METHOD is the method being defined
+#	COMMAND-LINE is the program to run with any arguments it requires.
+#		It will be passed the alert message on stdin and the address
+#		to send it to at the end of the COMMAND-LINE.
+
+#------------------------------------------------------------ maps ---
+map alerts * * * * alerts
+map warn * * * * alerts
+#map alerts-critical * * * * alerts-critical
+
+#---------------------------------------------------------- alerts ---
+# estaba asi ari alias alerts email:webmaster@B701613
+
+alias alerts twitter:pepe
+
+# FIXME - Here is a more extensive version, but you'll have to fill in some
+# things before using it.  Change "WINHOSTNAME" to the name of the workstation
+# (or user) you want to get the alert via winpopup.  Change "FACPRI" to the
+# syslog facility and priority (like "local5:crit") you want to use.
+#alias alerts-critical email:webmaster@B701613 winpopup:WINHOSTNAME syslog:FACPRI
+
+#--------------------------------------------------------- methods ---
+# These won't need to be changed, unless you write one yourself
+#
+# Send the alert via email.
+method email /var/facon/bin/alert-email
+method cat cat 
+# This will log an alert message in syslog.
+method syslog /var/facon/bin/alert-syslog
+method twitter /root/3p/bin/alert_twitter.pl
+
+method nagios /var/facon/bin/alert-nagios
+
+# This requires samba's smbclient and causes one of those annoying popups.
+# Use sparingly or you'll start automatically closing them without reading them.
+method winpopup /var/facon/bin/alert-winpopup
+# Use YahooMessenger (must set up /var/facon/etc/config/yahoo according to docs
+# for alert-yahoo).
+method yahoo /var/facon/bin/alert-yahoo
+# Here's a simple one: just discard it.  Simpler to not generate it.
+method discard /bin/true

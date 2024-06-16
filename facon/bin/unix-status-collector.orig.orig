@@ -1,0 +1,437 @@
+#!/usr/bin/perl -w
+
+# unix-status-collector - a facon collector for unix-status
+# $Id: unix-status-collector.pl,v 1.31 2003/05/15 12:09:58 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'unix-status-collector';
+# Which collector is this
+$main::collector = 'unix-status';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Which port is the unix-status collector sitting on
+$main::port = 1957;
+# How long to wait for a response
+$main::timeout = 600; # seconds
+# Munge remote timestamps to deal with server time-sync problems
+$main::fix_timestamps = 1;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.31 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+require "socketstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FG:hH:K:p:t:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'p'}) { $main::port = $opt{'p'}; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'}+0; }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+# no buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# ARI
+#$main::debug = 0;
+
+# - - -   Mainline   - - -
+
+my (%data, $host, $ip, $start_time, $run_time);
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+
+	# Collect the data from the remote server
+	&collect_host($host, $main::port, $ip);
+}
+
+# Now facon instrumentation info
+my $now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even it it is not time yet
+    -G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -p ppp  connect to server on port 'ppp' [$main::port]
+    -t ttt  set timeout to 'ttt' [$main::timeout]
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------- ifstatus ---
+# Convert interface status to a string
+sub if_status {
+	my $n = shift @_;
+	my $status;
+
+	if ($n == 1) { $status = 'UP'; }
+	elsif ($n == 2) { $status = 'DOWN'; }
+	else { $status = 'UNKNOWN'.$status; }
+$status;
+}
+
+#----------------------------------------------------------- collect_host ---
+sub collect_host {
+	my ($host, $port, $ip) = @_;
+	my ($line, $variable, $value, $os_name, $os_release, $os_version,
+		$realrrd, $wildrrd, $wildpart, $extra, %asked, $ds, $socket, $status,
+		$section, $pattern, $fixed_name, $ifstatus, $fixedrrd, $now, $what);
+	my ($timeout) = $main::timeout;
+
+	&debug("doing host $host") if ($main::debug);
+	($socket, $status, $timeout) = &open_socket( $host, $port, $timeout, $ip);
+
+	unless ($status == $main::SOCKET_OK) {
+		&debug("couldn't connect to $host:$port") if ($main::debug);
+		return undef;
+	}
+	&debug("  connected") if ($main::debug>1);
+
+	# Always ask for UNAME and UPTIME and TIME
+	$now = time();
+	($status, $timeout) = &write_socket( $socket, "UNAME\nUPTIME\nTIME $now\n",
+		$timeout, "'UNAME+UPTIME+TIME' to $host");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		&debug("$host:$port: error sending UNAME+UPTIME+TIME")
+			if ($main::debug);
+		return undef;
+	};
+	&debug("sent UNAME+UPTIME+TIME") if ($main::debug);
+	$asked{UNAME} = 1;
+	$main::requests += 1;
+	$asked{UPTIME} = 1;
+	$main::requests += 1;
+	$asked{TIME} = 1;
+	$main::requests += 1;
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		&debug(" rrd=$realrrd($wildrrd)") if ($main::debug);
+		unless( &rrd_collected_by( $wildrrd, $main::collector)) {
+			&debug("rrd $realrrd not collected by $main::collector")
+				if( $main::debug);
+			next;
+		}
+
+		# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug);
+			next;
+		}
+		&debug("  doing rrd $realrrd($wildrrd)") if ($main::debug);
+
+		undef $section;
+		foreach $ds ( @{$main::config{RRD}{$wildrrd}{DATANAMES}} ) {
+			if (defined $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA}) {
+				$extra = $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA};
+				&debug("  ds=$ds, extra=$extra") if ($main::debug>1);
+			}
+			else { 
+				&debug("no extra for $host:$realrrd:$ds") if( $main::debug>1);
+				next;
+			}
+
+			# Deal with special sections
+			($section, $pattern) = split(' ', $extra, 2);
+			$section = lc $section;
+
+			if (defined $pattern and $section =~
+					/^(ps|proc|procname|fileage|du|dirsize|bamsrv|bamlan|bamsql|bamres)$/) {
+
+				&debug( "  section=$section, pattern=$pattern")
+					if( $main::debug>1);
+
+				# Procname needs the variables distinguished
+				if( $section eq 'procname') {
+					$what = $wildpart;
+					$pattern =~ s/\*/$wildpart/;
+				}
+				else { $what = $ds; }
+
+				# ari fileage needs the variables distinguished
+				if( $section eq 'fileage') {
+					$what = $wildpart;
+					$pattern =~ s/\*/$wildpart/;
+				}
+				else { $what = $ds; }
+
+				# ari fileage needs the variables distinguished
+				if( $section eq 'dirsize') {
+					$what = $wildpart;
+					$pattern =~ s/\*/$wildpart/;
+				}
+				else { $what = $ds; }
+
+                                # ari fileage needs the variables distinguished
+                                if( $section eq 'bamsrv') {
+                                        $what = $wildpart;
+                                        $pattern =~ s/\*/$wildpart/;
+                                }
+                                else { $what = $ds; }
+
+                                # ari fileage needs the variables distinguished
+                                if( $section eq 'bamres') {
+                                        $what = $wildpart;
+                                        $pattern =~ s/\*/$wildpart/;
+                                }
+                                else { $what = $ds; }
+
+                                # ari fileage needs the variables distinguished
+                                if( $section eq 'bamsql') {
+                                        $what = $wildpart;
+                                        $pattern =~ s/\*/$wildpart/;
+                                }
+                                else { $what = $ds; }
+
+                                # ari fileage needs the variables distinguished
+                                if( $section eq 'bamlan') {
+                                        $what = $wildpart;
+                                        $pattern =~ s/\*/$wildpart/;
+                                }
+                                else { $what = $ds; }
+
+
+                               # ari fileage needs the variables distinguished
+                                if( $section eq 'ps') {
+                                        $what = $wildpart;
+                                        $pattern =~ s/\*/$wildpart/;
+                                }
+                                else { $what = $ds; }
+
+
+
+
+				# Procname needs the variables distinguished
+				if( $section eq 'du') {
+					$what = $wildpart;
+					$pattern =~ s/\*/$wildpart/;
+				}
+				else { $what = $ds; }
+
+				# Send the request
+				($status, $timeout) = &write_socket( $socket,
+					$what . ' ' . $section . ' ' . $pattern . "\n",
+					$timeout, "'$ds $section $pattern' to $host");
+				unless ($status == $main::SOCKET_OK) {
+					$socket->close();
+					return undef ;
+				};
+				&debug("sent '$ds $section $pattern'") if ($main::debug)
+			}
+			else {
+				&debug("  section=$section") if( $main::debug);
+			}
+
+			$section = uc $section;
+# ari 			if (defined $asked{$section}) { next; }
+# ari			else { $asked{$section} = 1; }
+			($status, $timeout) = &write_socket( $socket, 
+				$section ."\n", $timeout, "'$section' to $host");
+			unless ($status == $main::SOCKET_OK) {
+				 $socket->close();
+				 return undef;
+			};
+			&debug("sent $section") if ($main::debug);
+			++$main::requests;
+		}
+	}
+
+# remote debugging
+	if ($main::debug) {
+		($status, $timeout) = &write_socket( $socket, "DEBUG $main::debug\n", 
+			$timeout, "'DEBUG' to $host");
+		unless ($status == $main::SOCKET_OK) {
+			$socket->close();
+			return undef;
+		};
+		&debug("sent DEBUG") if ($main::debug);
+	}
+
+	($status, $timeout) = &write_socket( $socket, "GO\n", $timeout,
+		"'GO' to $host");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		return undef;
+	};
+	&debug("sent GO") if ($main::debug);
+
+# Get the response
+	while (($line, $status, $timeout) = &read_socket( $socket, $timeout, 
+			"response from $host"), 
+			(defined $line and ($status == $main::SOCKET_OK))) {
+		$line =~ tr/\015\012//d;
+
+		++$main::entries_collected;
+		next if ($line =~ /^#/ or $line =~/^\s*$/);
+
+# Deal with special output
+		if ($line =~ /^DEBUG:\s*(.*)/) {
+			&debug("REMOTE($host): $1") if ($main::debug);
+		}
+		elsif ($line =~ /^ERROR:\s*(.*)/) {
+			&error("REMOTE($host): $1");
+		}
+		elsif ($line =~ /^ABORT:\s*(.*)/) {
+			&abort("REMOTE($host) $1");
+		}
+		else {
+			($now, $variable, $value) = split(' ',$line,3);
+			next unless (defined $value);
+			if( $main::fix_timestamps) { $now = time(); }
+			print "$host $now $variable $value\n";
+			print TMP "$host $now $variable $value\n";
+
+			if ($variable eq 'machine') {
+				&put_status($host, 'HARDWARE', $value);
+			}
+			elsif ($variable eq 'os_name') {
+				$os_name = $value;
+			}
+			elsif ($variable eq 'os_release') {
+				$os_release = $value;
+			}
+			elsif ($variable eq 'os_version') {
+				$os_version = $value;
+			}
+			elsif ($variable eq 'uptime') {
+				&log_reboot( $host, $value, 'UNIX-STATUS');
+				&put_status($host, 'UPTIME', $value);
+				&put_status($host, 'UPTIME.html', &show_uptime($value));
+				if ($value < $main::config{MINUPTIME}) {
+					&put_status( $host, 'UPTIMEFLAG.html', 
+						&make_uptime_flag( &show_uptime($value)));
+				}
+				else {
+					&put_status( $host, 'UPTIMEFLAG.html', '');
+				}
+			}
+			elsif ($variable =~ /^interface_status:(\S+)\s+(\d+)/) {
+				$fixed_name = &to_filename($1);
+				$ifstatus = &if_status($2);
+				&put_status( $host, 'STATUS-if-'.$fixed_name, $ifstatus);
+			}
+			elsif( $variable eq 'memory_size') {
+				&put_status( $host, 'MEMORY-SIZE', $value);
+			}
+			++$main::entries_used;
+		}
+	}
+	$socket->close();
+	if ($status == $main::SOCKET_TIMEOUT) {
+		&debug("timeout collecting $host:$port") if ($main::debug);
+	}
+	elsif ($status == $main::SOCKET_ERROR) {
+		&debug("error collecting $host:$port") if ($main::debug);
+	}
+	else {
+		unless (defined $os_name) { $os_name = 'UNKNOWN'; }
+		unless (defined $os_release) { $os_release = 'UNKNOWN'; }
+		unless (defined $os_version) { $os_version = 'UNKNOWN'; }
+		&put_status($host, 'SOFTWARE', "$os_name $os_release $os_version");
+	}
+}
+
+#--------------------------------------------- keep_strict_happy ---
+# "use strict" isn't very smart, so keep it happy by mentioning
+# variables from elsewhere.
+sub keep_strict_happy {
+	$main::SOCKET_TIMEOUT = $main::SOCKET_ERROR = 0;
+}

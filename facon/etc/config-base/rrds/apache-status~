@@ -1,0 +1,78 @@
+# rrds/apache-status - fetch extended status from Apache web-server
+# CVS $Id: apache-status,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+source		port
+step		300
+
+data		status=apache-status-status GAUGE:1200:0:U
+data		response=apache-status-response GAUGE:1200:0:U
+data		rps=&si_to_number(apache-status:value1) GAUGE:1200:0:U
+data		bps=&si_to_number(apache-status:value2) GAUGE:1200:0:U
+data		bpr=&si_to_number(apache-status:value3) GAUGE:1200:0:U
+data		running=apache-status:value4 GAUGE:1200:0:U
+data		idle=apache-status:value5 GAUGE:1200:0:U
+
+#alert		status < 2 3 4
+alert		status < -2 -3 -4
+alert		response <daystddev 1 2 3
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+#graph		port desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response.  It returns the status assigned to the first string that matches.  The possible statuses are the usual remstats status numbers: 1(OK), 2(WARN), 3(ERROR), 4(CRITICAL)"
+#		--title '##HOST## - ##RRD## Status (##GRAPHTIME##)'
+#		--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 4 --rigid
+#		--vertical-label 'status'
+#		--units-exponent 0
+#		DEF:status=##DB##:status:AVERAGE
+#		'LINE2:status###COLOR1##:status'
+#		'COMMENT:(1=ok, 2=warning, 3=err, 4=critical)'
+
+#graph		response desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, measuring the time that the service takes to respond.  The Response Time is how long that service took to respond."
+#		--title '##HOST## - ##RRD## Response (##GRAPHTIME##)'
+#		--lower-limit 0
+	--watermark 'Sanatorio San Carlos' 
+#		--vertical-label 'ms'
+#		DEF:response=##DB##:response:AVERAGE
+#		'LINE2:response###COLOR1##:response'
+#		'GPRINT:response:MIN:(min,avg,max) = (%.0lf,'
+#		'GPRINT:response:AVERAGE:%.0lf,'
+#		'GPRINT:response:MAX:%.0lf)'
+
+graph	rps desc='This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it, and examining the response, looking for service specific strings.  In this case, it is looking at the extended server status from an <A HREF="http://httpd.apache.org">apache</A> web-server.  From the response, it pulls out the requests/per second.'
+	--title '##HOST## - ##RRD## Requests (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'req/s'
+	DEF:rps=##DB##:rps:AVERAGE
+	CDEF:missing=rps,UN,INF,UNKN,IF
+	'LINE2:rps###COLOR1##:req/s'
+	'AREA:missing###MISSING##:missing'
+
+graph	bps desc='This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it, and examining the response, looking for service specific strings.  In this case, it is looking at the extended server status from an <A HREF="http://httpd.apache.org">apache</A> web-server.  From the response, it pulls out the bytes/per second.'
+	--title '##HOST## - ##RRD## Bytes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'B/s'
+	DEF:bps=##DB##:bps:AVERAGE
+	CDEF:missing=bps,UN,INF,UNKN,IF
+	'LINE2:bps###COLOR1##:req/s'
+	'AREA:missing###MISSING##:missing'
+
+graph	concurrency desc='This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it, and examining the response, looking for service specific strings.  In this case, it is looking at the extended server status from an <A HREF="http://httpd.apache.org">apache</A> web-server.  From the response, it pulls out the number of apache processes active and ide.'
+	--title '##HOST## - ##RRD## Concurrency (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'processes'
+	DEF:running=##DB##:running:AVERAGE
+	DEF:idle=##DB##:idle:AVERAGE
+	CDEF:missing=running,UN,INF,UNKN,IF
+	'LINE2:running###COLOR1##:running'
+	'LINE2:idle###COLOR2##:idle'
+	'AREA:missing###MISSING##:missing'
+

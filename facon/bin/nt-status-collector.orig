@@ -1,0 +1,472 @@
+#!/usr/bin/perl -w
+# nt-status-collector - a facon collector for Windows NT
+# CVS $Id: nt-status-collector.pl,v 1.40 2002/08/14 11:08:42 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999 - 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'nt-status-collector';
+# Which collector is this
+$main::collector = 'nt-status';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Which port is the nt-status collector sitting on
+$main::port = 1957;
+# How long to wait for a response (it will take the nt-status-server 20 sec to 
+# timout a query to another NT box), so give it a bit more
+$main::timeout = 25; # seconds
+# After how long to consider the lock stale
+my $stale_time = 30*60; # seconds
+# Munge remote timestamps to deal with server time-sync problems
+$main::fix_timestamps = 1;
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.40 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+require "socketstuff.pl";
+$main::SIG{'INT'} = \&interrupt_handler;
+$main::SIG{'QUIT'} = \&interrupt_handler;
+$main::SIG{'HUP'} = \&interrupt_handler;
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FhG:H:K:p:t:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } 
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'p'}) { $main::port = $opt{'p'}; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'} + 0; }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times', 'rrds', 
+	'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+%main::hosts = map { ($_, 1) } @hosts;
+
+# no buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# Only run one instance of this to avoid breaking nt-status-server
+$SIG{KILL} = sub { &abort("interrupted by sig-KILL"); };
+$SIG{TERM} = sub { &abort("interrupted by sig-TERM"); };
+
+$main::lockfile = $main::prog;
+$main::lockfile = &make_lockfile( $main::lockfile, $stale_time);
+$main::locked = ($main::lockfile) ? 1 : 0;
+unless ($main::locked) { &abort("$main::prog is still running"); }
+END {
+	if ($main::locked and -f $main::lockfile) {
+		&remove_lockfile( $main::lockfile);
+	}
+}
+
+# Get all the NT names
+
+my ($ntname, $host, %data, $ip);
+
+%main::host_from_ntname = %main::ntname_from_host = ();
+
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	if (defined $main::config{HOST}{$host}{NTNAME}) {
+		$ntname = $main::config{HOST}{$host}{NTNAME};
+	}
+	else {
+		$ntname = $host;
+		if ($ntname =~ /^([^\.]+)\./) { $ntname = $1; }
+	}
+#	$main::host_from_ntname{$ntname} = $host;
+	$main::ntname_from_host{$host} = $ntname;
+}
+
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+$main::start_time = time();
+
+# - - -   Mainline   - - -
+
+foreach $host (keys %{$main::config{HOST}}) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	# Collect the data from the remote collector
+	next if (defined $main::config{HOST}{$host}{NTSTATUSSERVER} and
+		$host !~ /$main::config{HOST}{$host}{NTSTATUSSERVER}/i);
+	&debug("doing host $host") if( $main::debug);
+	&collect_host($host, $main::port, $ip);
+}
+
+# Now facon instrumentation info
+my $now = time;
+$main::run_time = $now - $main::start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $main::run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+if ($main::locked and -f $main::lockfile) {
+	&remove_lockfile( $main::lockfile);
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection, even if it is not time
+    -G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -p ppp  connect to server on port 'ppp' [$main::port]
+    -t ttt  set timeout to 'ttt' [$main::timeout]
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	if ($main::locked and -f $main::lockfile) {
+		&remove_lockfile( $main::lockfile);
+	}
+	exit 1;
+}
+
+#------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------- collect_host ---
+sub collect_host {
+	my ($host, $port, $ip) = @_;
+	my ($line, $variable, $value, $os_name, $os_release, $os_version,
+		$realrrd, $wildrrd, $extra, %asked, $ds, $socket, $status,
+		$section, $pattern, $timeout, $ihost, $ntname, $time,
+		$interface, $fixedrrd, $what, @ihosts);
+	%asked = ();
+
+	&debug("doing host $host") if ($main::debug);
+
+	# Figure out which indirect hosts are up
+	@ihosts = ();
+	for $ihost (@{$main::config{HOST}{$host}{NTINDIRECTHOSTS}}) {
+		if( ! $main::use_uphosts or ( $main::use_uphosts and 
+				$main::uphosts{$ihost})) {
+			push @ihosts, $ihost;
+		}
+		else {
+			&debug("  indirect host $ihost down; skipped") if( $main::debug);
+		}
+	}
+
+	# We need to allow more time for indirect hosts: 20sec per indirect 
+	# host plus 20sec more for the nt-status-server host itself times 
+	# two for (SRVINFO + PERFCOUNTERS)
+	if ( @ihosts) {
+		$timeout = 2 * $main::timeout * (@ihosts + 1);
+	}
+	else { $timeout = $main::timeout * 2; }
+
+	# Connect to host running the server
+	($socket, $status, $timeout) = &open_socket( $host, $port, $timeout, $ip);
+	unless ($status == $main::SOCKET_OK) {
+		&debug("couldn't connect to $host:$port") if ($main::debug);
+		return undef;
+	}
+	&debug("  connected") if ($main::debug>1);
+
+	# Request whatever we need
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, undef, $fixedrrd) = &get_rrd($realrrd);
+		&debug(" rrd=$realrrd($wildrrd)") if ($main::debug>1);
+		next unless ($main::config{RRD}{$wildrrd}{SOURCE} eq $main::collector);
+
+		# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+
+		# Make sure that TIME gets sent first, for time synch hack
+		$asked{'TIME'} = 1;
+		($status, $timeout) = &write_socket( $socket, 'TIME ' . time() . "\n", 
+			$timeout, "TIME to $host");
+		unless ($status == $main::SOCKET_OK) {
+			 $socket->close();
+			 return undef;
+		};
+		&debug("sent $section for $host $realrrd $ds") if ($main::debug);
+
+		# Request all the parts we've asked for
+		foreach $ds ( @{$main::config{RRD}{$wildrrd}{DATANAMES}} ) {
+			if (defined $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA}) {
+				$extra = $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA};
+				&debug("  ds=$ds, extra=$extra") if ($main::debug>1);
+			}
+			else { next; }
+
+			($section, $pattern) = split(' ',$extra,2);
+			$section = uc $section;
+			if (defined $asked{$section}) { next; }
+			else { $asked{$section} = 1; }
+
+			if( $section eq 'TIME') { $what = 'TIME ' . time(); }
+			else { $what = $section; }
+
+			($status, $timeout) = &write_socket( $socket, $what ."\n", 
+				$timeout, "'$what' to $host");
+			unless ($status == $main::SOCKET_OK) {
+				 $socket->close();
+				 return undef;
+			};
+			&debug("sent $section for $host $realrrd $ds") if ($main::debug);
+			++$main::requests;
+		}
+	}
+
+	# Collect them all
+	%asked = ();
+	foreach $ihost (@ihosts) {
+		next unless( defined $main::hosts{$ihost});
+		foreach $realrrd (@{$main::config{HOST}{$ihost}{RRDS}}) {
+			($wildrrd) = &get_rrd($realrrd);
+			&debug(" rrd=$realrrd($wildrrd)") if ($main::debug>1);
+			next unless ($main::config{RRD}{$wildrrd}{SOURCE} eq 
+				$main::collector);
+
+			foreach $ds ( @{$main::config{RRD}{$wildrrd}{DATANAMES}} ) {
+				if (defined $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA}) {
+					$extra = $main::config{RRD}{$wildrrd}{DS}{$ds}{EXTRA};
+					&debug("  ds=$ds, extra=$extra") if ($main::debug>1);
+				}
+				else { next; }
+
+				($section, $pattern) = split(' ',$extra,2);
+				$section = uc $section;
+				if (defined $asked{$section}{$ihost}) { next; }
+				else { $asked{$section}{$ihost} = 1; }
+
+				if( $section eq 'TIME') { $what = 'TIME ' . time(); }
+				else { $what = $section; }
+
+				($status, $timeout) = &write_socket( $socket, $what .
+					' '. $ihost ."\n", $timeout, "'$section $ihost' to $host");
+				unless ($status == $main::SOCKET_OK) {
+					 $socket->close();
+					 return undef;
+				};
+				&debug("sent '$section $ihost'") if ($main::debug);
+				++$main::requests;
+			}
+		}
+	}
+
+	# Remote debugging
+	if ($main::debug) {
+		($status, $timeout) = &write_socket( $socket, "DEBUG $main::debug\n", 
+			$timeout, "'DEBUG' to $host");
+		unless ($status == $main::SOCKET_OK) {
+			$socket->close();
+			return undef;
+		};
+		&debug("sent DEBUG") if ($main::debug);
+	}
+
+	($status, $timeout) = &write_socket( $socket, "GO\n", $timeout,
+		"'GO' to $host");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		return undef;
+	};
+	&debug("sent GO") if ($main::debug);
+
+# Get the response
+	while (($line, $status, $timeout) = &read_socket( $socket, $timeout, 
+			"response from $host"), 
+			(defined $line and ($status == $main::SOCKET_OK))) {
+		$line =~ tr/\015\012//d;
+		++$main::entries_collected;
+		next if ($line =~ /^#/ or $line =~/^\s*$/);
+
+# Deal with special output
+		if ($line =~ /^DEBUG:\s*(.*)/i) {
+			&debug("REMOTE($host): $1") if ($main::debug);
+		}
+		elsif ($line =~ /^ERROR:\s*(.*)/i) {
+			&error("REMOTE($host): $1");
+		}
+		elsif ($line =~ /^ABORT:\s*(.*)/i) {
+			&abort("REMOTE($host) $1");
+		}
+		else {
+
+			# The nt-status-server can permit indirect queries.  When it 
+			# returns data for these indirect hosts, it will return a 
+			# complete line, including the host-name, otherwise it will 
+			# return a line missing the hostname, like all the other servers.
+			if ($line =~ /^\d+\s/) {
+				(undef, $variable, $value) = split(' ', $line, 3);
+				$ihost = $host;
+				if( $main::fix_timestamps) {
+					if( $line =~ /^\s*\d+\s+(.*)/) {
+						$line = time() . ' ' . $1;
+					}
+					else {
+						&error("missing timestamp in: $line");
+						next;
+					}
+				}
+
+				print "$host $line\n";
+				print TMP "$host $line\n";
+			}
+
+			# Indirect host reply
+			else {
+				($ntname, $time, $variable, $value) = split(' ',$line,4);
+
+				if( $main::fix_timestamps) { $time = time(); }
+
+				# Map the NT name to a host-name
+				if( defined $main::host_from_ntname{lc $ntname}) {
+						$ihost = $main::host_from_ntname{lc $ntname};
+				}
+				else { $ihost = lc $ntname; }
+
+				# Make sure we've got a value (otherwise line is malformed)
+				unless( defined $value) {
+					&debug("missing value from $host in '$line'")
+						if( $main::debug);
+					next;
+				}
+				print "$ihost $time $variable $value\n";
+				print TMP "$ihost $time $variable $value\n";
+			}
+
+			next unless (defined $value);
+			++$main::entries_used;
+			if ($variable eq 'machine') {
+				&put_status($ihost, 'HARDWARE', $value);
+			}
+			elsif ($variable eq 'os_name') {
+				$os_name = $value;
+				undef $os_release;
+				undef $os_version;
+			}
+			elsif ($variable eq 'os_release') {
+				$os_release = $value;
+			}
+			elsif ($variable eq 'os_version') {
+				$os_version = $value;
+				unless (defined $os_name) { $os_name = 'UNKNOWN'; }
+				unless (defined $os_release) { $os_release = 'UNKNOWN'; }
+				unless (defined $os_version) { $os_version = 'UNKNOWN'; }
+				&put_status($ihost, 'SOFTWARE', $os_name . ' ' .
+					$os_release . ' ' . $os_version);
+			}
+			elsif ($variable eq 'uptime') {
+				&log_reboot( $ihost, $value, 'NT-STATUS');
+				&put_status($ihost, 'UPTIME', $value);
+				&put_status($ihost, 'UPTIME.html', &show_uptime($value));
+				if ($value < $main::config{MINUPTIME}) {
+					&put_status( $ihost, 'UPTIMEFLAG.html', 
+						&make_uptime_flag( &show_uptime($value)));
+				}
+				else {
+					&put_status( $ihost, 'UPTIMEFLAG.html', '');
+				}
+			}
+			elsif ($variable =~ /^interface:(\d+)/) {
+				$interface = $1;
+				&put_status( $ihost, 'HARDWARE-ntnetworkinterface-' . 
+					$interface, $value) if (defined $value and 
+					$value !~ /^\s*$/);
+			}
+			elsif( $variable eq 'memory_size') {
+				&put_status( $ihost, 'MEMORY-SIZE', $value);
+			}
+		}
+	}
+	$socket->close();
+	if ($status == $main::SOCKET_TIMEOUT) {
+		&debug("timeout collecting $host:$port") if ($main::debug);
+	}
+	elsif ($status == $main::SOCKET_ERROR) {
+		&debug("error collecting $host:$port") if ($main::debug);
+	}
+}
+
+#--------------------------------------------- keep_strict_happy ---
+# "use strict" isn't very smart, so keep it happy by mentioning
+# variables from elsewhere.
+sub keep_strict_happy {
+	$main::SOCKET_TIMEOUT = $main::SOCKET_ERROR = 0;
+}
+
+#-------------------------------------------- interrupt_handler ---
+sub interrupt_handler {
+	if ($main::locked and -f $main::lockfile) {
+		&remove_lockfile( $main::lockfile);
+	}
+}

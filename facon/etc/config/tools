@@ -1,0 +1,28 @@
+# tools - used in the toolbar at the top of web-pages
+# $Id: tools,v 1.10 2002/06/24 12:38:40 facon Exp $
+
+# The value is a URL which will implement the tool. E.G. for the telnet tool,
+# the value is "telnet:##HOST##".  So, for a host called "xxx.yyy", this
+# would result in a URL of:
+#	<A HREF="telnet:xx.yy">telnet</A>
+
+apcupsweb	http://##IP##/arakfram.htm?1:0
+availability	##CGIURL##/availability-report.cgi?host=##HOST##
+externalflows	##CGIURL##/datapage.cgi?external-flows
+ftp		ftp://##HOST##/
+http		http://##HOST##/
+https		https://##HOST##/
+interfaces	##CGIURL##/datapage.cgi?##HOST##_interfaces
+internalflows	##CGIURL##/datapage.cgi?internal-flows
+macinfo		##CGIURL##/macinfo.cgi?host=##HOST##
+mconnect	telnet://##IP##:25
+ping		##CGIURL##/ping.cgi?host=##IP##
+showhostconfig ##CGIURL##/show-config.cgi?host=##HOST##
+status		##CGIURL##/datapage.cgi?##HOST##-status
+telnet		telnet://##IP##
+traceroute	##CGIURL##/traceroute.cgi?host=##IP##
+upsstatus	##CGIURL##/datapage.cgi?ups-status
+whois		##CGIURL##/whois.cgi?##IP##
+
+# host-specific tools
+

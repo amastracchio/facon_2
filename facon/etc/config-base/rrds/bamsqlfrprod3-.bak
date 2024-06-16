@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	temp_mv_2=temp_mv_2:* GAUGE:1200:0:U  bamsql *
+data	bamac4=bamac4:* GAUGE:1200:0:U  bamsql *
+data	ibamac5=ibamac5:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_9=temp_mv_9:* GAUGE:1200:0:U  bamsql *
+data	ibamac6=ibamac6:* GAUGE:1200:0:U  bamsql *
+data	post=post:* GAUGE:1200:0:U  bamsql *
+data	system=system:* GAUGE:1200:0:U  bamsql *
+data	ibo=ibo:* GAUGE:1200:0:U  bamsql *
+data	ibamac3=ibamac3:* GAUGE:1200:0:U  bamsql *
+data	ibamac3b=ibamac3b:* GAUGE:1200:0:U  bamsql *
+data	referentiel2=referentiel2:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:temp_mv_2=##DB##:temp_mv_2:AVERAGE
+	 DEF:bamac4=##DB##:bamac4:AVERAGE
+	 DEF:ibamac5=##DB##:ibamac5:AVERAGE
+	 DEF:temp_mv_9=##DB##:temp_mv_9:AVERAGE
+	 DEF:ibamac6=##DB##:ibamac6:AVERAGE
+	 DEF:post=##DB##:post:AVERAGE
+	 DEF:system=##DB##:system:AVERAGE
+	 DEF:ibo=##DB##:ibo:AVERAGE
+	 DEF:ibamac3=##DB##:ibamac3:AVERAGE
+	 DEF:ibamac3b=##DB##:ibamac3b:AVERAGE
+	 DEF:referentiel2=##DB##:referentiel2:AVERAGE
+      CDEF:missing=temp_mv_2,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:temp_mv_2###COLOR1##:temp_mv_2'
+	'LINE2:bamac4###COLOR2##:bamac4'
+	'LINE2:ibamac5###COLOR3##:ibamac5'
+	'LINE2:temp_mv_9###COLOR4##:temp_mv_9'
+	'LINE2:ibamac6###COLOR5##:ibamac6'
+	'LINE2:post###COLOR6##:post'
+	'LINE2:system###COLOR7##:system'
+	'LINE2:ibo###COLOR8##:ibo'
+	'LINE2:ibamac3###COLOR9##:ibamac3'
+	'LINE2:ibamac3b###COLOR10##:ibamac3b'
+	'LINE2:referentiel2###COLOR11##:referentiel2'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:temp_mv_2:LAST:temp_mv_2         = %.2lf\l'
+	'GPRINT:bamac4:LAST:bamac4         = %.2lf\l'
+	'GPRINT:ibamac5:LAST:ibamac5         = %.2lf\l'
+	'GPRINT:temp_mv_9:LAST:temp_mv_9         = %.2lf\l'
+	'GPRINT:ibamac6:LAST:ibamac6         = %.2lf\l'
+	'GPRINT:post:LAST:post         = %.2lf\l'
+	'GPRINT:system:LAST:system         = %.2lf\l'
+	'GPRINT:ibo:LAST:ibo         = %.2lf\l'
+	'GPRINT:ibamac3:LAST:ibamac3         = %.2lf\l'
+	'GPRINT:ibamac3b:LAST:ibamac3b         = %.2lf\l'
+	'GPRINT:referentiel2:LAST:referentiel2         = %.2lf\l'

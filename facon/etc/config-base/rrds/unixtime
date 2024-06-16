@@ -1,0 +1,35 @@
+# rrds/unixtime - clock time differences
+# CVS $Id: unixtime,v 1.10 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+#
+source	unix-status
+step	300
+
+data	time GAUGE:600:0:U	time
+data	diff=timediff GAUGE:600:U:U	time
+
+alert	diff |< 3
+alert	time delta< 300
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	time desc="This is collected by the unix-status-collector.  It works by comparing the current time on the collector machine to the current time on the remote host.  The difference ought to be monotonic increasing.  This is intended to detect time-warps."
+	--title '##HOST## - Time Warp Detection (##GRAPHTIME##)'
+	--vertical-label 'sec'
+	DEF:time=##DB##:time:AVERAGE
+	CDEF:missing=time,UN,INF,UNKN,IF
+	'LINE2:time###COLOR1##:time'
+	'AREA:missing###MISSING##:missing'
+
+graph	timediff desc="This is collected by the unix-status-collector.  It works by comparing the current time on the collector machine to the current time on the remote host.  The difference ought to be monotonic increasing.  This is intended to detect time-warps."
+	--title '##HOST## - Time Difference (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'sec'
+	DEF:diff=##DB##:diff:AVERAGE
+	CDEF:missing=diff,UN,INF,UNKN,IF
+	'LINE2:diff###COLOR1##:difference'
+	'GPRINT:diff:AVERAGE:avg=%.1lf%s'
+	'AREA:missing###MISSING##:missing'
+

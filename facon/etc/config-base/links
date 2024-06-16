@@ -1,0 +1,12 @@
+# links - extra links to add to the bottom of each page
+# $Id: links,v 1.4 2002/04/16 15:23:16 remstats Exp $
+#
+# The links get added by html_footer to the end of each page.
+# There are several forms:
+#
+#	text	link-to-url
+#	text	link-to-url	image-url
+#	text	link-to-url	html
+#
+#Extras		/remstats/extras.html
+#Canada		/remstats/remstats/canada/quick-index.cgi

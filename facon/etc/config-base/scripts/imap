@@ -1,0 +1,11 @@
+# scripts/imap - Internet Mail Access Protocol server accessibility
+# $Id: imap,v 1.2 2002/04/16 15:21:19 remstats Exp $
+
+# I should work out the protocol enough to log in and out to get
+# proper response stats.
+
+send	A001 LOGOUT\n
+timeout 5
+port	143
+ok	\* OK
+

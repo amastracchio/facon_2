@@ -1,0 +1,92 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	response=demhtbu-response GAUGE:1200:0:U
+data	demhtbu=demhtbu GAUGE:1200:0:U
+data	reshtbu=reshtbu GAUGE:1200:0:U
+data	demseca=demseca GAUGE:1200:0:U
+data	resseca=resseca GAUGE:1200:0:U
+data	demsenc=demsenc GAUGE:1200:0:U
+data	ressenc=ressenc GAUGE:1200:0:U
+
+data	demest=demest GAUGE:1200:0:U
+data	resest=resest GAUGE:1200:0:U
+
+
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	response desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Response (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'ariel mastracchio' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:response:AVERAGE:%.0lf%s,'
+	'GPRINT:response:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Search (##GRAPHTIME##)'
+	--vertical-label 'mseg'
+	--watermark 'ariel mastracchio' 
+	DEF:demhtbu=##DB##:demhtbu:AVERAGE
+	DEF:demseca=##DB##:demseca:AVERAGE
+	DEF:demsenc=##DB##:demsenc:AVERAGE
+	DEF:demest=##DB##:demest:AVERAGE
+	CDEF:missing=demhtbu,UN,INF,UNKN,IF
+	'LINE1:demhtbu###COLOR1##:Demora htbusca'
+	'LINE1:demseca###COLOR2##:Demora searchpl CACHE'
+	'LINE1:demsenc###COLOR3##:Demora searchpl NOCACHE'
+	'LINE1:demest###COLOR4##:Demora estsearchcgi'
+	'GPRINT:demhtbu:MIN:demhtbu\: min=%.1lf'
+	'GPRINT:demhtbu:AVERAGE:avg=%.1lf'
+	'GPRINT:demhtbu:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+
+
+graph   resultados desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+        --title '##RRD## Resultados de la busqueda (##GRAPHTIME##)'
+        --lower-limit 0
+        --watermark 'ariel mastracchio'
+        --vertical-label 'cont'
+        DEF:reshtbu=##DB##:reshtbu:AVERAGE
+        DEF:resseca=##DB##:resseca:AVERAGE
+        DEF:ressenc=##DB##:ressenc:AVERAGE
+        DEF:resest=##DB##:resest:AVERAGE
+
+        CDEF:missing=ressenc,UN,INF,UNKN,IF
+	'LINE1:reshtbu###COLOR1##:Resultados htbusca'
+	'LINE1:resseca###COLOR2##:Resultados searchpl CACHE'
+	'LINE1:ressenc###COLOR3##:Resultados searchpl NOCACHE'
+	'LINE1:resest###COLOR4##:Resultados estsearchcgi'
+        'GPRINT:reshtbu:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:reshtbu:AVERAGE:%.0lf%s,'
+        'GPRINT:reshtbu:MAX:%.0lf%s)'
+        'GPRINT:resseca:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:resseca:AVERAGE:%.0lf%s,'
+        'GPRINT:resseca:MAX:%.0lf%s)'
+        'GPRINT:ressenc:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:ressenc:AVERAGE:%.0lf%s,'
+        'GPRINT:ressenc:MAX:%.0lf%s)'
+        'GPRINT:resest:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:resest:AVERAGE:%.0lf%s,'
+        'GPRINT:resest:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+

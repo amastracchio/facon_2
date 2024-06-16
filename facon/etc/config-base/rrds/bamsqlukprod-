@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	mk1_data_ex=mk1_data_ex:* GAUGE:1800:0:U  bamsql *
+data	ano=ano:* GAUGE:1800:0:U  bamsql *
+data	iinterfaces=iinterfaces:* GAUGE:1800:0:U  bamsql *
+data	temp_2=temp_2:* GAUGE:1800:0:U  bamsql *
+data	exploit=exploit:* GAUGE:1800:0:U  bamsql *
+data	bamac=bamac:* GAUGE:1800:0:U  bamsql *
+data	referentiel=referentiel:* GAUGE:1800:0:U  bamsql *
+data	sysaux=sysaux:* GAUGE:1800:0:U  bamsql *
+data	ireferentiel=ireferentiel:* GAUGE:1800:0:U  bamsql *
+data	neo_data=neo_data:* GAUGE:1800:0:U  bamsql *
+data	temp_6=temp_6:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:mk1_data_ex=##DB##:mk1_data_ex:AVERAGE
+	 DEF:ano=##DB##:ano:AVERAGE
+	 DEF:iinterfaces=##DB##:iinterfaces:AVERAGE
+	 DEF:temp_2=##DB##:temp_2:AVERAGE
+	 DEF:exploit=##DB##:exploit:AVERAGE
+	 DEF:bamac=##DB##:bamac:AVERAGE
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+	 DEF:sysaux=##DB##:sysaux:AVERAGE
+	 DEF:ireferentiel=##DB##:ireferentiel:AVERAGE
+	 DEF:neo_data=##DB##:neo_data:AVERAGE
+	 DEF:temp_6=##DB##:temp_6:AVERAGE
+      CDEF:missing=mk1_data_ex,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:mk1_data_ex###COLOR1##:mk1_data_ex'
+	'LINE2:ano###COLOR2##:ano'
+	'LINE2:iinterfaces###COLOR3##:iinterfaces'
+	'LINE2:temp_2###COLOR4##:temp_2'
+	'LINE2:exploit###COLOR5##:exploit'
+	'LINE2:bamac###COLOR6##:bamac'
+	'LINE2:referentiel###COLOR7##:referentiel'
+	'LINE2:sysaux###COLOR8##:sysaux'
+	'LINE2:ireferentiel###COLOR9##:ireferentiel'
+	'LINE2:neo_data###COLOR10##:neo_data'
+	'LINE2:temp_6###COLOR11##:temp_6'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:mk1_data_ex:LAST:mk1_data_ex         = %.2lf\l'
+	'GPRINT:ano:LAST:ano         = %.2lf\l'
+	'GPRINT:iinterfaces:LAST:iinterfaces         = %.2lf\l'
+	'GPRINT:temp_2:LAST:temp_2         = %.2lf\l'
+	'GPRINT:exploit:LAST:exploit         = %.2lf\l'
+	'GPRINT:bamac:LAST:bamac         = %.2lf\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'
+	'GPRINT:sysaux:LAST:sysaux         = %.2lf\l'
+	'GPRINT:ireferentiel:LAST:ireferentiel         = %.2lf\l'
+	'GPRINT:neo_data:LAST:neo_data         = %.2lf\l'
+	'GPRINT:temp_6:LAST:temp_6         = %.2lf\l'

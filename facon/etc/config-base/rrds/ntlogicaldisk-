@@ -1,0 +1,72 @@
+# rrds/ntlogicaldisk-* - disk partitions on NT
+# CVS $Id: ntlogicaldisk-,v 1.12 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+
+data	reads=logicaldisk:disk_reads-sec:* COUNTER:600:0:U perfcounters
+data	writes=logicaldisk:disk_writes-sec:* COUNTER:600:0:U perfcounters
+data	inbytes=logicaldisk:disk_read_bytes-sec:* COUNTER:600:0:U perfcounters
+data	outbytes=logicaldisk:disk_write_bytes-sec:* COUNTER:600:0:U perfcounters
+data	diskfree=logicaldisk:disk_free_meg:* GAUGE:600:0:U perfcounters
+data	disksize=logicaldisk:disk_size_meg:* GAUGE:600:0:U perfcounters
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	usage-*
+	--title '##HOST## - Disk ##WILDPART## Used (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'bytes'
+	DEF:diskfreemeg=##DB##:diskfree:AVERAGE
+	DEF:disksizemeg=##DB##:disksize:AVERAGE
+	CDEF:diskfree=diskfreemeg,1000000,*
+	CDEF:disksize=disksizemeg,1000000,*
+#	CDEF:diskused=disksizemeg,diskfreemeg,-,1000,*
+	CDEF:missing=diskfreemeg,UN,INF,UNKN,IF
+	'AREA:disksize###TOTALCOLOR##:Total'
+	'LINE2:diskfree###USEDCOLOR##:Free'
+	'GPRINT:diskfree:LAST:free=%.0lf%s'
+	'GPRINT:disksize:LAST:size=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+# This one doesn't look very interesting here
+#graph	ioops-* desc='disk reads and writes'
+#	--title '##HOST## - Disk ##WILDPART## I/O Ops (##GRAPHTIME##)'
+#	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+#	--vertical-label 'IO ops/sec'
+#	DEF:reads=##DB##:reads:AVERAGE
+#	DEF:writes=##DB##:writes:AVERAGE
+#	CDEF:missing=reads,UN,INF,UNKN,IF
+#	'AREA:reads###INCOLOR##:Reads'
+#	'LINE2:writes###OUTCOLOR##:Writes'
+#	'GPRINT:reads:LAST:Reads=%.0lf%s'
+#	'GPRINT:reads:AVERAGE:avg=%.0lf%s'
+#	'GPRINT:reads:MAX:max=%.0lf%s'
+#	'GPRINT:writes:LAST:Writes=%.0lf%s'
+#	'GPRINT:writes:AVERAGE:avg=%.0lf%s'
+#	'GPRINT:writes:MAX:max=%.0lf%s'
+#	'AREA:missing###MISSING##:missing'
+
+graph	volume-*
+	--title '##HOST## - Disk ##WILDPART## I/O Volume (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'bytes/sec'
+	DEF:inbytes=##DB##:inbytes:AVERAGE
+	DEF:outbytes=##DB##:outbytes:AVERAGE
+	CDEF:missing=inbytes,UN,INF,UNKN,IF
+	'AREA:inbytes###INCOLOR##:Read Bytes'
+	'LINE2:outbytes###OUTCOLOR##:Written Bytes'
+	'GPRINT:inbytes:LAST:Read=%.0lf%s'
+	'GPRINT:inbytes:AVERAGE:avg=%.0lf%s'
+	'GPRINT:inbytes:MAX:max=%.0lf%s'
+	'GPRINT:outbytes:LAST:Written=%.0lf%s'
+	'GPRINT:outbytes:AVERAGE:avg=%.0lf%s'
+	'GPRINT:outbytes:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

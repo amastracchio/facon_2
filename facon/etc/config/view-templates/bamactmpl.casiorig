@@ -1,0 +1,20 @@
+
+<VIEW::HEADER Bamac Status>
+
+<P>
+Detalle de corridas batch
+<UL>
+<VIEW::GRAPH graph        pyah14 bamac-uk value-* day yesterday>
+</UL>
+</P>
+
+<P>
+And here's silverlock:
+<UL>
+<VIEW::CUSTOMGRAPH servercpu>
+</UL>
+
+Silverlock's uptime: <VIEW::INCLUDE /var/remstats/data/silverlock.dgim.crc.ca/UPTIME.html>
+
+<VIEW::FOOTER>
+~

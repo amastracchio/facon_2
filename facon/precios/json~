@@ -1,0 +1,16 @@
+{
+    "table": {
+        "rows": [
+            {
+                "URL": "https://www.senado.gov.ar/parlamentario/sesiones/2020-02-28 00:00:00/15-19/downloadBoletin",  
+                "FECHA SESION": "2020-02-28",  
+                "NUMERO BOLETIN": "15-19"
+            },
+            {
+                "URL": "https://www.senado.gov.ar/parlamentario/sesiones/2004-03-18 00:00:00/01-04/downloadBoletin",  
+                "FECHA SESION": "2004-03-18",  
+                "NUMERO BOLETIN": "01-04",  
+            }
+		]
+		}
+		}

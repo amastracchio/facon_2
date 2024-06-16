@@ -1,0 +1,44 @@
+# rrds/port-* - Generic service on a fixed tcp port.  
+# CVS $Id: port-,v 1.10 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+source		port
+step		300
+
+data		status=port-* GAUGE:1200:0:U
+data		response=port-*-response GAUGE:1200:0:U
+
+alert		status < 2 3 4
+alert		response <daystddev 1 2 3
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+#graph		port-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, and looking for service-specific strings in the response.  It returns the status assigned to the first string that matches.  The possible statuses are the usual remstats status numbers: 1(OK), 2(WARN), 3(ERROR), 4(CRITICAL)"
+#	--title '##HOST## - ##RRD## Status (##GRAPHTIME##)'
+#	--lower-limit 0
+	--watermark 'AACORN HP' --upper-limit 4 --rigid
+#	--vertical-label 'status'
+#	--units-exponent 0
+#	DEF:status=##DB##:status:AVERAGE
+#	CDEF:missing=status,UN,INF,UNKN,IF
+#	'LINE2:status###COLOR1##:status'
+#	'COMMENT:(1=ok, 2=warning, 3=err, 4=critical)'
+#	'AREA:missing###MISSING##:missing'
+
+graph		response-* desc="This is collected by the port-collector.  It works by connecting to the service, sending a service-specific string to it and, measuring the time that the service takes to respond.  The Response Time is how long that service took to respond."
+	--title '##HOST## - ##RRD## Response (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf,'
+	'GPRINT:response:AVERAGE:%.0lf,'
+	'GPRINT:response:MAX:%.0lf)'
+	'AREA:missing###MISSING##:missing'
+

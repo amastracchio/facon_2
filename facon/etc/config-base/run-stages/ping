@@ -1,0 +1,12 @@
+# run-stages/ping - ping hosts first
+# $Id: ping,v 1.2 2002/07/11 11:59:41 remstats Exp $
+#
+# Note: we are chdir'd to @@TMPDIR@@ first
+# Note2: stderr will be sent to NAME.$$
+#
+# NAME ASYNC FREQ COMMAND
+#
+# We run the ping-collector first, before all the other collectors, in order
+# to flag hosts as up or down, so we don't waste time trying to contact
+# a host that is down.
+ping no 300 ping-collector -F | updater ping

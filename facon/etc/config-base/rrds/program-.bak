@@ -1,0 +1,39 @@
+# rrds/program-* - generic get-value-from-running-a-program RRD
+# CVS $Id: program-,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	program
+step	300
+
+data	value=program-* GAUGE:1200:0:U
+data	responsetime=program-*-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	4hour day week month 3month
+
+graph	value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	--title '##HOST## - ##WILDPART## values (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP' 
+	DEF:value=##DB##:value:AVERAGE
+	CDEF:missing=value,UN,INF,UNKN,IF
+	'LINE2:value###COLOR1##:value'
+	'GPRINT:value:MIN:(min,avg,max) = (%.0lf,\g'
+	'GPRINT:value:AVERAGE:%.0lf,\g'
+	'GPRINT:value:MAX:%.0lf)\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	response-* desc="This is collected by the program-collector.  It works by running the specified program and timing how long the program took to run; that is the response-time reported here."
+	--title '##HOST## - ##WILDPART## response-time (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP' 
+	--vertical-label 'sec'
+	DEF:responsetime=##DB##:responsetime:AVERAGE
+	CDEF:missing=responsetime,UN,INF,UNKN,IF
+	'LINE2:responsetime###COLOR1##:responsetime'
+	'GPRINT:responsetime:MIN:(min,avg,max) = (%.0lf,\g'
+	'GPRINT:responsetime:AVERAGE:%.0lf,\g'
+	'GPRINT:responsetime:MAX:%.0lf)\l'
+	'AREA:missing###MISSING##:missing'
+

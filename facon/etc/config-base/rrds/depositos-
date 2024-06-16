@@ -1,0 +1,140 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1083524=1083524  GAUGE:1200:0:U
+data    ddata1083524=1083524  DERIVE:1200:0:U
+alert    data1083524 delta< 10 10 10 
+data    data1170116=1170116  GAUGE:1200:0:U
+data    ddata1170116=1170116  DERIVE:1200:0:U
+alert    data1170116 delta< 10 10 10 
+data    data1117656=1117656  GAUGE:1200:0:U
+data    ddata1117656=1117656  DERIVE:1200:0:U
+alert    data1117656 delta< 10 10 10 
+data    data1013749=1013749  GAUGE:1200:0:U
+data    ddata1013749=1013749  DERIVE:1200:0:U
+alert    data1013749 delta< 10 10 10 
+data    data1013756=1013756  GAUGE:1200:0:U
+data    ddata1013756=1013756  DERIVE:1200:0:U
+alert    data1013756 delta< 10 10 10 
+data    data1080459=1080459  GAUGE:1200:0:U
+data    ddata1080459=1080459  DERIVE:1200:0:U
+alert    data1080459 delta< 10 10 10 
+data    data9006670=9006670  GAUGE:1200:0:U
+data    ddata9006670=9006670  DERIVE:1200:0:U
+alert    data9006670 delta< 10 10 10 
+data    data803707=803707  GAUGE:1200:0:U
+data    ddata803707=803707  DERIVE:1200:0:U
+alert    data803707 delta< 10 10 10 
+data    data1013750=1013750  GAUGE:1200:0:U
+data    ddata1013750=1013750  DERIVE:1200:0:U
+alert    data1013750 delta< 10 10 10 
+data    data9006672=9006672  GAUGE:1200:0:U
+data    ddata9006672=9006672  DERIVE:1200:0:U
+alert    data9006672 delta< 10 10 10 
+data    data918234=918234  GAUGE:1200:0:U
+data    ddata918234=918234  DERIVE:1200:0:U
+alert    data918234 delta< 10 10 10 
+data    data9006671=9006671  GAUGE:1200:0:U
+data    ddata9006671=9006671  DERIVE:1200:0:U
+alert    data9006671 delta< 10 10 10 
+data    data9004239=9004239  GAUGE:1200:0:U
+data    ddata9004239=9004239  DERIVE:1200:0:U
+alert    data9004239 delta< 10 10 10 
+data    data1013746=1013746  GAUGE:1200:0:U
+data    ddata1013746=1013746  DERIVE:1200:0:U
+alert    data1013746 delta< 10 10 10 
+data    data1013747=1013747  GAUGE:1200:0:U
+data    ddata1013747=1013747  DERIVE:1200:0:U
+alert    data1013747 delta< 10 10 10 
+data    data1018687=1018687  GAUGE:1200:0:U
+data    ddata1018687=1018687  DERIVE:1200:0:U
+alert    data1018687 delta< 10 10 10 
+data    data9004238=9004238  GAUGE:1200:0:U
+data    ddata9004238=9004238  DERIVE:1200:0:U
+alert    data9004238 delta< 10 10 10 
+data    responsetime=1083524-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15443&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1083524=##DB##:data1083524:AVERAGE
+      'LINE2:data1083524###COLOR1##:Baul Sherwood 270 Lts  SKU 1083524 ' 
+      'GPRINT:data1083524:LAST: last=%.1lf\n'
+      DEF:data1170116=##DB##:data1170116:AVERAGE
+      'LINE2:data1170116###COLOR2##:Deposito Jardin Newburgh 151x122x198cm  SKU 1170116 ' 
+      'GPRINT:data1170116:LAST: last=%.1lf\n'
+      DEF:data1117656=##DB##:data1117656:AVERAGE
+      'LINE2:data1117656###COLOR3##:Bodega Jardin Oakland 230x287x238Cm  SKU 1117656 ' 
+      'GPRINT:data1117656:LAST: last=%.1lf\n'
+      DEF:data1013749=##DB##:data1013749:AVERAGE
+      'LINE2:data1013749###COLOR4##: SKU 1013749 ' 
+      'GPRINT:data1013749:LAST: last=%.1lf\n'
+      DEF:data1013756=##DB##:data1013756:AVERAGE
+      'LINE2:data1013756###COLOR5##:Dep贸sito Jard胣 Lx  SKU 1013756 ' 
+      'GPRINT:data1013756:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15443&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1080459=##DB##:data1080459:AVERAGE
+      'LINE2:data1080459###COLOR1##:Deco Composter 340Lts  SKU 1080459 ' 
+      'GPRINT:data1080459:LAST: last=%.1lf\n'
+      DEF:data9006670=##DB##:data9006670:AVERAGE
+      'LINE2:data9006670###COLOR2##:Invernadero Mediano 89X49X155Cm  SKU 9006670 ' 
+      'GPRINT:data9006670:LAST: last=%.1lf\n'
+      DEF:data803707=##DB##:data803707:AVERAGE
+      'LINE2:data803707###COLOR3##:Dep贸sito Jard胣 Bw54A  SKU 803707 ' 
+      'GPRINT:data803707:LAST: last=%.1lf\n'
+      DEF:data1013750=##DB##:data1013750:AVERAGE
+      'LINE2:data1013750###COLOR4##:Dep贸sito Jard胣 Rmg  SKU 1013750 ' 
+      'GPRINT:data1013750:LAST: last=%.1lf\n'
+      DEF:data9006672=##DB##:data9006672:AVERAGE
+      'LINE2:data9006672###COLOR5##:Invernadero Chico 89X49X98Cm  SKU 9006672 ' 
+      'GPRINT:data9006672:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15443&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data918234=##DB##:data918234:AVERAGE
+      'LINE2:data918234###COLOR1##:Bodega Manor 130x94x198 Cm  SKU 918234 ' 
+      'GPRINT:data918234:LAST: last=%.1lf\n'
+      DEF:data9006671=##DB##:data9006671:AVERAGE
+      'LINE2:data9006671###COLOR2##:Invernadero Grande  SKU 9006671 ' 
+      'GPRINT:data9006671:LAST: last=%.1lf\n'
+      DEF:data9004239=##DB##:data9004239:AVERAGE
+      'LINE2:data9004239###COLOR3##:Gabinete Rattan Pl谩stico 65X45X99  SKU 9004239 ' 
+      'GPRINT:data9004239:LAST: last=%.1lf\n'
+      DEF:data1013746=##DB##:data1013746:AVERAGE
+      'LINE2:data1013746###COLOR4##: SKU 1013746 ' 
+      'GPRINT:data1013746:LAST: last=%.1lf\n'
+      DEF:data1013747=##DB##:data1013747:AVERAGE
+      'LINE2:data1013747###COLOR5##:Dep贸sito Jard胣 Ys  SKU 1013747 ' 
+      'GPRINT:data1013747:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/AjaxCatalogSearchResultContentView?searchTermScope=&searchType=1002&filterTerm=&orderBy=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=1&sType=SimpleSearch&metaData=&pageSize=200&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&searchTerm=&minPrice=&categoryId=15443&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1018687=##DB##:data1018687:AVERAGE
+      'LINE2:data1018687###COLOR1##:Dep贸sito De Jard胣 Rmg  SKU 1018687 ' 
+      'GPRINT:data1018687:LAST: last=%.1lf\n'
+      DEF:data9004238=##DB##:data9004238:AVERAGE
+      'LINE2:data9004238###COLOR2##:Gabinete Multi Rattan Plastico 65x45x184 Cm  SKU 9004238 ' 
+      'GPRINT:data9004238:LAST: last=%.1lf\n'
+

@@ -1,0 +1,6 @@
+The battery temperature measured by UPS ##HOST##(##IP##) is now ##VALUE## degrees.
+This is too high and needs to be looked into.  The UPS will shutdown around 
+60 degrees Celcius or 140 Fahrenheit.
+
+Also note that the temperature sensor on the batteries is not well calibrated
+and can be quite inconsistent between UPSs.

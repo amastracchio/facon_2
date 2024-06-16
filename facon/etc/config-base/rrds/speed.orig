@@ -1,0 +1,92 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	status=weathernetwork GAUGE:1200:0:U
+data	response=downbandw-response GAUGE:1200:0:U
+data	downbandw=downbandw GAUGE:1200:0:U
+data	downlath=downlath  GAUGE:1200:0:U
+data	downlatj=downlatj GAUGE:1200:0:U
+data	downlatl=downlatl GAUGE:1200:0:U
+data	downlati=downlati GAUGE:1200:0:U
+data	upbandw=upbandw GAUGE:1200:0:U
+data	uplath=uplath GAUGE:1200:0:U
+data	uplatj=uploadj GAUGE:1200:0:U
+data	uplatl=uplatl GAUGE:1200:0:U
+data	uplati=uplati GAUGE:1200:0:U
+data	pingh=pingh GAUGE:1200:0:U
+data	pingj=pingj GAUGE:1200:0:U
+data	pingla=pingla GAUGE:1200:0:U
+data	pingl=pingl GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	speed desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Bandwidth (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Ariel Mastracchio' 
+	--vertical-label 'bytes/s'
+	DEF:downbandw=##DB##:downbandw:AVERAGE
+	DEF:upbandw=##DB##:upbandw:AVERAGE
+	CDEF:missing=downbandw,UN,INF,UNKN,IF
+	'LINE2:downbandw###COLOR1##:download'
+	'LINE2:upbandw###COLOR2##:upbandw'
+	'GPRINT:downbandw:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:downbandw:AVERAGE:%.0lf%s,'
+	'GPRINT:downbandw:MAX:%.0lf%s)'
+
+graph	latencyd desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Download Latency (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Ariel Mastracchio' 
+	--vertical-label 'ms'
+	DEF:downlath=##DB##:downlath:AVERAGE
+	DEF:downlatl=##DB##:downlatl:AVERAGE
+	DEF:downlatj=##DB##:downlatj:AVERAGE
+	DEF:downlati=##DB##:downlati:AVERAGE
+	CDEF:missing=downlath,UN,INF,UNKN,IF
+	'LINE2:downlath###COLOR1##:high'
+	'LINE2:downlatl###COLOR2##:low'
+	'LINE2:downlatj###COLOR3##:jitter'
+	'LINE2:downlati###COLOR4##:iqm'
+
+graph	latencyu desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Upload Latency (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Ariel Mastracchio' 
+	--vertical-label 'ms'
+	DEF:uplath=##DB##:uplath:AVERAGE
+	DEF:uplatl=##DB##:uplatl:AVERAGE
+	DEF:uplatj=##DB##:uplatj:AVERAGE
+	DEF:uplati=##DB##:uplati:AVERAGE
+	CDEF:missing=uplath,UN,INF,UNKN,IF
+	'LINE2:uplath###COLOR1##:high'
+	'LINE2:uplatl###COLOR2##:low'
+	'LINE2:uplatj###COLOR3##:jitter'
+	'LINE2:uplati###COLOR4##:iqm'
+
+graph	pings desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Ping Script (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Ariel Mastracchio' 
+	--vertical-label 'ms'
+	DEF:pingh=##DB##:pingh:AVERAGE
+	DEF:pingla=##DB##:pingla:AVERAGE
+	DEF:pingl=##DB##:pingl:AVERAGE
+	DEF:pingj=##DB##:pingj:AVERAGE
+	CDEF:missing=pingh,UN,INF,UNKN,IF
+	'LINE2:pingh###COLOR1##:high'
+	'LINE2:pingl###COLOR2##:low'
+	'LINE2:pingj###COLOR3##:jitter'
+	'LINE2:pingla###COLOR4##:latency'

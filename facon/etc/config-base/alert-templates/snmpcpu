@@ -1,0 +1,5 @@
+The CPU load on Cisco router ##HOST##(##IP##) has 
+reached ##VALUE##.  There may be a good reason, but then again, 
+there may be a bad reason.  
+
+Use "show proc cpu" to see which processes are using the CPU.

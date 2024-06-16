@@ -1,0 +1,154 @@
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users10
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users12
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users15
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users17
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users18
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users2
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users20
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users21
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users30
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       pyahde
+        service_description             df-/users4
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+

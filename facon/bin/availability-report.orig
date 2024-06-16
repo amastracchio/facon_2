@@ -1,0 +1,595 @@
+#!/usr/bin/perl -w
+# availability-report - show how available things are, according to 
+#	your definition of available
+# CVS $Id: availability-report.pl,v 1.28 2003/05/20 19:28:05 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999 - 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::program = 'availability-report';
+# Where is the config-dir
+$main::config_dir = '/var/facon/etc/config';
+# Default time-range
+$main::start_time = -60*60*24; # one day
+$main::end_time = 0;
+# How small is effectively zero
+$main::very_small = 1e-10;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.28 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+use RRDs;
+use Time::Local;
+require "facon.pl";
+require "htmlstuff.pl";
+use Getopt::Std;
+
+# Parse the command-line
+my $command_line = join(' ', @ARGV);
+my %opt = ();
+getopts('cd:f:gG:hH:R:t:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'c'}) { $main::use_colors = 1; }
+else { $main::use_colors = 0; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'H'}) { @main::show_hosts = split(',', $opt{'H'}); }
+if (defined $opt{'g'}) { $main::show_summary = 1; }
+else { $main::show_summary = 0; }
+if (defined $opt{'G'}) { @main::show_groups = split(',', $opt{'G'}); }
+if (defined $opt{'R'}) { @main::show_rrds = split(',', $opt{'R'}); }
+if (defined $opt{'t'}) {
+	($main::start_time, $main::end_time) = split(',', $opt{'t'});
+}
+
+&debug("command-line: $command_line") if( $main::debug);
+# no buffering when debugging
+if ($main::debug) { $| = 1; }
+
+&read_config_dir( $main::config_dir, 'general', 'colors', 'html', 'oids',
+	'times', 'rrds', 'groups', 'host-templates', 'hosts', 'availability');
+
+my ($rrd, $errors, $wildrrd);
+
+# Verify the specified hosts
+$errors = 0;
+if (@main::show_hosts) {
+	foreach (@main::show_hosts) {
+		if (defined $main::config{HOST}{$_}) {
+			$main::show_hosts{$_} = 1;
+		}
+		else {
+			&error("unknown host '$_'; skipped");
+			++$errors;
+		}
+	}
+}
+else {
+	@main::show_hosts = keys %{$main::config{HOST}};
+	%main::show_hosts = map { $_ => 1 } @main::show_hosts;
+}
+
+# Verify the specified RRDs
+if (@main::show_rrds) {
+	foreach (@main::show_rrds) {
+		($wildrrd) = &get_rrd($_);
+		if (defined $main::config{RRD}{$wildrrd}) {
+			$main::show_rrds{$_} = 1;
+		}
+		else {
+			&error("unknown rrd '$_'; skipped");
+			++$errors;
+		}
+	}
+}
+else {
+	@main::show_rrds = keys %{$main::config{RRD}};
+	%main::show_rrds = map { $_ => 1 } @main::show_rrds;
+	foreach my $host (@main::show_hosts) {
+		foreach my $rrd (@{$main::config{HOST}{$host}{RRDS}}) {
+			unless (defined $main::show_rrds{$rrd}) {
+				push @main::show_rrds, $rrd;
+				$main::show_rrds{$rrd} = 1;
+			}
+		}
+	}
+	@main::show_rrds = sort @main::show_rrds;
+}
+
+# Verify the specified groups
+if (@main::show_groups) {
+	foreach (@main::show_groups) {
+		if (grep /^$_$/, @{$main::config{GROUPS}}) {
+			$main::show_groups{$_} = 1;
+		}
+		else {
+			&error("unknown group '$_'; skipped");
+			++$errors;
+		}
+	}
+}
+else {
+	@main::show_groups = @{$main::config{GROUPS}};
+	%main::show_groups = map { $_ => 1 } @main::show_groups;
+}
+
+if ($errors) { &abort("errors in specification"); }
+
+$main::start_time = &fix_time($main::start_time);
+$main::end_time = &fix_time($main::end_time);
+
+# - - -   Mainline   - - -
+
+my ($group, $host, $html);
+
+$html = '';
+$main::end_table = '';
+if (scalar(keys %main::show_hosts) == 1) {
+	$html .= "<TABLE BORDER=0 WIDTH=\"100%\">\n";
+	foreach $host (@main::show_hosts) {
+		$html .= &do_host($host);
+	}
+}
+else {
+	my $new_html = '';
+	my $header_html = '';
+	foreach $group (@main::show_groups) {
+		$header_html = &new_group($group);
+		foreach $host (@{$main::config{GROUP}{$group}}) {
+			unless (defined $main::show_hosts{$host}) {
+				&debug("host $host not specified; skipped") if ($main::debug);
+				next;
+			}
+			$new_html = &do_host($host);
+			if ($new_html) {
+				$html .= $header_html . $new_html;
+				$header_html = '';
+			}
+		}
+	}
+}
+if ($html) {
+	my $start = localtime($main::start_time);
+	my $end = localtime($main::end_time);
+	my $header = <<"EOD_HEADER";
+<TABLE>
+<TR><TD ALIGN="RIGHT"><B>From:</B></TD> <TD>$start</TD></TR>
+<TR><TD ALIGN="RIGHT"><B>To:</B></TD>   <TD>$end</TD></TR>
+</TABLE>
+<HR>
+EOD_HEADER
+	print $header . $html ."</TABLE>\n";
+}
+
+#----------------------------------------------------------------- do_host ---
+sub do_host {
+	my $host = shift @_;
+	my ($realrrd, $wildrrd, $wildpart, $fixedrrd, $html, $new_html,
+		$found_data);
+
+	$found_data = 0;
+	$html = &new_host($host);
+	$main::varnum = 0;
+
+	foreach $realrrd ( @{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd( $realrrd);
+		unless (defined $wildrrd) {
+			&abort("unknown rrd '$realrrd'");
+		}
+		unless (defined $main::show_rrds{$realrrd} or
+				defined $main::show_rrds{$wildrrd}) {
+			&debug("  rrd $realrrd not being shown; skipped")
+				if ($main::debug);
+			next;
+		}
+		$new_html = &do_rrd( $host, $realrrd, $wildrrd, $wildpart, $fixedrrd);
+		if($new_html) { ++$found_data; $html .= $new_html; }
+	}
+	return ($found_data) ? $html : '';
+}
+
+#------------------------------------------------------------------- do_rrd ---
+sub do_rrd {
+	my ($host, $realrrd, $wildrrd, $wildpart, $fixedrrd) = @_;
+	my (%vars, $var, $html, $new_html, $found_data);
+
+	&debug("  doing rrd $realrrd") if ($main::debug);
+
+	# Do we want this RRD?
+	if (defined $main::config{HOSTAVAIL}{$host}{$realrrd}) {
+		%vars = %{$main::config{HOSTAVAIL}{$host}{$realrrd}};
+		&debug("    matched real host avail definition") if ($main::debug>1);
+	}
+	elsif (defined $main::config{HOSTAVAIL}{$host}{$wildrrd}) {
+		%vars = %{$main::config{HOSTAVAIL}{$host}{$wildrrd}};
+		&debug("    matched wild host avail definition") if ($main::debug>1);
+	}
+	elsif (defined $main::config{RRDAVAIL}{$realrrd}) {
+		%vars = %{$main::config{RRDAVAIL}{$realrrd}};
+		&debug("    matched real rrd avail definition") if ($main::debug>1);
+	}
+	elsif (defined $main::config{RRDAVAIL}{$wildrrd}) {
+		%vars = %{$main::config{RRDAVAIL}{$wildrrd}};
+		&debug("    matched wild rrd avail definition") if ($main::debug>1);
+	}
+	else {
+		&debug("    rrd $realrrd not specified; skipped") if ($main::debug);
+		return;
+	}
+
+	$html = '';
+	$found_data = 0;
+
+	foreach $var (sort keys %vars) {
+		&debug("    doing var '$var'") if ($main::debug);
+		$new_html = &do_var( $host, $realrrd, $wildrrd, $wildpart, 
+			$fixedrrd, $var, %vars);
+		if ($new_html) {
+			$html .= $new_html;
+			++$found_data;
+		}
+	}
+
+	return ($found_data) ? $html : '';	
+}
+
+#------------------------------------------------------------------ do_var ---
+sub do_var {
+	my ($host, $realrrd, $wildrrd, $wildpart, $fixedrrd, $var, %vars) = @_;
+	my ($rrdfile, $cf, $relation, $threshold, $data_start, $step,
+		$names, $data, $error, %nameindex, $data_end, $data_time,
+		$line, $value, $available, $time_span, $min, $max, $average,
+		$current, $nvalues, $total, $in_outage, $outages, $outage_time,
+		$last_time, $now, $sum_of_x, $sum_of_squares, 
+		$number_of_samples, $stddev, $variance, $out_of_range);
+
+	# Make sure we've got some data
+	$rrdfile = $main::config{DATADIR} .'/'. $host .'/'.
+		$fixedrrd . '.rrd';
+	unless (-f $rrdfile or -l $rrdfile) {
+		&error("missing RRD file $rrdfile; skipped");
+		return '';
+	}
+
+	# Ignore unwanted ones
+	if (defined $main::config{HOST}{$host}{NOAVAILABILITY}{$realrrd}{$var}) {
+		&debug("  real rrd $wildrrd var $var not wanted; skipped")
+			if ($main::debug);
+		return;
+	}
+	elsif (defined $main::config{HOST}{$host}{NOAVAILABILITY}{$wildrrd}{$var}) {
+		&debug("  wild rrd $wildrrd var $var not wanted; skipped")
+			if ($main::debug);
+		return;
+	}
+	
+	$cf = $vars{$var}{CF};
+	$relation = $vars{$var}{RELATION};
+	$threshold = $vars{$var}{THRESHOLD} + 0;
+
+# Get the data
+	($data_start, $step, $names, $data) = RRDs::fetch $rrdfile, $cf,
+		'--start', $main::start_time, '--end', $main::end_time;
+	if ($error = RRDs::error) {
+		&error("RRD ERROR: $error");
+		return '';
+	}
+	&debug("    data start=$data_start (", scalar(localtime($data_start)),
+		 "), step=$step") if ($main::debug>1);
+	&debug('    data end=', $data_end = $data_start + $step * ($#$data + 1),
+		' (', scalar(localtime($data_end)), ')') if ($main::debug>1);
+
+# Figure out which variable is which
+	%nameindex = ();
+	for (my $i=0; $i <= $#{$names}; ++$i) {
+		$nameindex{$$names[$i]} = $i;
+	}
+
+# Now figure out what we've got
+	$available = 0;
+	$data_end = $data_start + $step * ($#$data + 1);
+	$time_span = $data_end - $data_start - $step;
+	$nvalues = $total = 0;
+	$data_time = $data_start;
+	$in_outage = $outages = $outage_time = 0;
+	$now = time();
+	$sum_of_x = $sum_of_squares = $number_of_samples = 0;
+	foreach $line (@$data) {
+		last if ($data_time > $now);
+		$value = $$line[$nameindex{$var}];
+		&debug("  at ", scalar(localtime($data_time)), 
+			' value=', (defined $value) ? $value : '<undef>') 
+			if ($main::debug>3);
+		if (defined $value) {
+			$last_time = $data_time;
+			++ $number_of_samples;
+			$sum_of_x += $value;
+			$sum_of_squares += $value * $value;
+			if ($relation eq '<' and $value < $threshold)  {
+				$in_outage = 0; 
+				$available += $step;
+			}
+			elsif ($relation eq '<=' and $value <= $threshold)  {
+				$in_outage = 0;
+				$available += $step;
+			}
+			elsif ($relation eq '>' and $value > $threshold)  {
+				$in_outage = 0;
+				$available += $step;
+			}
+			elsif ($relation eq '>=' and $value >= $threshold)  {
+				$in_outage = 0;
+				$available += $step;
+			}
+			elsif ($relation eq '=' and $value == $threshold)  {
+				$in_outage = 0;
+				$available += $step;
+			}
+			else {
+				unless ($in_outage) { ++$outages; $in_outage = 1; }
+				$outage_time += $step;
+			}
+
+			if (defined $min and $value < $min) { $min = $value; }
+			elsif (!defined $min) { $min = $value; }
+			if (defined $max and $value > $max) { $max = $value; }
+			elsif (!defined $max) { $max = $value; }
+			++$nvalues;
+			$total += $value;
+			$current = $value;
+		}
+		else {
+			unless ($in_outage) { ++$outages; $in_outage = 1; }
+			$outage_time += $step;
+		}
+
+		$data_time += $step;
+	}
+	if ($nvalues > 0) { $average = int( $total / $nvalues * 10) / 10; }
+	else { $average = ''; }
+	if (defined $min) { $min = int($min * 10) / 10; }
+	else { $min = ''; }
+	if (defined $max) { $max = int($max * 10) / 10; }
+	else { $max = ''; }
+	if (defined $current) { $current = int($current * 10) / 10; }
+	else { $current = ''; }
+	if ($number_of_samples > 1) {
+		$variance = ($sum_of_squares - $sum_of_x * $sum_of_x /
+			$number_of_samples) / ($number_of_samples - 1);
+		if ($variance < $main::very_small) {
+			$stddev = 0;
+			$out_of_range = 0;
+		}
+		else {
+			$stddev = sqrt($variance);
+			my $confidence = &get_confidence( $host, $realrrd, $wildrrd,
+				$wildpart, $var);
+			my $range = $confidence * $stddev;
+			if( ($current < ($average - $range)) or
+					($current > ($average + $range))) {
+				$out_of_range = 1;
+			}
+			else { $out_of_range = 0; }
+		}
+	}
+	else {
+		$stddev = '';
+		$out_of_range = 0;
+	}
+
+	&debug("available before rounding = '$available'") if( $main::debug);
+	$available = sprintf('%5.1f', ($available / $time_span * 100));
+	&new_var( $realrrd, $var, $available, $min, $average, $max, 
+		$stddev, $current, $outages, $outage_time, $out_of_range);
+
+}
+
+#--------------------------------------------------------------- new_group ---
+sub new_group {
+	my ($group) = @_;
+
+	&debug("doing group '$group'") if ($main::debug);
+	my $html = <<"EOD_NEWGROUP";
+
+$main::end_table
+<TABLE BORDER=0 WIDTH="100%">
+<TR>
+	<TD ALIGN="LEFT" VALIGN="TOP" COLSPAN="10"><FONT SIZE="+1"><B>$group</B></FONT></TD>
+</TR>
+EOD_NEWGROUP
+	$main::end_table = "</TABLE>\n";
+$html;
+}
+
+#---------------------------------------------------------------- new_host ---
+sub new_host {
+	my ($host) = @_;
+
+	&debug("doing host $host") if ($main::debug);
+	my $html = <<"EOD_NEWHOST";
+<TR>
+	<TD></TD>
+	<TD ALIGN="LEFT" VALIGN="TOP" COLSPAN="10" BGCOLOR="#dddddd">
+		<B><A HREF="$main::config{HTMLURL}/$host/index.cgi">$host</A></B> 
+		- $main::config{HOST}{$host}{DESC}</TD>
+</TR>
+<TR>
+	<TD></TD> <TD></TD>
+	<TD ALIGN="LEFT" VALIGN="TOP"><B>RRD Variable</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Available</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Cur</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Min</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Avg</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Max</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>StdDev</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Outages</B></TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP"><B>Outage Time</B></TD>
+	<TD>&nbsp;&nbsp;&nbsp;</TD>
+</TR>
+EOD_NEWHOST
+$html;
+}
+
+#----------------------------------------------------------------- new_var ---
+sub new_var {
+	my ($realrrd, $variable, $available, $min, $avg, $max, $stddev, $current, 
+		$outages, $outage_time, $out_of_range) = @_;
+	my( $line, $bg);
+
+	&debug("    printing rrd=$realrrd var=$variable") if ($main::debug>1);
+
+	if ($min ne '' and $min >= 10000) { $min = &siunits($min); }
+	if ($avg ne '' and $avg >= 10000) { $avg = &siunits($avg); }
+	if ($max ne '' and $max >= 10000) { $max = &siunits($max); }
+	if ($stddev ne '') { $stddev = &siunits($stddev); }
+	if ($outages != 0 and $outages > 10000) { $outages = &siunits($outages); }
+	$outage_time = &sec_to_dhms($outage_time);
+	if ($current ne '' and $current >= 10000) { $current = &siunits($current); }
+	if ($out_of_range) {
+		$current = $main::config{'HTML'}{'OUTOFRANGEPREFIX'} . $current .
+			 $main::config{'HTML'}{'OUTOFRANGEPREFIX'};
+	}
+
+	# No-shade for lines 1-3, shade for 4-6, repeat
+	$line = $main::varnum++ % 6;
+	if( $line >= 0 and $line <= 2) { $bg = ''; }
+	else { $bg = ' BGCOLOR="#eeeeee"'; }
+
+	my $color = &color_avail($available) || $bg;
+	my $html = <<"EOD_RRD";
+<TR>
+	<TD></TD> <TD></TD>
+	<TD ALIGN="LEFT" VALIGN="TOP" WIDTH="37%"$bg>$realrrd&nbsp;$variable</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="8%"$color>$available%</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="7%"$bg>$current</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="7%"$bg>$min</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="7%"$bg>$avg</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="7%"$bg>$max</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="7%"$bg>$stddev</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="5%"$bg>$outages</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP" WIDTH="11%"$bg>$outage_time</TD>
+	<TD WIDTH="1%">&nbsp;</TD>
+</TR>
+EOD_RRD
+$html;
+}
+
+#------------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::program version $main::version from facon 1.0.13a
+usage: $main::program [options]
+where options are:
+    -c      use colors in the output
+    -d ddd  set debugging output to level 'ddd'
+    -f fff  set config-dir to 'fff' [$main::config_dir]
+    -h      show this help
+    -H HHH  show only hosts HHH (comma-separated list) [all]
+    -G GGG  show only groups GGG (comma-separated list) [all]
+    -R RRR  show only rrds RRR (comma-separated list) [all]
+    -g      show group summary
+    -t ttt  availability for time-period ttt (start,finish)
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- fix_time ---
+sub fix_time {
+	my ($itimestamp) = @_;
+	my ($sec, $min, $hour, $mday, $mon, $year, $timestamp);
+	&debug("fix_time: input = $itimestamp") if ($main::debug>2);
+
+	if ($itimestamp <= 0) {
+		$timestamp =  time() + $itimestamp;
+		&debug("fix_time: relative timestamp = $timestamp") 
+			if ($main::debug>2);
+	}
+	elsif (length($itimestamp) == 8) {
+		$year = substr($itimestamp,0,4) - 1900;
+		$mon = substr($itimestamp,4,2) - 1;
+		$mday = substr($itimestamp,6,2) + 0;
+		$sec = $min = $hour = 0;
+		&debug("fix_time: short date = ".
+			"($sec, $min, $hour, $mday, $mon, $year)")
+			if ($main::debug>2);
+		$timestamp = timelocal($sec, $min, $hour, $mday, $mon, $year);
+		&debug("    = $timestamp") if ($main::debug>2);
+	}
+	elsif (length($itimestamp) == 14) {
+		$year = substr($itimestamp,0,4) - 1900;
+		$mon = substr($itimestamp,4,2) - 1;
+		$mday = substr($itimestamp,6,2) + 0;
+		$hour = substr($itimestamp,8,2) + 0;
+		$min = substr($itimestamp,10,2) + 0;
+		$sec = substr($itimestamp,12,2) + 0;
+		&debug("fix_time: long date = ".
+			"($sec, $min, $hour, $mday, $mon, $year)")
+			if ($main::debug>2);
+		$timestamp = timelocal($sec, $min, $hour, $mday, $mon, $year);
+		&debug("    = $timestamp") if ($main::debug>2);
+	}
+	else {
+		$timestamp = $itimestamp;
+		&debug("fix_time: timestamp = $timestamp") if ($main::debug>2);
+	}
+	&debug("fix_time: $itimestamp -> $timestamp")
+		if ($main::debug>1);
+$timestamp;
+}
+
+#------------------------------------------------------------- color_avail ---
+sub color_avail {
+	my ($percent) = @_;
+	my $html = '';
+	
+	if ($main::use_colors) {
+		my @colors = @{$main::config{AVAILCOLORS}};
+		my @thresholds = @{$main::config{AVAILTHRESHOLDS}};
+		unless (@colors == @thresholds) {
+			&abort("# availability colors != # availability thresholds");
+		}
+		for (my $i = 0; $i < @thresholds; ++$i) {
+			if ($percent >= $thresholds[$i]) {
+				$html = ' BGCOLOR="'.
+					$main::config{COLOR}{uc $colors[$i]} .  '"';
+				last;
+			}
+		}
+	}
+	return $html;
+}
+
+#---------------------------------------------------------- get_confidence ---
+# XXX Implement an additon to the config for rrd and host to set the required
+# range
+sub get_confidence {
+	my( $host, $realrrd, $wildrrd, $wildpart, $var) = @_;
+	return 2;
+}

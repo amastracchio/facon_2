@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+
+# port-query - a netcat in perl
+# $Id: port-query.pl,v 1.6 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'port-query';
+# How long to wait for the response
+$main::timeout = 10; # seconds
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.6 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "socketstuff.pl";
+use Getopt::Std;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:hst:', \%opt);
+
+my ($do_substitutions, $query_file);
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $query_file = $opt{'f'}; } else { $query_file = '-'; }
+if (defined $opt{'s'}) { $do_substitutions = 1; } else { $do_substitutions = 0; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'} + 0; }
+
+if (@main::ARGV != 2) { &usage; } # no return
+my $host = shift @main::ARGV;
+my $port = shift @main::ARGV;
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+my ($socket, $status);
+
+# Open the connection to the host
+($socket, $status, $main::timeout) = &open_socket( $host, $port, $main::timeout);
+unless ($status == $main::SOCKET_OK) { &abort("couldn't connect to $host: $!"); }
+&debug("  connected to $host:$port") if ($main::debug);
+
+# Read the query
+open (FILE, "<$query_file") or &abort("can't open $query_file: $!");
+my $query = join('', <FILE>) or &abort("can't read $query_file: $!");
+close (FILE) or &abort("can't close $query_file: $!");
+
+if ($do_substitutions) {
+	$query =~ s/##HOST##/$host/gm;
+	$query =~ s/##PORT##/$port/gm;
+	$query =~ s/##(\d+)##/&sub_arg("$1")/egm;
+}
+
+# Send query
+($status, $main::timeout) = &write_socket( $socket, $query, $main::timeout, "query for ${host}:port");
+unless ($status == $main::SOCKET_OK) {
+	$socket->close();
+	&abort("can't send query: $!");
+}
+&debug("  sent query") if ($main::debug);
+
+my $line;
+while (($line, $status, $main::timeout) = 
+		&read_socket($socket, $main::timeout, "response from $host"), 
+		(defined $line and ($status == $main::SOCKET_OK))) {
+	print $line;
+}
+$socket->close() or &abort("can't close connection: $!");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] host port [arg] ...
+where the optional args are to be substituted for ##1##, ##2##, ...
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  read query from file 'fff' [stdin]
+    -h      show this help
+    -s      do magic-cookie substitutions on query
+    -t ttt  use 'ttt' for timeout for response [$main::timeout]
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+}
+
+#--------------------------------------------------------------- sub_arg ---
+sub sub_arg {
+	my $arg = shift @_;
+	if (defined $main::ARGV[$arg]) { return $main::ARGV[$arg]; }
+	else { return "NOARG-$arg"; }
+}

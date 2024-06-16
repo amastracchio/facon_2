@@ -1,0 +1,9 @@
+# scripts/nntp - How about the usenet news server? (Actually it's INN specific.)
+# $Id: nntp,v 1.3 2002/04/16 15:21:23 remstats Exp $
+
+send	group remstats.test\npost\nNewsgroups: remstats.test\nSubject: remstats test\nFrom: <remstats@sourceworks.com>\n\nthis is a remote-monitoring test\n.\n
+timeout	10
+port	119
+ok	^200 .*posting ok
+ok	^240
+

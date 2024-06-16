@@ -1,0 +1,99 @@
+#!/usr/bin/perl -w
+
+# lockfile - make a lock-file
+# $Id: lockfile.pl,v 1.6 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'lockfile';
+# Where is the configuration directory
+$main::config_dir = '/root/3p/facon/etc/config';
+# How many times to retry getting the lock
+$main::retries = 0;
+# How long to sleep between tries
+$main::sleep_time = 10;
+# Break locks that are more than this old (s)
+$main::stale_time = -1;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.6 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib';
+use Getopt::Std;
+require "facon.pl";
+
+# Parse the command-line
+my %opt = ();
+getopts('b:d:f:Fhr:s:u', \%opt);
+
+if( defined $opt{'h'}) { &usage; } # no return
+if( defined $opt{'b'}) { $main::stale_time = $opt{'b'}; }
+if( defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if( defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if( defined $opt{'F'}) { $main::force = 1; }
+if( defined $opt{'r'}) { $main::retries = $opt{'r'}; }
+if( defined $opt{'s'}) { $main::sleep_time = $opt{'s'}; }
+if( defined $opt{'u'}) { $main::unlock = 1; }
+unless( @ARGV == 1) { &usage; }
+my $lock_file = shift @ARGV;
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+&read_config_dir( $main::config_dir, 'general');
+
+# - - -   Mainline   - - -
+
+if( ($main::force or $main::unlock) and -e $lock_file) {
+	&remove_lockfile( $lock_file);
+	&debug("removed lockfile '$lock_file'") if( $main::debug);
+}
+exit 0 if( $main::unlock);
+
+my $exit_code = ! &make_lockfile( $lock_file, $main::stale_time, 
+	$main::retries, $main::sleep_time);
+exit $exit_code;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -b bbb  break locks that are more than 'bbb' seconds old [$main::stale_time]
+  -d nnn  enable debugging output at level 'nnn'
+  -f fff  use 'fff' for config-dir [$main::config_dir]
+  -F      remove the lock-file and try to lock it (force it)
+  -h      show this help
+  -r rrr  retry the lock 'rrr' times (always at least once) [$main::retries]
+  -s sss  sleep for 'sss' seconds between tries [$main::sleep_time]
+  -u      remove the lock-file and exit
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

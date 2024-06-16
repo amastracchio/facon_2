@@ -1,0 +1,152 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1=1  GAUGE:1200:0:U
+data    ddata1=1  DERIVE:1200:0:U
+alert    data1 delta< 10 10 10 
+data    data32342=32342  GAUGE:1200:0:U
+data    ddata32342=32342  DERIVE:1200:0:U
+alert    data32342 delta< 10 10 10 
+data    data234309=234309  GAUGE:1200:0:U
+data    ddata234309=234309  DERIVE:1200:0:U
+alert    data234309 delta< 10 10 10 
+data    data234310=234310  GAUGE:1200:0:U
+data    ddata234310=234310  DERIVE:1200:0:U
+alert    data234310 delta< 10 10 10 
+data    data234312=234312  GAUGE:1200:0:U
+data    ddata234312=234312  DERIVE:1200:0:U
+alert    data234312 delta< 10 10 10 
+data    data234311=234311  GAUGE:1200:0:U
+data    ddata234311=234311  DERIVE:1200:0:U
+alert    data234311 delta< 10 10 10 
+data    data270356=270356  GAUGE:1200:0:U
+data    ddata270356=270356  DERIVE:1200:0:U
+alert    data270356 delta< 10 10 10 
+data    data177760=177760  GAUGE:1200:0:U
+data    ddata177760=177760  DERIVE:1200:0:U
+alert    data177760 delta< 10 10 10 
+data    data22884=22884  GAUGE:1200:0:U
+data    ddata22884=22884  DERIVE:1200:0:U
+alert    data22884 delta< 10 10 10 
+data    data22878=22878  GAUGE:1200:0:U
+data    ddata22878=22878  DERIVE:1200:0:U
+alert    data22878 delta< 10 10 10 
+data    data22867=22867  GAUGE:1200:0:U
+data    ddata22867=22867  DERIVE:1200:0:U
+alert    data22867 delta< 10 10 10 
+data    data36411=36411  GAUGE:1200:0:U
+data    ddata36411=36411  DERIVE:1200:0:U
+alert    data36411 delta< 10 10 10 
+data    data22865=22865  GAUGE:1200:0:U
+data    ddata22865=22865  DERIVE:1200:0:U
+alert    data22865 delta< 10 10 10 
+data    data41617=41617  GAUGE:1200:0:U
+data    ddata41617=41617  DERIVE:1200:0:U
+alert    data41617 delta< 10 10 10 
+data    data285912=285912  GAUGE:1200:0:U
+data    ddata285912=285912  DERIVE:1200:0:U
+alert    data285912 delta< 10 10 10 
+data    data22882=22882  GAUGE:1200:0:U
+data    ddata22882=22882  DERIVE:1200:0:U
+alert    data22882 delta< 10 10 10 
+data    data22866=22866  GAUGE:1200:0:U
+data    ddata22866=22866  DERIVE:1200:0:U
+alert    data22866 delta< 10 10 10 
+data    data22875=22875  GAUGE:1200:0:U
+data    ddata22875=22875  DERIVE:1200:0:U
+alert    data22875 delta< 10 10 10 
+data    data22863=22863  GAUGE:1200:0:U
+data    ddata22863=22863  DERIVE:1200:0:U
+alert    data22863 delta< 10 10 10 
+data    responsetime=1-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1=##DB##:data1:AVERAGE
+      'LINE2:data1###COLOR1##:Listado SKU 1 ' 
+      'GPRINT:data1:LAST: last=%.1lf\n'
+      DEF:data32342=##DB##:data32342:AVERAGE
+      'LINE2:data32342###COLOR2##:Huevo Blanco Grand Maple X 30 Uni 30 Uni SKU 32342 ' 
+      'GPRINT:data32342:LAST: last=%.1lf\n'
+      DEF:data234309=##DB##:data234309:AVERAGE
+      'LINE2:data234309###COLOR3##:Huevo Color . Coto Bli 12 Uni SKU 234309 ' 
+      'GPRINT:data234309:LAST: last=%.1lf\n'
+      DEF:data234310=##DB##:data234310:AVERAGE
+      'LINE2:data234310###COLOR4##:Huevo Color . Coto Bli 6 Uni SKU 234310 ' 
+      'GPRINT:data234310:LAST: last=%.1lf\n'
+      DEF:data234312=##DB##:data234312:AVERAGE
+      'LINE2:data234312###COLOR5##:Huevo Blanco . Coto Bli 6 Uni SKU 234312 ' 
+      'GPRINT:data234312:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data234311=##DB##:data234311:AVERAGE
+      'LINE2:data234311###COLOR1##:Huevo Blanco . Coto Bli 12 Uni SKU 234311 ' 
+      'GPRINT:data234311:LAST: last=%.1lf\n'
+      DEF:data270356=##DB##:data270356:AVERAGE
+      'LINE2:data270356###COLOR2##:Huevo Color Extra . Carnave Cer Bli 12 Uni SKU 270356 ' 
+      'GPRINT:data270356:LAST: last=%.1lf\n'
+      DEF:data177760=##DB##:data177760:AVERAGE
+      'LINE2:data177760###COLOR3##:Hvo Codorniz . San Jorge Bli 12 Uni SKU 177760 ' 
+      'GPRINT:data177760:LAST: last=%.1lf\n'
+      DEF:data22884=##DB##:data22884:AVERAGE
+      'LINE2:data22884###COLOR4##:Huevo Color Extra . Bli 12 Uni SKU 22884 ' 
+      'GPRINT:data22884:LAST: last=%.1lf\n'
+      DEF:data22878=##DB##:data22878:AVERAGE
+      'LINE2:data22878###COLOR5##:Huevo Color . Cja 12 Uni SKU 22878 ' 
+      'GPRINT:data22878:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data22867=##DB##:data22867:AVERAGE
+      'LINE2:data22867###COLOR1##:Huevo Blanco Extra . Bli 12 Uni SKU 22867 ' 
+      'GPRINT:data22867:LAST: last=%.1lf\n'
+      DEF:data36411=##DB##:data36411:AVERAGE
+      'LINE2:data36411###COLOR2##:Huevo Color Maple X 30 Uni 30 Uni SKU 36411 ' 
+      'GPRINT:data36411:LAST: last=%.1lf\n'
+      DEF:data22865=##DB##:data22865:AVERAGE
+      'LINE2:data22865###COLOR3##:Huevo Blanco Grand . Cja 12 Uni SKU 22865 ' 
+      'GPRINT:data22865:LAST: last=%.1lf\n'
+      DEF:data41617=##DB##:data41617:AVERAGE
+      'LINE2:data41617###COLOR4##:Huevo Color Extra . Avicereal Est 6 Uni SKU 41617 ' 
+      'GPRINT:data41617:LAST: last=%.1lf\n'
+      DEF:data285912=##DB##:data285912:AVERAGE
+      'LINE2:data285912###COLOR5##:Grande Omega 3 Bli 6 Uni SKU 285912 ' 
+      'GPRINT:data285912:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data22882=##DB##:data22882:AVERAGE
+      'LINE2:data22882###COLOR1##:Huevo Color Extra . Bli 6 Uni SKU 22882 ' 
+      'GPRINT:data22882:LAST: last=%.1lf\n'
+      DEF:data22866=##DB##:data22866:AVERAGE
+      'LINE2:data22866###COLOR2##:Huevo Blanco Extra . Bli 6 Uni SKU 22866 ' 
+      'GPRINT:data22866:LAST: last=%.1lf\n'
+      DEF:data22875=##DB##:data22875:AVERAGE
+      'LINE2:data22875###COLOR3##:Huevo Color . Cja 6 Uni SKU 22875 ' 
+      'GPRINT:data22875:LAST: last=%.1lf\n'
+      DEF:data22863=##DB##:data22863:AVERAGE
+      'LINE2:data22863###COLOR4##:Huevo Blanco Grand . Cja 6 Uni SKU 22863 ' 
+      'GPRINT:data22863:LAST: last=%.1lf\n'
+

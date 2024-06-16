@@ -1,0 +1,49 @@
+# rrds/ping- - Reachability via ping for interfaces
+# CVS $Id: ping-,v 1.10 2003/05/15 12:11:16 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	ping
+step	300
+data	sent=ping-sent-* GAUGE:600:0:10
+data	rcvd=ping-rcvd-* GAUGE:600:0:10
+data	min=pingrtt-min-* GAUGE:600:U:U
+data	avg=pingrtt-avg-* GAUGE:600:U:U
+data	max=pingrtt-max-* GAUGE:600:U:U
+alert	rcvd > 5 2 0
+alert	avg < 500
+alert	max <daystddev 1 2 3
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max day-min week-min month-min 3month-min year-min
+times	thumb day yesterday week month 3month year
+
+graph	ping-* desc="This is collected by the ping-collector.  The information comes from running <B>multiping</B>, which comes with remstats.  At each collection time, multiping sends 10 pings (ICMP echo-request packets) to the host and counts the number of responses.  This wildcard version of the ping RRD is to be used with hosts with multiple interfaces."
+		--upper-limit 10 --lower-limit 0
+	--watermark 'AACORN HP' --rigid
+		--vertical-label 'packets'
+		--title '##HOST## - Ping Response for ##WILDPART## (##GRAPHTIME##)'
+		DEF:sent=##DB##:sent:AVERAGE
+		DEF:avgrcvd=##DB##:rcvd:AVERAGE
+		DEF:minrcvd=##DB##:rcvd:MIN
+		CDEF:missing=sent,UN,INF,UNKN,IF
+		'AREA:sent###COLOR2##:Pings Sent'
+		'LINE2:minrcvd###COLOR3##:Pings Rcvd (min)'
+		'LINE2:avgrcvd###COLOR1##:Pings Rcvd (avg)'
+		'AREA:missing###MISSING##:missing'
+
+graph	pingrtt-* desc="This is collected by the ping-collector.  The information comes from running <B>multiping</B>, which comes with remstats.  At each collection time, multiping sends 10 pings (ICMP echo-request packets) to the host and measures how long each response took.  The RTT (Return Trip Time) for the ping is how long it took to send a ping and receive the response for it.  The minimum, maximum and average times taken at each collection are shown.  The average and maximum numbers shown at the bottom of the graph are taken over the time period covered by the graph.  This wildcard version of the ping RRD is to be used with hosts with multiple interfaces.'
+		--title '##HOST## - Ping RTT for ##WILDPART## (##GRAPHTIME##)' 
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'ms'
+		DEF:min=##DB##:min:MIN
+		DEF:avg=##DB##:avg:AVERAGE
+		DEF:max=##DB##:max:MAX
+		CDEF:missing=min,UN,INF,UNKN,IF
+		'AREA:max###COLOR3##:Max RTT'
+		'AREA:avg###COLOR2##:Avg RTT'
+		'AREA:min###COLOR1##:Min RTT'
+		'GPRINT:min:MIN:min=%.0lf%s'
+		'GPRINT:avg:AVERAGE:avg=%.0lf%s'
+		'GPRINT:max:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+

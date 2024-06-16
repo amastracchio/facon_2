@@ -1,0 +1,49 @@
+# rrds/collector-dbi - status of the dbi collector
+# CVS $Id: collector-dbi,v 1.3 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# All collector RRDs are the same except for the source
+
+source	dbi
+step	300
+
+data	requests=dbi-collector:requests GAUGE:600:0:U
+data	collected=dbi-collector:collected GAUGE:600:0:U
+data	used=dbi-collector:used GAUGE:600:0:U
+data	runtime=dbi-collector:runtime GAUGE:600:0:U
+
+alert	collected > 0 0 0
+alert	used > 0 0 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	entries-dbi desc="This is collected by the dbi-collector.  This shows the efficiency of the collector.  Requests are how many requests(lines) that the collector sent to the server.  Collected is how many responses (lines) were returned.  Used is how many of those lines were used.  Ideally, Collected should be at least as large as Requests, or some requests are not being answered.  If Used is larger than Collected, then some responses are being ignored.  The numbers here are not interesting; the pattern is.  Unexplained anomalies usually indicate a problem."
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'entries'
+	--title '##HOST## - dbi-collector (##GRAPHTIME##)'
+	--units-exponent 0
+	DEF:collected=##DB##:collected:AVERAGE
+	DEF:requests=##DB##:requests:AVERAGE
+	DEF:used=##DB##:used:AVERAGE
+	CDEF:missing=collected,UN,INF,UNKN,IF
+	'AREA:collected###COLOR2##:entries collected'
+	'LINE2:requests###COLOR1##:requests sent'
+	'LINE2:used###COLOR3##:entries used'
+	'AREA:missing###MISSING##:missing'
+
+graph runtime desc="This is collected by the dbi-collector.  This shows how long the collector took to collect the required information.  The numbers here are not interesting; the pattern is.  Unexplained anomalies usually indicate a problem.  For some collectors, a host being down will cause the collector to run longer."
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'sec'
+	--title '##HOST## - dbi-collector - runtime (##GRAPHTIME##)'
+	--units-exponent 0
+	DEF:runtime=##DB##:runtime:AVERAGE
+	CDEF:missing=runtime,UN,INF,UNKN,IF
+	'LINE2:runtime###COLOR1##:runtime'
+	'GPRINT:runtime:MIN:min=%.0lf'
+	'GPRINT:runtime:AVERAGE:avg=%.0lf'
+	'GPRINT:runtime:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'
+

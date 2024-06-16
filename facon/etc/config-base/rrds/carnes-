@@ -1,0 +1,746 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data25=25  GAUGE:1200:0:U
+data    ddata25=25  DERIVE:1200:0:U
+alert    data25 delta< 10 10 10 
+data    data47597=47597  GAUGE:1200:0:U
+data    ddata47597=47597  DERIVE:1200:0:U
+alert    data47597 delta< 10 10 10 
+data    data10987=10987  GAUGE:1200:0:U
+data    ddata10987=10987  DERIVE:1200:0:U
+alert    data10987 delta< 10 10 10 
+data    data10983=10983  GAUGE:1200:0:U
+data    ddata10983=10983  DERIVE:1200:0:U
+alert    data10983 delta< 10 10 10 
+data    data10986=10986  GAUGE:1200:0:U
+data    ddata10986=10986  DERIVE:1200:0:U
+alert    data10986 delta< 10 10 10 
+data    data82=82  GAUGE:1200:0:U
+data    ddata82=82  DERIVE:1200:0:U
+alert    data82 delta< 10 10 10 
+data    data48208=48208  GAUGE:1200:0:U
+data    ddata48208=48208  DERIVE:1200:0:U
+alert    data48208 delta< 10 10 10 
+data    data42659=42659  GAUGE:1200:0:U
+data    ddata42659=42659  DERIVE:1200:0:U
+alert    data42659 delta< 10 10 10 
+data    data42304=42304  GAUGE:1200:0:U
+data    ddata42304=42304  DERIVE:1200:0:U
+alert    data42304 delta< 10 10 10 
+data    data35016=35016  GAUGE:1200:0:U
+data    ddata35016=35016  DERIVE:1200:0:U
+alert    data35016 delta< 10 10 10 
+data    data35019=35019  GAUGE:1200:0:U
+data    ddata35019=35019  DERIVE:1200:0:U
+alert    data35019 delta< 10 10 10 
+data    data35018=35018  GAUGE:1200:0:U
+data    ddata35018=35018  DERIVE:1200:0:U
+alert    data35018 delta< 10 10 10 
+data    data35021=35021  GAUGE:1200:0:U
+data    ddata35021=35021  DERIVE:1200:0:U
+alert    data35021 delta< 10 10 10 
+data    data35020=35020  GAUGE:1200:0:U
+data    ddata35020=35020  DERIVE:1200:0:U
+alert    data35020 delta< 10 10 10 
+data    data35017=35017  GAUGE:1200:0:U
+data    ddata35017=35017  DERIVE:1200:0:U
+alert    data35017 delta< 10 10 10 
+data    data41453=41453  GAUGE:1200:0:U
+data    ddata41453=41453  DERIVE:1200:0:U
+alert    data41453 delta< 10 10 10 
+data    data42321=42321  GAUGE:1200:0:U
+data    ddata42321=42321  DERIVE:1200:0:U
+alert    data42321 delta< 10 10 10 
+data    data35022=35022  GAUGE:1200:0:U
+data    ddata35022=35022  DERIVE:1200:0:U
+alert    data35022 delta< 10 10 10 
+data    data41407=41407  GAUGE:1200:0:U
+data    ddata41407=41407  DERIVE:1200:0:U
+alert    data41407 delta< 10 10 10 
+data    data41469=41469  GAUGE:1200:0:U
+data    ddata41469=41469  DERIVE:1200:0:U
+alert    data41469 delta< 10 10 10 
+data    data42319=42319  GAUGE:1200:0:U
+data    ddata42319=42319  DERIVE:1200:0:U
+alert    data42319 delta< 10 10 10 
+data    data42320=42320  GAUGE:1200:0:U
+data    ddata42320=42320  DERIVE:1200:0:U
+alert    data42320 delta< 10 10 10 
+data    data42318=42318  GAUGE:1200:0:U
+data    ddata42318=42318  DERIVE:1200:0:U
+alert    data42318 delta< 10 10 10 
+data    data41466=41466  GAUGE:1200:0:U
+data    ddata41466=41466  DERIVE:1200:0:U
+alert    data41466 delta< 10 10 10 
+data    data47861=47861  GAUGE:1200:0:U
+data    ddata47861=47861  DERIVE:1200:0:U
+alert    data47861 delta< 10 10 10 
+data    data35015=35015  GAUGE:1200:0:U
+data    ddata35015=35015  DERIVE:1200:0:U
+alert    data35015 delta< 10 10 10 
+data    data41390=41390  GAUGE:1200:0:U
+data    ddata41390=41390  DERIVE:1200:0:U
+alert    data41390 delta< 10 10 10 
+data    data41389=41389  GAUGE:1200:0:U
+data    ddata41389=41389  DERIVE:1200:0:U
+alert    data41389 delta< 10 10 10 
+data    data43058=43058  GAUGE:1200:0:U
+data    ddata43058=43058  DERIVE:1200:0:U
+alert    data43058 delta< 10 10 10 
+data    data41394=41394  GAUGE:1200:0:U
+data    ddata41394=41394  DERIVE:1200:0:U
+alert    data41394 delta< 10 10 10 
+data    data41396=41396  GAUGE:1200:0:U
+data    ddata41396=41396  DERIVE:1200:0:U
+alert    data41396 delta< 10 10 10 
+data    data42314=42314  GAUGE:1200:0:U
+data    ddata42314=42314  DERIVE:1200:0:U
+alert    data42314 delta< 10 10 10 
+data    data42660=42660  GAUGE:1200:0:U
+data    ddata42660=42660  DERIVE:1200:0:U
+alert    data42660 delta< 10 10 10 
+data    data42316=42316  GAUGE:1200:0:U
+data    ddata42316=42316  DERIVE:1200:0:U
+alert    data42316 delta< 10 10 10 
+data    data41401=41401  GAUGE:1200:0:U
+data    ddata41401=41401  DERIVE:1200:0:U
+alert    data41401 delta< 10 10 10 
+data    data41395=41395  GAUGE:1200:0:U
+data    ddata41395=41395  DERIVE:1200:0:U
+alert    data41395 delta< 10 10 10 
+data    data11=11  GAUGE:1200:0:U
+data    ddata11=11  DERIVE:1200:0:U
+alert    data11 delta< 10 10 10 
+data    data42313=42313  GAUGE:1200:0:U
+data    ddata42313=42313  DERIVE:1200:0:U
+alert    data42313 delta< 10 10 10 
+data    data41387=41387  GAUGE:1200:0:U
+data    ddata41387=41387  DERIVE:1200:0:U
+alert    data41387 delta< 10 10 10 
+data    data41384=41384  GAUGE:1200:0:U
+data    ddata41384=41384  DERIVE:1200:0:U
+alert    data41384 delta< 10 10 10 
+data    data41392=41392  GAUGE:1200:0:U
+data    ddata41392=41392  DERIVE:1200:0:U
+alert    data41392 delta< 10 10 10 
+data    data43060=43060  GAUGE:1200:0:U
+data    ddata43060=43060  DERIVE:1200:0:U
+alert    data43060 delta< 10 10 10 
+data    data41412=41412  GAUGE:1200:0:U
+data    ddata41412=41412  DERIVE:1200:0:U
+alert    data41412 delta< 10 10 10 
+data    data41385=41385  GAUGE:1200:0:U
+data    ddata41385=41385  DERIVE:1200:0:U
+alert    data41385 delta< 10 10 10 
+data    data48118=48118  GAUGE:1200:0:U
+data    ddata48118=48118  DERIVE:1200:0:U
+alert    data48118 delta< 10 10 10 
+data    data41383=41383  GAUGE:1200:0:U
+data    ddata41383=41383  DERIVE:1200:0:U
+alert    data41383 delta< 10 10 10 
+data    data41448=41448  GAUGE:1200:0:U
+data    ddata41448=41448  DERIVE:1200:0:U
+alert    data41448 delta< 10 10 10 
+data    data41457=41457  GAUGE:1200:0:U
+data    ddata41457=41457  DERIVE:1200:0:U
+alert    data41457 delta< 10 10 10 
+data    data41463=41463  GAUGE:1200:0:U
+data    ddata41463=41463  DERIVE:1200:0:U
+alert    data41463 delta< 10 10 10 
+data    data47990=47990  GAUGE:1200:0:U
+data    ddata47990=47990  DERIVE:1200:0:U
+alert    data47990 delta< 10 10 10 
+data    data47989=47989  GAUGE:1200:0:U
+data    ddata47989=47989  DERIVE:1200:0:U
+alert    data47989 delta< 10 10 10 
+data    data47994=47994  GAUGE:1200:0:U
+data    ddata47994=47994  DERIVE:1200:0:U
+alert    data47994 delta< 10 10 10 
+data    data48129=48129  GAUGE:1200:0:U
+data    ddata48129=48129  DERIVE:1200:0:U
+alert    data48129 delta< 10 10 10 
+data    data43059=43059  GAUGE:1200:0:U
+data    ddata43059=43059  DERIVE:1200:0:U
+alert    data43059 delta< 10 10 10 
+data    data45794=45794  GAUGE:1200:0:U
+data    ddata45794=45794  DERIVE:1200:0:U
+alert    data45794 delta< 10 10 10 
+data    data47980=47980  GAUGE:1200:0:U
+data    ddata47980=47980  DERIVE:1200:0:U
+alert    data47980 delta< 10 10 10 
+data    data47982=47982  GAUGE:1200:0:U
+data    ddata47982=47982  DERIVE:1200:0:U
+alert    data47982 delta< 10 10 10 
+data    data47988=47988  GAUGE:1200:0:U
+data    ddata47988=47988  DERIVE:1200:0:U
+alert    data47988 delta< 10 10 10 
+data    data48128=48128  GAUGE:1200:0:U
+data    ddata48128=48128  DERIVE:1200:0:U
+alert    data48128 delta< 10 10 10 
+data    data47991=47991  GAUGE:1200:0:U
+data    ddata47991=47991  DERIVE:1200:0:U
+alert    data47991 delta< 10 10 10 
+data    data47996=47996  GAUGE:1200:0:U
+data    ddata47996=47996  DERIVE:1200:0:U
+alert    data47996 delta< 10 10 10 
+data    data47993=47993  GAUGE:1200:0:U
+data    ddata47993=47993  DERIVE:1200:0:U
+alert    data47993 delta< 10 10 10 
+data    data47987=47987  GAUGE:1200:0:U
+data    ddata47987=47987  DERIVE:1200:0:U
+alert    data47987 delta< 10 10 10 
+data    data48124=48124  GAUGE:1200:0:U
+data    ddata48124=48124  DERIVE:1200:0:U
+alert    data48124 delta< 10 10 10 
+data    data47979=47979  GAUGE:1200:0:U
+data    ddata47979=47979  DERIVE:1200:0:U
+alert    data47979 delta< 10 10 10 
+data    data47984=47984  GAUGE:1200:0:U
+data    ddata47984=47984  DERIVE:1200:0:U
+alert    data47984 delta< 10 10 10 
+data    data41414=41414  GAUGE:1200:0:U
+data    ddata41414=41414  DERIVE:1200:0:U
+alert    data41414 delta< 10 10 10 
+data    data47985=47985  GAUGE:1200:0:U
+data    ddata47985=47985  DERIVE:1200:0:U
+alert    data47985 delta< 10 10 10 
+data    data17613=17613  GAUGE:1200:0:U
+data    ddata17613=17613  DERIVE:1200:0:U
+alert    data17613 delta< 10 10 10 
+data    data35013=35013  GAUGE:1200:0:U
+data    ddata35013=35013  DERIVE:1200:0:U
+alert    data35013 delta< 10 10 10 
+data    data335=335  GAUGE:1200:0:U
+data    ddata335=335  DERIVE:1200:0:U
+alert    data335 delta< 10 10 10 
+data    data35014=35014  GAUGE:1200:0:U
+data    ddata35014=35014  DERIVE:1200:0:U
+alert    data35014 delta< 10 10 10 
+data    data35144=35144  GAUGE:1200:0:U
+data    ddata35144=35144  DERIVE:1200:0:U
+alert    data35144 delta< 10 10 10 
+data    data35010=35010  GAUGE:1200:0:U
+data    ddata35010=35010  DERIVE:1200:0:U
+alert    data35010 delta< 10 10 10 
+data    data35012=35012  GAUGE:1200:0:U
+data    ddata35012=35012  DERIVE:1200:0:U
+alert    data35012 delta< 10 10 10 
+data    data35009=35009  GAUGE:1200:0:U
+data    ddata35009=35009  DERIVE:1200:0:U
+alert    data35009 delta< 10 10 10 
+data    data943=943  GAUGE:1200:0:U
+data    ddata943=943  DERIVE:1200:0:U
+alert    data943 delta< 10 10 10 
+data    data701=701  GAUGE:1200:0:U
+data    ddata701=701  DERIVE:1200:0:U
+alert    data701 delta< 10 10 10 
+data    data213=213  GAUGE:1200:0:U
+data    ddata213=213  DERIVE:1200:0:U
+alert    data213 delta< 10 10 10 
+data    data35008=35008  GAUGE:1200:0:U
+data    ddata35008=35008  DERIVE:1200:0:U
+alert    data35008 delta< 10 10 10 
+data    data13970=13970  GAUGE:1200:0:U
+data    ddata13970=13970  DERIVE:1200:0:U
+alert    data13970 delta< 10 10 10 
+data    data35011=35011  GAUGE:1200:0:U
+data    ddata35011=35011  DERIVE:1200:0:U
+alert    data35011 delta< 10 10 10 
+data    data11943=11943  GAUGE:1200:0:U
+data    ddata11943=11943  DERIVE:1200:0:U
+alert    data11943 delta< 10 10 10 
+data    data17163=17163  GAUGE:1200:0:U
+data    ddata17163=17163  DERIVE:1200:0:U
+alert    data17163 delta< 10 10 10 
+data    data17706=17706  GAUGE:1200:0:U
+data    ddata17706=17706  DERIVE:1200:0:U
+alert    data17706 delta< 10 10 10 
+data    data80583=80583  GAUGE:1200:0:U
+data    ddata80583=80583  DERIVE:1200:0:U
+alert    data80583 delta< 10 10 10 
+data    data17410=17410  GAUGE:1200:0:U
+data    ddata17410=17410  DERIVE:1200:0:U
+alert    data17410 delta< 10 10 10 
+data    data10988=10988  GAUGE:1200:0:U
+data    ddata10988=10988  DERIVE:1200:0:U
+alert    data10988 delta< 10 10 10 
+data    data17725=17725  GAUGE:1200:0:U
+data    ddata17725=17725  DERIVE:1200:0:U
+alert    data17725 delta< 10 10 10 
+data    data17770=17770  GAUGE:1200:0:U
+data    ddata17770=17770  DERIVE:1200:0:U
+alert    data17770 delta< 10 10 10 
+data    data17727=17727  GAUGE:1200:0:U
+data    ddata17727=17727  DERIVE:1200:0:U
+alert    data17727 delta< 10 10 10 
+data    data80584=80584  GAUGE:1200:0:U
+data    ddata80584=80584  DERIVE:1200:0:U
+alert    data80584 delta< 10 10 10 
+data    data81122=81122  GAUGE:1200:0:U
+data    ddata81122=81122  DERIVE:1200:0:U
+alert    data81122 delta< 10 10 10 
+data    data17701=17701  GAUGE:1200:0:U
+data    ddata17701=17701  DERIVE:1200:0:U
+alert    data17701 delta< 10 10 10 
+data    data10989=10989  GAUGE:1200:0:U
+data    ddata10989=10989  DERIVE:1200:0:U
+alert    data10989 delta< 10 10 10 
+data    data10990=10990  GAUGE:1200:0:U
+data    ddata10990=10990  DERIVE:1200:0:U
+alert    data10990 delta< 10 10 10 
+data    data10207=10207  GAUGE:1200:0:U
+data    ddata10207=10207  DERIVE:1200:0:U
+alert    data10207 delta< 10 10 10 
+data    data80=80  GAUGE:1200:0:U
+data    ddata80=80  DERIVE:1200:0:U
+alert    data80 delta< 10 10 10 
+data    data26=26  GAUGE:1200:0:U
+data    ddata26=26  DERIVE:1200:0:U
+alert    data26 delta< 10 10 10 
+data    data78=78  GAUGE:1200:0:U
+data    ddata78=78  DERIVE:1200:0:U
+alert    data78 delta< 10 10 10 
+data    data29=29  GAUGE:1200:0:U
+data    ddata29=29  DERIVE:1200:0:U
+alert    data29 delta< 10 10 10 
+data    responsetime=25-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data25=##DB##:data25:AVERAGE
+      'LINE2:data25###COLOR1##: SKU 25 ' 
+      'GPRINT:data25:LAST: last=%.1lf\n'
+      DEF:data47597=##DB##:data47597:AVERAGE
+      'LINE2:data47597###COLOR2##:Estofado De Cerdo X KG SKU 47597 ' 
+      'GPRINT:data47597:LAST: last=%.1lf\n'
+      DEF:data10987=##DB##:data10987:AVERAGE
+      'LINE2:data10987###COLOR3##:Cuadrada De Cerdo Estancias Coto X KG SKU 10987 ' 
+      'GPRINT:data10987:LAST: last=%.1lf\n'
+      DEF:data10983=##DB##:data10983:AVERAGE
+      'LINE2:data10983###COLOR4##:Nalga De Cerdo Estancias Coto X KG SKU 10983 ' 
+      'GPRINT:data10983:LAST: last=%.1lf\n'
+      DEF:data10986=##DB##:data10986:AVERAGE
+      'LINE2:data10986###COLOR5##:Bola De Lomo De Cerdo Estancias Coto X KG SKU 10986 ' 
+      'GPRINT:data10986:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data82=##DB##:data82:AVERAGE
+      'LINE2:data82###COLOR1##:Lengua X Kg SKU 82 ' 
+      'GPRINT:data82:LAST: last=%.1lf\n'
+      DEF:data48208=##DB##:data48208:AVERAGE
+      'LINE2:data48208###COLOR2##:Grasa De Pella Picada X Kg SKU 48208 ' 
+      'GPRINT:data48208:LAST: last=%.1lf\n'
+      DEF:data42659=##DB##:data42659:AVERAGE
+      'LINE2:data42659###COLOR3##:Chiquizuela X KG SKU 42659 ' 
+      'GPRINT:data42659:LAST: last=%.1lf\n'
+      DEF:data42304=##DB##:data42304:AVERAGE
+      'LINE2:data42304###COLOR4##:Espinazo X KG SKU 42304 ' 
+      'GPRINT:data42304:LAST: last=%.1lf\n'
+      DEF:data35016=##DB##:data35016:AVERAGE
+      'LINE2:data35016###COLOR5##:Ojo De Bife Especial X KG SKU 35016 ' 
+      'GPRINT:data35016:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data35019=##DB##:data35019:AVERAGE
+      'LINE2:data35019###COLOR1##:Lomo Especial Envasado Al Vacío X KG SKU 35019 ' 
+      'GPRINT:data35019:LAST: last=%.1lf\n'
+      DEF:data35018=##DB##:data35018:AVERAGE
+      'LINE2:data35018###COLOR2##:Colita De Cuadril Especial X KG SKU 35018 ' 
+      'GPRINT:data35018:LAST: last=%.1lf\n'
+      DEF:data35021=##DB##:data35021:AVERAGE
+      'LINE2:data35021###COLOR3##:Picanha X KG SKU 35021 ' 
+      'GPRINT:data35021:LAST: last=%.1lf\n'
+      DEF:data35020=##DB##:data35020:AVERAGE
+      'LINE2:data35020###COLOR4##:Peceto Especial X KG SKU 35020 ' 
+      'GPRINT:data35020:LAST: last=%.1lf\n'
+      DEF:data35017=##DB##:data35017:AVERAGE
+      'LINE2:data35017###COLOR5##:Bife De Chorizo Especial X KG SKU 35017 ' 
+      'GPRINT:data35017:LAST: last=%.1lf\n'
+
+graph   value4-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data41453=##DB##:data41453:AVERAGE
+      'LINE2:data41453###COLOR1##:Lomo Medallon X KG SKU 41453 ' 
+      'GPRINT:data41453:LAST: last=%.1lf\n'
+      DEF:data42321=##DB##:data42321:AVERAGE
+      'LINE2:data42321###COLOR2##:Lomo X KG SKU 42321 ' 
+      'GPRINT:data42321:LAST: last=%.1lf\n'
+      DEF:data35022=##DB##:data35022:AVERAGE
+      'LINE2:data35022###COLOR3##:Vacio Especial X KG SKU 35022 ' 
+      'GPRINT:data35022:LAST: last=%.1lf\n'
+      DEF:data41407=##DB##:data41407:AVERAGE
+      'LINE2:data41407###COLOR4##:Milanesa De Peceto X KG SKU 41407 ' 
+      'GPRINT:data41407:LAST: last=%.1lf\n'
+      DEF:data41469=##DB##:data41469:AVERAGE
+      'LINE2:data41469###COLOR5##:Ojo De Bife X KG SKU 41469 ' 
+      'GPRINT:data41469:LAST: last=%.1lf\n'
+
+graph   value5-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data42319=##DB##:data42319:AVERAGE
+      'LINE2:data42319###COLOR1##:Peceto X KG SKU 42319 ' 
+      'GPRINT:data42319:LAST: last=%.1lf\n'
+      DEF:data42320=##DB##:data42320:AVERAGE
+      'LINE2:data42320###COLOR2##:Bife Con Lomo X KG SKU 42320 ' 
+      'GPRINT:data42320:LAST: last=%.1lf\n'
+      DEF:data42318=##DB##:data42318:AVERAGE
+      'LINE2:data42318###COLOR3##:Colita De Cuadril X KG SKU 42318 ' 
+      'GPRINT:data42318:LAST: last=%.1lf\n'
+      DEF:data41466=##DB##:data41466:AVERAGE
+      'LINE2:data41466###COLOR4##:Bife De Chorizo X KG SKU 41466 ' 
+      'GPRINT:data41466:LAST: last=%.1lf\n'
+      DEF:data47861=##DB##:data47861:AVERAGE
+      'LINE2:data47861###COLOR5##:Pastrón X KG SKU 47861 ' 
+      'GPRINT:data47861:LAST: last=%.1lf\n'
+
+graph   value6-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #6 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data35015=##DB##:data35015:AVERAGE
+      'LINE2:data35015###COLOR1##:Asado Especial Envasado Al Vacío X KG SKU 35015 ' 
+      'GPRINT:data35015:LAST: last=%.1lf\n'
+      DEF:data41390=##DB##:data41390:AVERAGE
+      'LINE2:data41390###COLOR2##:Vacio X KG SKU 41390 ' 
+      'GPRINT:data41390:LAST: last=%.1lf\n'
+      DEF:data41389=##DB##:data41389:AVERAGE
+      'LINE2:data41389###COLOR3##:Entraña X KG SKU 41389 ' 
+      'GPRINT:data41389:LAST: last=%.1lf\n'
+      DEF:data43058=##DB##:data43058:AVERAGE
+      'LINE2:data43058###COLOR4##:Bife Parrilla X KG SKU 43058 ' 
+      'GPRINT:data43058:LAST: last=%.1lf\n'
+      DEF:data41394=##DB##:data41394:AVERAGE
+      'LINE2:data41394###COLOR5##:Matambre X KG SKU 41394 ' 
+      'GPRINT:data41394:LAST: last=%.1lf\n'
+
+graph   value7-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #7 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data41396=##DB##:data41396:AVERAGE
+      'LINE2:data41396###COLOR1##:Nalga X KG SKU 41396 ' 
+      'GPRINT:data41396:LAST: last=%.1lf\n'
+      DEF:data42314=##DB##:data42314:AVERAGE
+      'LINE2:data42314###COLOR2##:Bola De Lomo X KG SKU 42314 ' 
+      'GPRINT:data42314:LAST: last=%.1lf\n'
+      DEF:data42660=##DB##:data42660:AVERAGE
+      'LINE2:data42660###COLOR3##:Arañita X KG SKU 42660 ' 
+      'GPRINT:data42660:LAST: last=%.1lf\n'
+      DEF:data42316=##DB##:data42316:AVERAGE
+      'LINE2:data42316###COLOR4##:Bife Angosto X KG SKU 42316 ' 
+      'GPRINT:data42316:LAST: last=%.1lf\n'
+      DEF:data41401=##DB##:data41401:AVERAGE
+      'LINE2:data41401###COLOR5##:Cuadrada X KG SKU 41401 ' 
+      'GPRINT:data41401:LAST: last=%.1lf\n'
+
+graph   value8-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #8 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data41395=##DB##:data41395:AVERAGE
+      'LINE2:data41395###COLOR1##:Paleta X KG SKU 41395 ' 
+      'GPRINT:data41395:LAST: last=%.1lf\n'
+      DEF:data11=##DB##:data11:AVERAGE
+      'LINE2:data11###COLOR2##:Hueso X KG SKU 11 ' 
+      'GPRINT:data11:LAST: last=%.1lf\n'
+      DEF:data42313=##DB##:data42313:AVERAGE
+      'LINE2:data42313###COLOR3##:Tapa De Nalga X KG SKU 42313 ' 
+      'GPRINT:data42313:LAST: last=%.1lf\n'
+      DEF:data41387=##DB##:data41387:AVERAGE
+      'LINE2:data41387###COLOR4##:Asado X KG SKU 41387 ' 
+      'GPRINT:data41387:LAST: last=%.1lf\n'
+      DEF:data41384=##DB##:data41384:AVERAGE
+      'LINE2:data41384###COLOR5##:Roast Beef X KG SKU 41384 ' 
+      'GPRINT:data41384:LAST: last=%.1lf\n'
+
+graph   value9-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #9 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data41392=##DB##:data41392:AVERAGE
+      'LINE2:data41392###COLOR1##:Falda X KG SKU 41392 ' 
+      'GPRINT:data41392:LAST: last=%.1lf\n'
+      DEF:data43060=##DB##:data43060:AVERAGE
+      'LINE2:data43060###COLOR2##:Marucha X KG SKU 43060 ' 
+      'GPRINT:data43060:LAST: last=%.1lf\n'
+      DEF:data41412=##DB##:data41412:AVERAGE
+      'LINE2:data41412###COLOR3##:Picada Común X KG SKU 41412 ' 
+      'GPRINT:data41412:LAST: last=%.1lf\n'
+      DEF:data41385=##DB##:data41385:AVERAGE
+      'LINE2:data41385###COLOR4##:Bife Ancho X KG SKU 41385 ' 
+      'GPRINT:data41385:LAST: last=%.1lf\n'
+      DEF:data48118=##DB##:data48118:AVERAGE
+      'LINE2:data48118###COLOR5##:Osobuco De Brazuelo X KG SKU 48118 ' 
+      'GPRINT:data48118:LAST: last=%.1lf\n'
+
+graph   value10-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #10 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data41383=##DB##:data41383:AVERAGE
+      'LINE2:data41383###COLOR1##:Carnaza X KG SKU 41383 ' 
+      'GPRINT:data41383:LAST: last=%.1lf\n'
+      DEF:data41448=##DB##:data41448:AVERAGE
+      'LINE2:data41448###COLOR2##:Palomita X KG SKU 41448 ' 
+      'GPRINT:data41448:LAST: last=%.1lf\n'
+      DEF:data41457=##DB##:data41457:AVERAGE
+      'LINE2:data41457###COLOR3##:Azotillo X KG SKU 41457 ' 
+      'GPRINT:data41457:LAST: last=%.1lf\n'
+      DEF:data41463=##DB##:data41463:AVERAGE
+      'LINE2:data41463###COLOR4##:Osobuco De Garron X KG SKU 41463 ' 
+      'GPRINT:data41463:LAST: last=%.1lf\n'
+      DEF:data47990=##DB##:data47990:AVERAGE
+      'LINE2:data47990###COLOR5##:Colita De Cuadril Estancias Coto X KG SKU 47990 ' 
+      'GPRINT:data47990:LAST: last=%.1lf\n'
+
+graph   value11-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #11 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data47989=##DB##:data47989:AVERAGE
+      'LINE2:data47989###COLOR1##:Lomo Estancias Coto X KG SKU 47989 ' 
+      'GPRINT:data47989:LAST: last=%.1lf\n'
+      DEF:data47994=##DB##:data47994:AVERAGE
+      'LINE2:data47994###COLOR2##:Milanesa De Peceto Estancias Coto X KG SKU 47994 ' 
+      'GPRINT:data47994:LAST: last=%.1lf\n'
+      DEF:data48129=##DB##:data48129:AVERAGE
+      'LINE2:data48129###COLOR3##:Bife Parrilla Estancias Coto X KG SKU 48129 ' 
+      'GPRINT:data48129:LAST: last=%.1lf\n'
+      DEF:data43059=##DB##:data43059:AVERAGE
+      'LINE2:data43059###COLOR4##:Picanha Estancias Coto X KG SKU 43059 ' 
+      'GPRINT:data43059:LAST: last=%.1lf\n'
+      DEF:data45794=##DB##:data45794:AVERAGE
+      'LINE2:data45794###COLOR5##:Matambre Especial Estancias Coto X KG SKU 45794 ' 
+      'GPRINT:data45794:LAST: last=%.1lf\n'
+
+graph   value12-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #12 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data47980=##DB##:data47980:AVERAGE
+      'LINE2:data47980###COLOR1##:Vacío Del Centro Estancias Coto X KG SKU 47980 ' 
+      'GPRINT:data47980:LAST: last=%.1lf\n'
+      DEF:data47982=##DB##:data47982:AVERAGE
+      'LINE2:data47982###COLOR2##:Entraña Estancias Coto X KG SKU 47982 ' 
+      'GPRINT:data47982:LAST: last=%.1lf\n'
+      DEF:data47988=##DB##:data47988:AVERAGE
+      'LINE2:data47988###COLOR3##:Bife Con Lomo Estancias Coto X KG SKU 47988 ' 
+      'GPRINT:data47988:LAST: last=%.1lf\n'
+      DEF:data48128=##DB##:data48128:AVERAGE
+      'LINE2:data48128###COLOR4##:Tapa De Nalga Estancias Coto X KG SKU 48128 ' 
+      'GPRINT:data48128:LAST: last=%.1lf\n'
+      DEF:data47991=##DB##:data47991:AVERAGE
+      'LINE2:data47991###COLOR5##:Nalga Estancias Coto X KG SKU 47991 ' 
+      'GPRINT:data47991:LAST: last=%.1lf\n'
+
+graph   value13-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #13 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data47996=##DB##:data47996:AVERAGE
+      'LINE2:data47996###COLOR1##:Matambre Estancias Coto X KG SKU 47996 ' 
+      'GPRINT:data47996:LAST: last=%.1lf\n'
+      DEF:data47993=##DB##:data47993:AVERAGE
+      'LINE2:data47993###COLOR2##:Milanesa Bola De Lomo Estancias Coto X KG SKU 47993 ' 
+      'GPRINT:data47993:LAST: last=%.1lf\n'
+      DEF:data47987=##DB##:data47987:AVERAGE
+      'LINE2:data47987###COLOR3##:Bife Angosto Estancias Coto X KG SKU 47987 ' 
+      'GPRINT:data47987:LAST: last=%.1lf\n'
+      DEF:data48124=##DB##:data48124:AVERAGE
+      'LINE2:data48124###COLOR4##:Picada Desgrasada Estancias Coto X KG SKU 48124 ' 
+      'GPRINT:data48124:LAST: last=%.1lf\n'
+      DEF:data47979=##DB##:data47979:AVERAGE
+      'LINE2:data47979###COLOR5##:Asado Del Medio Estancias Coto X KG SKU 47979 ' 
+      'GPRINT:data47979:LAST: last=%.1lf\n'
+
+graph   value14-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #14 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data47984=##DB##:data47984:AVERAGE
+      'LINE2:data47984###COLOR1##:Paleta Del Centro Estancias Coto X KG SKU 47984 ' 
+      'GPRINT:data47984:LAST: last=%.1lf\n'
+      DEF:data41414=##DB##:data41414:AVERAGE
+      'LINE2:data41414###COLOR2##:Bife Americano Estancias Coto X KG SKU 41414 ' 
+      'GPRINT:data41414:LAST: last=%.1lf\n'
+      DEF:data47985=##DB##:data47985:AVERAGE
+      'LINE2:data47985###COLOR3##:Roast Beef Estancias Coto X KG SKU 47985 ' 
+      'GPRINT:data47985:LAST: last=%.1lf\n'
+      DEF:data17613=##DB##:data17613:AVERAGE
+      'LINE2:data17613###COLOR4##:Lomo De Cerdo X KG SKU 17613 ' 
+      'GPRINT:data17613:LAST: last=%.1lf\n'
+      DEF:data35013=##DB##:data35013:AVERAGE
+      'LINE2:data35013###COLOR5##:Solomillo De Cerdo X KG SKU 35013 ' 
+      'GPRINT:data35013:LAST: last=%.1lf\n'
+
+graph   value15-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #15 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data335=##DB##:data335:AVERAGE
+      'LINE2:data335###COLOR1##:Matambre De Cerdo X KG SKU 335 ' 
+      'GPRINT:data335:LAST: last=%.1lf\n'
+      DEF:data35014=##DB##:data35014:AVERAGE
+      'LINE2:data35014###COLOR2##:Ribs Pechito Sin Manta X KG SKU 35014 ' 
+      'GPRINT:data35014:LAST: last=%.1lf\n'
+      DEF:data35144=##DB##:data35144:AVERAGE
+      'LINE2:data35144###COLOR3##:Churrasquito De Cerdo X KG SKU 35144 ' 
+      'GPRINT:data35144:LAST: last=%.1lf\n'
+      DEF:data35010=##DB##:data35010:AVERAGE
+      'LINE2:data35010###COLOR4##:Matambre De Cerdo X KG SKU 35010 ' 
+      'GPRINT:data35010:LAST: last=%.1lf\n'
+      DEF:data35012=##DB##:data35012:AVERAGE
+      'LINE2:data35012###COLOR5##:Bondiola De Cerdo X KG SKU 35012 ' 
+      'GPRINT:data35012:LAST: last=%.1lf\n'
+
+graph   value16-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #16 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data35009=##DB##:data35009:AVERAGE
+      'LINE2:data35009###COLOR1##:Carré De Cerdo Deshuesado X KG SKU 35009 ' 
+      'GPRINT:data35009:LAST: last=%.1lf\n'
+      DEF:data943=##DB##:data943:AVERAGE
+      'LINE2:data943###COLOR2##:Bondiola De Cerdo X KG SKU 943 ' 
+      'GPRINT:data943:LAST: last=%.1lf\n'
+      DEF:data701=##DB##:data701:AVERAGE
+      'LINE2:data701###COLOR3##:Carré De Cerdo Sin Hueso X KG SKU 701 ' 
+      'GPRINT:data701:LAST: last=%.1lf\n'
+      DEF:data213=##DB##:data213:AVERAGE
+      'LINE2:data213###COLOR4##:Asado De Cerdo X KG SKU 213 ' 
+      'GPRINT:data213:LAST: last=%.1lf\n'
+      DEF:data35008=##DB##:data35008:AVERAGE
+      'LINE2:data35008###COLOR5##:Costillitas De Cerdo X KG SKU 35008 ' 
+      'GPRINT:data35008:LAST: last=%.1lf\n'
+
+graph   value17-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #17 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data13970=##DB##:data13970:AVERAGE
+      'LINE2:data13970###COLOR1##:Bondiola De Cerdo X Kg SKU 13970 ' 
+      'GPRINT:data13970:LAST: last=%.1lf\n'
+      DEF:data35011=##DB##:data35011:AVERAGE
+      'LINE2:data35011###COLOR2##:Pechito Con Manta De Cerdo X KG SKU 35011 ' 
+      'GPRINT:data35011:LAST: last=%.1lf\n'
+      DEF:data11943=##DB##:data11943:AVERAGE
+      'LINE2:data11943###COLOR3##:Bondiola De Cerdo Finas Hierbas X KG SKU 11943 ' 
+      'GPRINT:data11943:LAST: last=%.1lf\n'
+      DEF:data17163=##DB##:data17163:AVERAGE
+      'LINE2:data17163###COLOR4##:Carré De Cerdo Deshuesado Finas Hierbas X KG SKU 17163 ' 
+      'GPRINT:data17163:LAST: last=%.1lf\n'
+      DEF:data17706=##DB##:data17706:AVERAGE
+      'LINE2:data17706###COLOR5##:Cuadril De Cerdo X KG SKU 17706 ' 
+      'GPRINT:data17706:LAST: last=%.1lf\n'
+
+graph   value18-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #18 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data80583=##DB##:data80583:AVERAGE
+      'LINE2:data80583###COLOR1##:Colita De Cuadril De Cerdo X KG SKU 80583 ' 
+      'GPRINT:data80583:LAST: last=%.1lf\n'
+      DEF:data17410=##DB##:data17410:AVERAGE
+      'LINE2:data17410###COLOR2##:Pechito Con Manta De Cerdo X KG SKU 17410 ' 
+      'GPRINT:data17410:LAST: last=%.1lf\n'
+      DEF:data10988=##DB##:data10988:AVERAGE
+      'LINE2:data10988###COLOR3##:Peceto De Cerdo Estancias Coto X KG SKU 10988 ' 
+      'GPRINT:data10988:LAST: last=%.1lf\n'
+      DEF:data17725=##DB##:data17725:AVERAGE
+      'LINE2:data17725###COLOR4##:Peceto De Cerdo X KG SKU 17725 ' 
+      'GPRINT:data17725:LAST: last=%.1lf\n'
+      DEF:data17770=##DB##:data17770:AVERAGE
+      'LINE2:data17770###COLOR5##:Vacio De Cerdo X KG SKU 17770 ' 
+      'GPRINT:data17770:LAST: last=%.1lf\n'
+
+graph   value19-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #19 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data17727=##DB##:data17727:AVERAGE
+      'LINE2:data17727###COLOR1##:Tortuga De Cerdo X KG SKU 17727 ' 
+      'GPRINT:data17727:LAST: last=%.1lf\n'
+      DEF:data80584=##DB##:data80584:AVERAGE
+      'LINE2:data80584###COLOR2##:Tapa De Nalga De Cerdo X KG SKU 80584 ' 
+      'GPRINT:data80584:LAST: last=%.1lf\n'
+      DEF:data81122=##DB##:data81122:AVERAGE
+      'LINE2:data81122###COLOR3##:Picada Desgrasada De Cerdo X KG SKU 81122 ' 
+      'GPRINT:data81122:LAST: last=%.1lf\n'
+      DEF:data17701=##DB##:data17701:AVERAGE
+      'LINE2:data17701###COLOR4##:Picada De Cerdo X KG SKU 17701 ' 
+      'GPRINT:data17701:LAST: last=%.1lf\n'
+      DEF:data10989=##DB##:data10989:AVERAGE
+      'LINE2:data10989###COLOR5##:Matambre De Cerdo Estancias Coto X KG SKU 10989 ' 
+      'GPRINT:data10989:LAST: last=%.1lf\n'
+
+graph   value20-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #20 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data10990=##DB##:data10990:AVERAGE
+      'LINE2:data10990###COLOR1##:Paleta De Cerdo Estancias Coto X KG SKU 10990 ' 
+      'GPRINT:data10990:LAST: last=%.1lf\n'
+      DEF:data10207=##DB##:data10207:AVERAGE
+      'LINE2:data10207###COLOR2##:Picada De Cerdo Especial Estancias Coto X KG SKU 10207 ' 
+      'GPRINT:data10207:LAST: last=%.1lf\n'
+      DEF:data80=##DB##:data80:AVERAGE
+      'LINE2:data80###COLOR3##:Mondongo X Kg SKU 80 ' 
+      'GPRINT:data80:LAST: last=%.1lf\n'
+      DEF:data26=##DB##:data26:AVERAGE
+      'LINE2:data26###COLOR4##:Corazón X Kg SKU 26 ' 
+      'GPRINT:data26:LAST: last=%.1lf\n'
+      DEF:data78=##DB##:data78:AVERAGE
+      'LINE2:data78###COLOR5##:Molleja X Kg SKU 78 ' 
+      'GPRINT:data78:LAST: last=%.1lf\n'
+
+graph   value21-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #21 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data29=##DB##:data29:AVERAGE
+      'LINE2:data29###COLOR1##:Higado X KG SKU 29 ' 
+      'GPRINT:data29:LAST: last=%.1lf\n'
+

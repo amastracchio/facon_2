@@ -1,0 +1,45 @@
+# rrds/df-* - disk space available via the unix-status-collector
+# CVS $Id: df-,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Disk space available, including inodes, if the file-system has them.
+# Percent looks redundant, as it can be calculated, however, I can only
+# generate alerts on variables, not on calculations, so I really do need it.
+# du en contador de fILES!!!!!!!!!!!
+
+source		unix-status
+step		300
+
+data		used=dirsize:* GAUGE:1200:0:U	dirsize *
+
+
+
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times		day yesterday week month 3month year
+
+graph		du-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Size of  ##WILDPART##'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'Size'
+		DEF:used=##DB##:used:AVERAGE
+		CDEF:missing=used,UN,INF,UNKN,IF
+		'LINE1:used###COLOR3##:Size'
+		'GPRINT:used:LAST:used=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+#graph		dfi-* desc="This is collected by the unix-status-collector.  It works by running the <B>df</B> command on the remote host and parsing the output.  Inodes are used in many unix file-systems and contain the information about a single file or directory entry.  Most file-systems are created with a fixed number of inodes and if they are exhausted, then no new files or directories can be created on that file-system."
+#		--title '##HOST## - Inode Usage - ##WILDPART## (##GRAPHTIME##)'
+#		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+#		--vertical-label 'inodes'
+#		DEF:inodes=##DB##:inodes:AVERAGE
+#		DEF:inodeuse=##DB##:inodeuse:AVERAGE
+#		CDEF:free=inodes,inodeuse,-
+#		CDEF:missing=inodes,UN,INF,UNKN,IF
+#		'AREA:inodes###TOTALCOLOR##:Inodes'
+#		'LINE3:inodeuse###USEDCOLOR##:Inodes Used'
+#		'GPRINT:free:LAST:free=%.0lf%s'
+#		'AREA:missing###MISSING##:missing'
+

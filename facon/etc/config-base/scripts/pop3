@@ -1,0 +1,10 @@
+# scripts/pop - Post Office Protocol server accessibility
+# $Id: pop3,v 1.2 2002/04/16 15:21:24 remstats Exp $
+
+# It attempts to login as user remstats with password remstats.
+
+send	user remstats\npass remstats\nquit\n
+port	110
+timeout	5
+ok	\+OK
+

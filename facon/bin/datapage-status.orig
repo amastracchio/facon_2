@@ -1,0 +1,155 @@
+#!/usr/bin/perl -w
+
+# datapage-status - make status pages for each host
+# $Id: datapage-status.pl,v 1.8 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'datapage-status';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.8 $'))[1];
+
+# - - -   Setup   - - -
+
+# Which program is providing the file-include function?
+$main::includer = 'DATAPAGE::PATHINCLUDE';
+
+use Getopt::Std;
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+
+# Parse the command-line
+my %opt = ();
+getopts('d:ef:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'e'}) { $main::show_errors = 1; } else { $main::show_errors = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+
+# - - -   Mainline   - - -
+
+
+my ($host, $ip, $fixed_host, $previous_group, $sw, $hw, $uptime, $top, $bottom,
+	$realrrd, $wildpart, $extra, $wildrrd, $var, $errors, $filename, $dpvar,
+	$tag);
+
+foreach $host (keys %{$main::config{'HOST'}}) {
+	$ip = &get_ip( $host);
+	next unless (defined $ip);
+	($fixed_host = $host) =~ tr/A-Z./a-z_/;
+	&debug("doing host $host") if ($main::debug);
+
+	$top = '# written by '. $main::prog .' version '. $main::version .' on '. 
+		&timestamp ."\n\n";
+	$bottom = <<"EOD_BOTTOM";
+
+BEGIN-PAGE
+content-type: text/html
+
+
+<DATAPAGE::HEADER $host Status>
+<DATAPAGE::TOOLBAR $host>
+<DATAPAGE::STATUSHEADER $host>
+
+<TABLE BORDER=1 ALIGN="CENTER">
+EOD_BOTTOM
+	
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		&debug("  doing rrd $realrrd") if ($main::debug>1);
+		($wildrrd, $wildpart) = &get_rrd($realrrd);
+		$bottom .= <<"EOD_RRD";
+<TR>
+	<TD ALIGN="LEFT" VALIGN="TOP" COLSPAN="3" BGCOLOR="#dddddd">$realrrd</TD>
+</TR>
+EOD_RRD
+		foreach $var (@{$main::config{RRD}{$wildrrd}{DATANAMES}}) {
+			&debug("    var $var") if ($main::debug>1);
+			$dpvar = &to_filename($host .'_'. $realrrd .'_'. $var);
+			$top .= "rrd $dpvar $host $realrrd $var AVERAGE\n";
+			$tag = "<DATAPAGE::VAR $dpvar>";
+			$bottom .= <<"EOD_VAR";
+<TR>
+	<TD></TD>
+	<TD ALIGN="LEFT" VALIGN="TOP">$var</TD>
+	<TD ALIGN="RIGHT" VALIGN="TOP">$tag</TD>
+</TR>
+EOD_VAR
+		}
+	}
+	$bottom .= "</TABLE>\n\n<DATAPAGE::FOOTER>\n</BODY></HTML>\n";
+	if ($main::show_errors) {
+		$bottom .= "<HR>\n<H1>Errors:</H1>\n<DATAPAGE::ERRORS>\n";
+	}
+	$filename = $main::config{DATAPAGEDIR} .'/'. &to_filename($host) .'-status.page';
+	open (FILE, ">$filename") or do {
+		&error("can't open $filename: $!");
+		++$errors;
+		next;
+	};
+	&debug("opened $filename for $host") if ($main::debug);
+	print FILE $top, $bottom or do {
+		&error("can't write $filename: $!");
+		++$errors;
+		next;
+	};
+	close (FILE) or do {
+		&error("can't close $filename: $!");
+		++$errors;
+		next;
+	}
+}
+if ($errors) { &abort("Errors encountered"); }
+exit 0;
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] file ...
+where options are:
+	-d	enable debugging output
+	-e      show run-time errors in generated pages
+	-f fff use 'fff' for config-dir [$main::config_dir]
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------- keep-strict-happy ---
+# Strict is too strict
+sub keep_strict_happy {
+	$main::includer = 0
+}

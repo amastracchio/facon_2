@@ -1,0 +1,28 @@
+# rrds/ntmemory - interesting stuff to do with NT's memory
+# CVS $Id: ntmemory,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+data	memfree=memory:available_bytes GAUGE:600:0:U perfcounters
+data	memcommit=memory:committed_bytes GAUGE:600:0:U perfcounters
+data	memcommitlimit=memory:commit_limit GAUGE:600:0:U perfcounters
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	memory desc='how much memory is available'
+	--title '##HOST## - Virtual Memory (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'bytes'
+	DEF:memfree=##DB##:memfree:AVERAGE
+	DEF:memcommit=##DB##:memcommit:AVERAGE
+	DEF:memcommitlimit=##DB##:memcommitlimit:AVERAGE
+	CDEF:missing=memfree,UN,INF,UNKN,IF
+	'AREA:memcommitlimit###TOTALCOLOR##:Commit Limit'
+	'LINE2:memcommit###USEDCOLOR##:Committed'
+	'GPRINT:memfree:LAST:free=%.0lf%s'
+	'GPRINT:memfree:MIN:min=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,420 @@
+#!/usr/bin/perl -w
+
+# port-collector - a facon collector for remote services
+# $Id: port-collector.pl,v 1.26 2002/06/18 15:18:18 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'port-collector';
+# Which collector is this
+$main::collector = 'port';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# How long to wait for a response
+$main::timeout = 5; # seconds
+# Maximum number of (parenthesised) pieces in patterns
+$main::max_patterns = 10;
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.26 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use Time::HiRes qw(time);
+use RRDs;
+require "socketstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FG:hH:K:t:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'}+0; }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'scripts', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+if ($main::debug) { $| = 1; }
+
+my %status = (
+	'OK' => 1,
+	'WARN' => 2,
+	'ERROR' => 3,
+	'CRITICAL' => 4,
+);
+
+if (defined $main::config{MAXPORTPATTERNS}) {
+	$main::max_patterns = $main::config{MAXPORTPATTERNS};
+}
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $fixedrrd, $iscritical,
+	$status, $response, $timestamp, $start_time, $run_time);
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing $host") if ($main::debug);
+
+# Collect the data from the remote collector first
+	foreach $realrrd (@{$config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+
+# Check whether it's at all time to collect data
+		unless ($main::force_collection or
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+		if (defined $main::config{HOST}{$host}{EXTRA}{$realrrd} and 
+				$main::config{HOST}{$host}{EXTRA}{$realrrd} =~ /critical/) {
+			$iscritical = 1;
+		}
+		else { $iscritical = 0; }
+
+		++$main::requests;
+		($status, $response, $timestamp) = &collect_rrd($host, $ip, 
+			$realrrd, $wildpart, $wildrrd, $iscritical);
+		++$main::entries_collected;
+		if (defined $status{$status}) {
+			print "$host $timestamp $realrrd $status{$status}\n";
+			print TMP "$host $timestamp $realrrd $status{$status}\n";
+			&put_status( $host, "STATUS-$fixedrrd", $status);
+		}
+		else {
+			&error("unknown status $status for $realrrd on $host; skipped");
+			next;
+		}
+		++$main::entries_used;
+		if (defined $response) {
+			$response = $response * 1000; # in milliseconds
+			print "$host $timestamp $realrrd-response $response\n";
+			print TMP "$host $timestamp $realrrd-response $response\n";
+		}
+	}
+}
+
+# Now facon instrumentation info
+my $now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -F      force collection even if it is not time
+    -G GGG  only try hosts from group 'GGG', a comma-separated list
+    -h      show this help
+    -H HHH  only try hosts from 'HHH', a comma-separated list
+    -t ttt  set default timeout to 'ttt' [$main::timeout]
+    -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+    -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#--------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------- collect_rrd ---
+sub collect_rrd {
+	my ($host, $ip, $realrrd, $wildpart, $wildrrd, $iscritical) = @_;
+	my ($line, $variable, $value, $data, $extra, $port, $timeout, 
+		$portname, $first_resp, $socket, $timestamp, $scriptname);
+
+	&debug("doing host $host rrd=$realrrd") if ($main::debug);
+	return if ($host eq '_facon_');
+
+	# port-* is a special case
+	if ($wildrrd eq 'port-*') {
+		($portname, $port) = split(':', $wildpart);
+		$scriptname = $portname;
+	}
+	else {
+		# A wildcard rrd (not port-*), either "name-xx" or "name-xx:999"
+		if( defined $wildpart) {
+			(undef, $port) = split(':', $wildpart);
+			# Drop the trailing '*'
+			$scriptname = $wildrrd;
+		}
+		# A non-wildcard rrd, either "name" or "name:999"
+		else {
+			(undef, $port) = split(':', $realrrd);
+			$scriptname = $realrrd;
+		}
+	}
+	&debug('  portname=', (defined $portname) ? $portname : '-UNDEFINED-',
+		' scriptname=', $scriptname, ' port=', 
+		(defined $port) ? $port : 'DEFAULT') if ($main::debug>1);
+
+	# Work out the port number from tailing :999
+	if (defined $port) {
+		&debug("  port from trailing :$port") if ($main::debug>1);
+	}
+	# ... From the portname
+	elsif (defined $portname and $portname =~ /^\d+$/) {
+		$port = $portname;
+		&debug("  port $port from first part of wildpart") if ($main::debug>1);
+	}
+	# ... from a wildcard script?
+	elsif (defined $wildpart and 
+			defined $main::config{SCRIPT}{$wildpart}{PORT}) { 
+		$port = $main::config{SCRIPT}{$wildpart}{PORT};
+		&debug("  port $port from script") if ($main::debug>1);
+	}
+	# ... from a wildcard script
+	elsif (defined $main::config{SCRIPT}{$wildrrd}{PORT}) { 
+		$port = $main::config{SCRIPT}{$wildrrd}{PORT};
+		&debug("  port $port from wild rrd script") if ($main::debug>1);
+	}
+	# ... from non-wildcard script
+	elsif (defined $main::config{SCRIPT}{$realrrd}{PORT}) {
+		$port = $main::config{SCRIPT}{$realrrd}{PORT};
+		&debug("  port $port from rrd script") if ($main::debug>1);
+	}
+	# ... nope.  Try looking up the portname
+	else {
+		$port = getservbyname($portname,'tcp');
+		&debug("  port $port from getservbyname") if ($main::debug>1);
+	}
+
+	unless (defined $port) {
+		&error("collect_rrd: can't get port for $wildpart for $host");
+		return (($iscritical) ? 'CRITICAL' : 'ERROR', undef, int(time));
+	}
+
+# What timeout are we using
+	if (defined $main::config{SCRIPT}{$scriptname}{TIMEOUT}) {
+		$timeout = $main::config{SCRIPT}{$scriptname}{TIMEOUT};
+	}
+	else { $timeout = $main::timeout; }
+	&debug("  using timeout $timeout") if ($main::debug);
+
+# Can we talk to the port at all?
+	my $proxy = $config{SCRIPT}{$scriptname}{PROXY};
+	my $start_time = time();
+	if (defined $proxy) {
+		if ($proxy =~ /^([^:]+):(\d+)$/) {
+			$proxyhost = $1;
+			$proxyport = $2;
+		}
+		else { &abort("invalid proxy spec ($proxy) for $wildrrd"); }
+
+		($socket, $status, $timeout) = 
+			&open_socket( $proxyhost, $proxyport, $timeout);
+		unless ($status == $main::SOCKET_OK) {
+			&debug("couldn't connect to proxy $proxyhost:$proxyport for " .
+				"$host: $!") 
+				if ($main::debug);
+			return (($iscritical) ? 'CRITICAL' : 'ERROR', undef, int(time));
+		};
+
+		&debug("  connected to $host:$port via proxy $proxy") if ($main::debug);
+	}
+
+# No proxy, go direct
+	else {
+		($socket, $status, $timeout) = &open_socket( $host, $port, $timeout, 
+			$ip);
+		unless ($status == $main::SOCKET_OK) {
+			&debug("couldn't connect to $host: $!") if ($main::debug);
+			return (($iscritical) ? 'CRITICAL' : 'ERROR', undef, int(time));
+		}
+		&debug("  connected to $host:$port") if ($main::debug);
+	}
+
+# Nothing to send?
+	unless (defined $main::config{SCRIPT}{$scriptname}{SEND}) {
+		$end_time = time;
+		$socket->close();
+		&debug("  nothing to send, just return time") if ($main::debug);
+		return ("OK", $end_time-$start_time, int($end_time));
+	}
+
+# Send the request
+	my $send;
+	if (index($main::config{SCRIPT}{$scriptname}{SEND},'##')>=0) {
+		($send) = &do_subs(undef, $realrrd, $wildpart, $host, undef, 
+			undef, undef, $main::config{SCRIPT}{$scriptname}{SEND});
+	}
+	else { $send = $main::config{SCRIPT}{$scriptname}{SEND}; }
+	&debug("  sending: '$send'") if ($main::debug>1);
+
+	($status, $timeout) = &write_socket( $socket, $send, $timeout, 
+		"script for $host");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		return (($iscritical) ? 'CRITICAL' : 'ERROR', undef, int(time));
+	};
+	&debug("  sent script") if ($debug);
+
+# Collect the results
+	my $lines = '';
+	while (($line, $status, $timeout) = &read_socket($socket, $timeout, 
+			"response from $host"), 
+			(defined $line and ($status == $main::SOCKET_OK))) {
+		$first_resp = time unless (defined $first_resp);
+		$line =~ tr/\015\012//d;
+		$lines .= "\n". $line;
+		&debug("  raw data: '$line'") if ($debug>2);
+
+		foreach $test (@{$main::config{SCRIPT}{$scriptname}{TESTS}}) {
+			$pattern = $main::config{SCRIPT}{$scriptname}{uc $test};
+			if ($line =~ /$pattern/is) {
+				$end_time = time;
+				$socket->close();
+				&do_patterns($lines, $host, $realrrd, $scriptname);
+				return (uc $test, $end_time - $start_time, int($end_time));
+			}
+		}
+	}
+	$end_time = time;
+	$socket->close();
+
+	return (($iscritical) ? 'CRITICAL' : 'ERROR', $end_time - $start_time, 
+		int($end_time));
+
+}
+
+#------------------------------------------------- do_patterns ---
+sub do_patterns {
+	my ($lines, $host, $realrrd, $scriptname) = @_;
+	my ($found, $i, $it, $extra, @matches, $ip1);
+
+# Extract text from the result
+	if (defined $main::config{SCRIPT}{$scriptname}{INFOPATTERN}) {
+		my $pattern = $main::config{SCRIPT}{$scriptname}{INFOPATTERN};
+		&debug("  matching infopattern '$pattern'") if ($main::debug>1);
+		if (@matches = $lines =~ /$pattern/sm) {
+			&debug("  matched with ", scalar(@matches), ' substrings')
+				if( $main::debug>1);
+			$found = 0;
+			for ($i=0; $i < scalar(@matches); ++$i) {
+				$ip1 = $i + 1;
+				$it = $matches[$i];
+				if (defined $it) {
+					$it =~ s/\n/<BR>/gs; # to keep them on one line
+					&debug("found infopattern $ip1='$it'") if ($main::debug>1);
+					&put_status( $host, 'INFO'. $ip1 .'-'. 
+						to_filename($realrrd), $it);
+					$found = 1; 
+				}
+			}
+			unless ($found) {
+				&error( 'infopattern matched for ', $host, ':', $realrrd,
+					'but no value found; i.e. the pattern does not specify ',
+					'a (parenthesized) number; skipped');
+			}
+		}
+	}
+
+# Extract numbers from the result
+	if (defined $main::config{SCRIPT}{$scriptname}{VALUEPATTERN}) {
+		my $pattern = $main::config{SCRIPT}{$scriptname}{VALUEPATTERN};
+		&debug("  matching valuepattern '$pattern'") if ($main::debug>1);
+		if (@matches = $lines =~ /$pattern/sm) {
+			&debug("  matched with ", scalar(@matches), ' substrings')
+				if( $main::debug>1);
+			$found = 0;
+			my $now = int(time());
+			for ($i=0; $i < scalar(@matches); ++$i) {
+				$ip1 = $i + 1;
+				$it = $matches[$i];
+				# ari ARI!
+				$it =~ s/,/./g;
+				# ari  ARI caso especial!!!!!!!!!
+				if (${realrrd} =~ /dolardelta/){
+					$it = $it *1000/10;
+			        }
+				if (defined $it) {
+					$it =~ s/\n/<BR>/gs; # to keep them on one line
+					&debug("found valuepattern $ip1='$it'") if ($main::debug>1);
+					print "$host $now ${realrrd}:value$ip1 $it\n";
+					++$main::entries_collected;
+					++$main::entries_used;
+					$found = 1; 
+				}
+			}
+			unless ($found) {
+				&error( 'infopattern matched for ', $host, ':', $realrrd,
+				' but no value found, i.e. the pattern does not include a ',
+				'(parenthesized) number; skipped');
+			}
+		}
+	}
+}

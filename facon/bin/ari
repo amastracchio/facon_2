@@ -1,0 +1,124 @@
+
+#------------------------------------------------------------ do_snmp_if ---
+sub do_snmp_if {
+	my ($host, $comhost, $realrrd, $wildrrd, $wildpart) = @_;
+	my ($now);
+
+# Use the ifIndex cache
+	my $i = &get_ifindex ($host, $comhost, $wildpart);
+	return unless (defined $i);
+
+# Get interface info
+	my ($ifname, $iftype, $index, $inerrors, $outerrors, 
+		$inoctets, $outoctets, $inucastpkts, $outucastpkts, 
+		$innucastpkts, $outnucastpkts, $status, $speed, $ifalias,
+		$textstatus, $fixed_name);
+
+	$ifname = &get_ifname( $comhost, $i);
+	++$main::requests;
+	return unless (defined $ifname);
+	$main::data_from_host++;
+	($ifalias) = &snmpget($comhost, "ifAlias.$i");
+	if (defined $ifalias and $ifalias =~ /^\s*$/) { undef $ifalias; }
+	++$main::requests;
+
+	($iftype, $index, $inerrors, $outerrors, $inoctets,
+	$outoctets, $inucastpkts, $outucastpkts, $status, $speed) = 
+		&snmpget( $comhost,
+		"ifType.$i", "ifIndex.$i",
+		"ifInErrors.$i", "ifOutErrors.$i",
+		"ifInOctets.$i", "ifOutOctets.$i",
+		"ifInUcastPkts.$i", "ifOutUcastPkts.$i", 
+		"ifOperStatus.$i", "ifSpeed.$i");
+	$main::requests += 10;
+	($innucastpkts, $outnucastpkts) = &snmpget( $comhost,
+		"ifInNUcastPkts.$i", "ifOutNUcastPkts.$i");
+	$main::requests += 2;
+
+#	&debug( "  iftype", ((defined $iftype) ? '='. $iftype : ' UNDEFINED'), "\n") 
+#		if ($main::debug>1);
+#	&debug( "  index", ((defined $index) ? '='. $index : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  inerrors", ((defined $inerrors) ? '='. $inerrors : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outerrors", ((defined $outerrors) ? '='. $outerrors : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  inoctets", ((defined $inoctets) ? '='. $inoctets : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outoctets", ((defined $outoctets) ? '='. $outoctets : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  inucastpkts", ((defined $inucastpkts) ? '='. $inucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outucastpkts", ((defined $outucastpkts) ? '='. $outucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  innucastpkts", ((defined $innucastpkts) ? '='. $innucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  outnucastpkts", ((defined $outnucastpkts) ? '='. $outnucastpkts : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  status", ((defined $status) ? '='. $status : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+#	&debug( "  speed", ((defined $speed) ? '='. $speed : ' UNDEFINED'), "\n")
+#		if ($main::debug>1);
+
+
+	if (defined $iftype) {
+		$iftype = &snmpiftype($iftype);
+		$now = time;
+		print "$host $now if-$ifname:type $iftype\n" if (defined $iftype);
+		print TMP "$host $now if-$ifname:type $iftype\n" if (defined $iftype);
+	}
+	$textstatus = uc &snmpifstatus($status);
+
+	$now = time;
+	print <<"EOD_IF" if (defined $inoctets);
+$host $now if-$ifname:status $status
+$host $now if-$ifname:speed $speed
+$host $now if-$ifname:inoctets $inoctets
+$host $now if-$ifname:outoctets $outoctets
+$host $now if-$ifname:inerrors $inerrors
+$host $now if-$ifname:outerrors $outerrors
+$host $now if-$ifname:inucastpkts $inucastpkts
+$host $now if-$ifname:outucastpkts $outucastpkts
+EOD_IF
+	print TMP <<"EOD_IF2" if (defined $inoctets);
+$host $now if-$ifname:status $status
+$host $now if-$ifname:speed $speed
+$host $now if-$ifname:inoctets $inoctets
+$host $now if-$ifname:outoctets $outoctets
+$host $now if-$ifname:inerrors $inerrors
+$host $now if-$ifname:outerrors $outerrors
+$host $now if-$ifname:inucastpkts $inucastpkts
+$host $now if-$ifname:outucastpkts $outucastpkts
+EOD_IF2
+	$main::entries_collected += 10;
+	$main::entries_used += 10;
+	if (defined $innucastpkts and defined $outnucastpkts) {
+		print <<"EOD_NUCAST";
+$host $now if-$ifname:innucastpkts $innucastpkts
+$host $now if-$ifname:outnucastpkts $outnucastpkts
+EOD_NUCAST
+		print TMP <<"EOD_NUCAST2";
+$host $now if-$ifname:innucastpkts $innucastpkts
+$host $now if-$ifname:outnucastpkts $outnucastpkts
+EOD_NUCAST2
+		$main::entries_collected += 2;
+		$main::entries_used += 2;
+	}
+
+	$fixed_name = &to_filename($ifname);
+	&put_status( $host, 'HARDWARE-snmpif-'.$fixed_name, 
+		$iftype .' '. &siunits($speed)) if (defined $iftype);
+	&put_status( $host, 'STATUS-snmpif-'.$fixed_name, $textstatus);
+
+# Store comment, and make sure that it's up to date
+	if (defined $ifalias) {
+		&put_status( $host, 'COMMENT-snmpif-'.$fixed_name, $ifalias);
+	}
+	else {
+		my $file = $main::config{DATADIR} .'/'. $host .'/COMMENT-snmpif-'.
+			$fixed_name;
+		if (-f $file) { unlink $file; }
+	}
+	
+}
+

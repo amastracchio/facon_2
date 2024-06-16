@@ -1,0 +1,38 @@
+# rrds/dnsa-* - DNS A record lookups
+# CVS $Id: dnsa-,v 1.2 2003/05/15 12:11:16 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	dns
+step	300
+
+data	A=dns-A:* GAUGE:600:0:U
+data	response=dns-A-response:* GAUGE:600:0:U
+
+alert	a > 0 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	dnsa-* desc="This is collected by the dns-collector.  It works by fetching A records from the target host for the specified name and noting the number of records found."
+	--title '##HOST## - DNS ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'responses'
+	DEF:a=##DB##:a:AVERAGE
+	CDEF:missing=a,UN,INF,UNKN,IF
+	'AREA:a###COLOR2##:A'
+	'AREA:missing###MISSING##:missing'
+
+graph	response-* desc="This is collected by the dns-collector.  It works by fetching A records from the target host for the specified name and noting the time taken to respond."
+	--title '##HOST## - DNS for ##WILDPART## (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'seconds'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:min=%.2lf%s'
+	'GPRINT:response:AVERAGE:avg=%.2lf%s'
+	'GPRINT:response:MAX:max=%.2lf%s'
+	'GPRINT:response:LAST:cur=%.2lf%s'
+	'AREA:missing###MISSING##:missing'

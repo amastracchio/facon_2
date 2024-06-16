@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	bo5qdtm1=bo5qdtm1:* GAUGE:1800:0:U  bamsql *
+data	bo5qdix0=bo5qdix0:* GAUGE:1800:0:U  bamsql *
+data	bo5qdda0=bo5qdda0:* GAUGE:1800:0:U  bamsql *
+data	ofcqdda1=ofcqdda1:* GAUGE:1800:0:U  bamsql *
+data	rbs=rbs:* GAUGE:1800:0:U  bamsql *
+data	ofcqdix0=ofcqdix0:* GAUGE:1800:0:U  bamsql *
+data	ofcqdda0=ofcqdda0:* GAUGE:1800:0:U  bamsql *
+data	exploit=exploit:* GAUGE:1800:0:U  bamsql *
+data	ofcqdix1=ofcqdix1:* GAUGE:1800:0:U  bamsql *
+data	system=system:* GAUGE:1800:0:U  bamsql *
+data	tempo=tempo:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:bo5qdtm1=##DB##:bo5qdtm1:AVERAGE
+	 DEF:bo5qdix0=##DB##:bo5qdix0:AVERAGE
+	 DEF:bo5qdda0=##DB##:bo5qdda0:AVERAGE
+	 DEF:ofcqdda1=##DB##:ofcqdda1:AVERAGE
+	 DEF:rbs=##DB##:rbs:AVERAGE
+	 DEF:ofcqdix0=##DB##:ofcqdix0:AVERAGE
+	 DEF:ofcqdda0=##DB##:ofcqdda0:AVERAGE
+	 DEF:exploit=##DB##:exploit:AVERAGE
+	 DEF:ofcqdix1=##DB##:ofcqdix1:AVERAGE
+	 DEF:system=##DB##:system:AVERAGE
+	 DEF:tempo=##DB##:tempo:AVERAGE
+      CDEF:missing=bo5qdtm1,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:bo5qdtm1###COLOR1##:bo5qdtm1'
+	'LINE2:bo5qdix0###COLOR2##:bo5qdix0'
+	'LINE2:bo5qdda0###COLOR3##:bo5qdda0'
+	'LINE2:ofcqdda1###COLOR4##:ofcqdda1'
+	'LINE2:rbs###COLOR5##:rbs'
+	'LINE2:ofcqdix0###COLOR6##:ofcqdix0'
+	'LINE2:ofcqdda0###COLOR7##:ofcqdda0'
+	'LINE2:exploit###COLOR8##:exploit'
+	'LINE2:ofcqdix1###COLOR9##:ofcqdix1'
+	'LINE2:system###COLOR10##:system'
+	'LINE2:tempo###COLOR3##:tempo'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:bo5qdtm1:LAST:bo5qdtm1         = %.2lf\l'
+	'GPRINT:bo5qdix0:LAST:bo5qdix0         = %.2lf\l'
+	'GPRINT:bo5qdda0:LAST:bo5qdda0         = %.2lf\l'
+	'GPRINT:ofcqdda1:LAST:ofcqdda1         = %.2lf\l'
+	'GPRINT:rbs:LAST:rbs         = %.2lf\l'
+	'GPRINT:ofcqdix0:LAST:ofcqdix0         = %.2lf\l'
+	'GPRINT:ofcqdda0:LAST:ofcqdda0         = %.2lf\l'
+	'GPRINT:exploit:LAST:exploit         = %.2lf\l'
+	'GPRINT:ofcqdix1:LAST:ofcqdix1         = %.2lf\l'
+	'GPRINT:system:LAST:system         = %.2lf\l'
+	'GPRINT:tempo:LAST:tempo         = %.2lf\l'

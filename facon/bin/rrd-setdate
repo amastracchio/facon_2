@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# rrd-setdate - fix the lastupdate time on an rrd
+# $Id: rrd-setdate.sh,v 1.4 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Version History   - - -
+
+# $Revision: 1.4 $
+
+# - - -   Setup   - - -
+
+if [ $# -ne 2 ] ; then
+	echo >&2 "usage: `basename $0` rrdfile timestamp"
+	exit 1
+fi
+
+rrd=$1
+date=$2
+TMP=/tmp/setrrddate.$$
+
+# - - -   Mainline   - - -
+
+#rrdtool dump $rrd | awk DATE=$date "s#<lastupdate> [0-9]+#<lastupdate> $date#" >$TMP
+rrdtool dump $rrd | awk -v DATE=$date '/<lastupdate>/{$2 = DATE} {print}' >$TMP
+rrdtool restore $TMP $rrd
+rm -f $TMP

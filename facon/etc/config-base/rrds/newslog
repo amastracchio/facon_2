@@ -1,0 +1,44 @@
+# rrds/newslog - look at the news log from INN 2.2
+# CVS $Id: newslog,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# FIXME - this will have to be completely re-done for your news-server.  It
+# won't be practical for large news hubs
+
+source	log
+step	300
+data	nott_arta	DERIVE:600:0:U	count \s\+\snott\.onet\.on\.ca
+data	nott_artr	DERIVE:600:0:U	count \s\-\snott\.onet\.on\.ca
+data	bcnet_arta	DERIVE:600:0:U	count \s\+\scyclone\.bc\.net
+data	bcnet_artr	DERIVE:600:0:U	count \s\-\cyclone\.bc\.net
+data	nott_byta	DERIVE:600:0:U	sum \s\+\snott\.onet\.on\.ca\s(\d+)
+data	nott_bytr	DERIVE:600:0:U	sum \s\-\snott\.onet\.on\.ca\s(\d+)
+data	bcnet_byta	DERIVE:600:0:U	sum \s\+\scyclone\.bc\.net\s(\d+)
+data	bcnet_bytr	DERIVE:600:0:U	sum \s\-\cyclone\.bc\.net\s(\d+)
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+graph	newsarticles
+	--title '##HOST## - News Articles'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'articles/s'
+	--height 300
+	DEF:notta=##DB##:nott_arta:AVERAGE
+	DEF:nottr=##DB##:nott_artr:AVERAGE
+	DEF:bcneta=##DB##:bcnet_arta:AVERAGE
+	DEF:bcnetr=##DB##:bcnet_artr:AVERAGE
+	CDEF:total=notta,nottr,+,bcneta,bcnetr,+,+
+	CDEF:missing=notta,UN,INF,UNKN,IF
+	'LINE1:bcneta###COLOR1##:bcnet acc'
+	'LINE1:bcnetr###COLOR1A##:bcnet rej'
+	'LINE1:notta###COLOR2##:nott acc'
+	'LINE1:nottr###COLOR2A##:nott rej'
+	'LINE2:total###COLOR3##:total'
+	'GPRINT:notta:AVERAGE:nott=%.0lf%s'
+	'GPRINT:nottr:AVERAGE:/%.0lf%s'
+	'GPRINT:bcneta:AVERAGE:bcnet=%.0lf%s'
+	'GPRINT:bcnetr:AVERAGE:/%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

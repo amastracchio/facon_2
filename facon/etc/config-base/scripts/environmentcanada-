@@ -1,0 +1,14 @@
+# scripts/environmentcanada- - weather stuff from Environment Canada
+# $Id: environmentcanada-,v 1.4 2002/04/16 15:21:15 remstats Exp $
+# (until they change the format of their pages. :-( (last changed about 20011009)
+
+port	80
+timeout	10
+send	GET http://weatheroffice.ec.gc.ca/scripts/citygen.pl?client=ECCDN_e&city=##WILDPART##&print=1 HTTP/1.0\nUser-Agent: Remstats/1.0.13a\nHost: ##HOST##\nConnection: close\n\n
+
+valuepattern	>Temp\.:<.*?<strong>(\d+).*?>Pressure:<.*?<strong>(\d+\.\d+).*?>Visibility:<.*?<strong>((\d+(\.\d+)?)\s+k?m).*?>Humidity:<.*?<strong>(\d+)%.*?>DewPoint:<.*?<strong>(\d+).*?>Wind:<.*?<strong>([NSEW]{1,3}\s+(\d+)|Calm)
+
+
+infopattern	>Temp\.:<.*?<strong>(\d+).*?>Pressure:<.*?<strong>(\d+\.\d+).*?>Visibility:<.*?<strong>((\d+(\.\d+)?)\s+k?m).*?>Humidity:<.*?<strong>(\d+).*?>Dewpoint<.*?<strong>(\d+).*?>Wind:<.*?<strong>([NSEW]{1,3}\s+(\d+)|Calm)
+
+OK	</HTML>

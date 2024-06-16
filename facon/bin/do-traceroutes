@@ -1,0 +1,239 @@
+#!/usr/bin/perl -w
+
+# do-traceroutes - traceroute to each of the monitored hosts
+# $Id: do-traceroutes.pl,v 1.18 2003/05/15 12:03:22 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What's this program called, for error messages and temp files
+$main::prog = 'do-traceroutes';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# How many traceroutes to keep running?
+$main::max_children = 10;
+# Where is traceroute?
+$main::traceroute = '/root/3p/facon/bin/traceroute';
+$main::traceroute_opts = ' -A ';
+# How many path entries to keep
+$main::path_history_max = 10;
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.18 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } 
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'times', 'rrds', 
+	'groups', 'host-templates', 'hosts');
+
+if ($main::debug) { $| = 1; }
+
+my $dir = $main::config{DATADIR} .'/TRACEROUTES';
+unless (-d $dir) {
+	unless (&make_a_dir($dir)) {
+		&abort("can't continue without '$dir'");
+	}
+}
+
+# - - -   Mainline   - - -
+
+my ($host, $children, $pid, $cmd, %pids, $hostdir, $ip);
+$children = 0;
+foreach $host (keys %{$main::config{HOST}}) {
+
+# Use our IP number, because it might not be in DNS
+	$ip = &get_ip($host);;
+	next unless (defined $ip);
+
+# Build the command to execute
+	$hostdir = $main::config{DATADIR} .'/'. $host;
+	$cmd = $main::traceroute . $main::traceroute_opts . $ip . ' 2>&1 | tee '.
+		$hostdir .'/PATH.trace | /root/3p/facon/bin/make-path >'.
+		$hostdir .'/PATH.new';
+
+# Make sure that not too many of them run, but try to
+# keep the max going.
+	if ($children >= $main::max_children) {
+		$pid = wait;
+		&debug("reaped $pid for '$pids{$pid}'") if ($main::debug);
+		delete $pids{$pid};
+		$children--;
+	}
+
+# The parent has to keep track of the children
+	$pid = fork();
+	if (defined $pid and $pid > 0) {
+		$children++;
+		$pids{$pid} = $cmd;
+		&debug("PARENT: forked $pid") if ($main::debug);
+	}
+
+# The child runs traceroute
+	elsif (defined $pid  and $pid == 0) {
+		&debug("CHILD: execing $cmd") if ($main::debug>1);
+		exec $cmd or do {
+			&error("can't exec $cmd: $!");
+			next;
+		};
+		&error("exec returned?: $!");
+	}
+
+# This shouln't happen (error on fork)
+	else {
+		&abort("can't fork for '$cmd': $!");
+	}
+}
+
+# Reap the remaining children, to avoid zombies
+while ($children and ($pid = wait)) {
+	&debug("reaped $pid for '$pids{$pid}'") if ($main::debug);
+	delete $pids{$pid};
+	$children--;
+}
+
+my ($new_path_file, $path_file, $old_path_file, $paths_file, 
+	@paths, $old_path, $new_path, $now, $overall_paths_file);
+
+# Save a copy of each hosts path in the overall paths file
+$now = &timestamp2();
+$overall_paths_file = $main::config{DATADIR} .'/TRACEROUTES/PATHS.' . $now;
+open( OVERALL, ">$overall_paths_file") or
+	&abort("can't open $overall_paths_file");
+
+foreach $host (keys %{$main::config{HOST}}) {
+	$hostdir = $main::config{DATADIR} .'/'. $host;
+	$new_path_file = $hostdir .'/PATH.new';
+	$path_file = $hostdir .'/PATH';
+	$old_path_file = $hostdir .'/PATH.old';
+	$paths_file = $hostdir .'/PATHS';
+
+# Make the paths file if there isn't one
+	if (! -f $paths_file) {
+		open (TOUCH, ">$paths_file") or do {
+			&error("can't create $paths_file: $!");
+			next;
+		};
+		close (TOUCH);
+		@paths = ();
+	}
+	else { @paths = &read_file($paths_file); }
+
+# Move current to old, and new to current
+	$old_path = &read_file( $path_file);
+	if (defined $old_path) {
+		&write_file( $old_path_file, $old_path);
+	}
+	($new_path) = &read_file($new_path_file);
+	if (defined $new_path && $new_path ne '') {
+		push @paths, $new_path;
+		&write_file( $path_file, $new_path);
+	}
+	
+	# Write the copy 
+	print OVERALL $new_path, "\n";
+
+# Keep the correct number of entries
+	while (@paths > $main::path_history_max) {
+		shift @paths;
+	}
+	&write_file( $paths_file, @paths);
+}
+
+close(OVERALL);
+
+# Save the old name_file
+my $name_file = $main::config{DATADIR} . '/TRACEROUTES/NAME';
+if( -f $name_file) {
+	rename $name_file, $name_file . '.old' or
+		&abort("can't rename $name_file to $name_file: $!");
+}
+# Write the new one
+&write_file( $name_file, $overall_paths_file);
+# Make a new symlink
+my $link_file = $main::config{DATADIR} .'/TRACEROUTES/PATHS';
+unlink $link_file;
+symlink $overall_paths_file, $link_file or
+	&abort("can't symlink $overall_paths_file to $link_file: $!");
+
+#--------------------------------------------------- read_file ---
+sub read_file {
+	my ($filename) = @_;
+	my @lines = ();
+
+	open (READ, "<$filename") or do {
+		&debug("read_file: can't open $filename for read: $!")
+			if( $main::debug);
+		return undef;
+	};
+	@lines = <READ>;
+	@lines = map { chomp $_; $_ } @lines;
+	close (READ);
+	&debug("read ", scalar(@lines), " from $filename")
+		if ($main::debug);
+
+	return @lines;
+}
+
+#----------------------------------------------------- write_file ---
+sub write_file {
+	my ($filename, @lines) = @_;
+
+	&debug("writing ", scalar(@lines), " lines to $filename") 
+		if ($main::debug);
+	open (WRITE, ">$filename") or do {
+		&error("can't open $filename for write : $!");
+		return undef;
+	};
+	print WRITE join("\n", @lines) . "\n";
+	close (WRITE);
+1;
+}
+
+#------------------------------------------------------ usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+dfh
+    -d ddd  set debugging output to level 'ddd'
+    -f fff  use 'fff' as config-dir [$main::config_dir]
+    -h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}

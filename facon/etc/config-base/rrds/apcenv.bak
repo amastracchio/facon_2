@@ -1,0 +1,39 @@
+# rrds/apcenv - temperature/humidity via APC UPS environmental monitor
+# CVS $Id: apcenv,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	snmp
+step	300
+
+data	temperature=apcmupsenvironambienttemperature GAUGE:1200:0:60
+data	humidity=apcmupsenvironrelativehumidity GAUGE:1200:0:100
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+alert	temperature < 40 45 50
+alert	humidity < 80 85 90
+oid	APCmUpsEnvironAmbientTemperature
+oid	APCmUpsEnvironRelativeHumidity
+
+graph	temperature desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS with the optional environmental monitoring unit installed.'
+	--title '##HOST## - Ambient Temperature (##GRAPHTIME##)'
+	--vertical-label 'degrees C'
+	DEF:temperature=##DB##:temperature:AVERAGE
+	CDEF:missing=temperature,UN,INF,UNKN,IF
+	'LINE2:temperature###COLOR1##:temperature'
+	'GPRINT:temperature:LAST:current=%.0lf'
+	'GPRINT:temperature:MIN:min=%.0lf'
+	'GPRINT:temperature:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'
+
+graph	humidity desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on an <A HREF="http://www.apcc.com/">APCC</A> UPS with the optional environmental monitoring unit installed.'
+	--title '##HOST## - Relative Humidity (##GRAPHTIME##)'
+	--vertical-label '%'
+	DEF:humidity=##DB##:humidity:AVERAGE
+	CDEF:missing=humidity,UN,INF,UNKN,IF
+	'LINE2:humidity###COLOR1##:humidity'
+	'GPRINT:humidity:LAST:current=%.0lf'
+	'GPRINT:humidity:MIN:min=%.0lf'
+	'GPRINT:humidity:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'

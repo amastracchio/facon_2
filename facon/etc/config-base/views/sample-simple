@@ -1,0 +1,6 @@
+# views/sample-simple
+
+desc	a simple view sample
+graph	lois.dgim.crc.ca cpu cpu
+graph	silverlock.dgim.crc.ca cpu cpu
+customgraph servercpu

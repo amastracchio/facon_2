@@ -1,0 +1,46 @@
+# rrds/memory - memory usage on unix boxen
+# CVS $Id: memory,v 1.11 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# I know what freemem is, but what exactly is swapmem?  Amount of swap memory
+# available?  In use?  Tell me if you know.
+
+source	unix-status
+step	300
+
+data	freemem GAUGE:600:0:U	vmstat
+data	swapmem GAUGE:600:0:U	vmstat
+data	scanrate COUNTER:600:0:U vmstat
+
+alert	scanrate < 1 2
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	memory desc="This is collected by the unix-status-collector.  (Under Solaris, look at the scanrate graphs for swapping problems.)  It works by running the <B>vmstat</B> command on the remote host and parsing the output to look for the Free Memory.  Exactly what Free Memory is depends on the flavour of unix.  Under Linux, free memory can be near zero with no apparent ill effects, as it uses all of memory shared between running programs and file-system buffers."
+		--title '##HOST## - Memory (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:kfreemem=##DB##:freemem:AVERAGE
+		DEF:kswapmem=##DB##:swapmem:AVERAGE
+		CDEF:freemem=kfreemem,1024,*
+		CDEF:swapmem=kswapmem,1024,*
+		CDEF:missing=kfreemem,UN,INF,UNKN,IF
+		'LINE2:freemem###COLOR1##:Free Memory'
+		'LINE2:swapmem###COLOR2##:Swap Memory'
+		'GPRINT:freemem:AVERAGE:free avg=%.0lf%s\g'
+		'GPRINT:freemem:MIN: min=%.0lf%s\g'
+		'GPRINT:freemem:LAST: cur=%.01lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph	scanrate desc="This is collected by the unix-status-collector.  It works by running the <B>vmstat</B> program on the remote host and parsing the output.  The scanrate is zero except when the system needs more memory and can't find enough by paging-out inactive pages.  If it's non-zero, then active processes had to be swapped out.  If it's happening on a regular basis, then you need more memory (or fewer/smaller programs).  This is only available under Solaris."
+		--title '##HOST## - Scanrate (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		DEF:scanrate=##DB##:scanrate:AVERAGE
+		CDEF:missing=scanrate,UN,INF,UNKN,IF
+		'AREA:scanrate###PROBLEMCOLOR##:Scan Rate'
+		'GPRINT:scanrate:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+

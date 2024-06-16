@@ -1,0 +1,48 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    600
+
+
+
+data	neo_index=neo_index:* GAUGE:1200:0:U  bamsql *
+data	temp_3=temp_3:* GAUGE:1200:0:U  bamsql *
+data	interfaces=interfaces:* GAUGE:1200:0:U  bamsql *
+data	neo_temp=neo_temp:* GAUGE:1200:0:U  bamsql *
+data	temp_1=temp_1:* GAUGE:1200:0:U  bamsql *
+data	bo=bo:* GAUGE:1200:0:U  bamsql *
+data	ibamac1=ibamac1:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'AACORN HP'
+        --vertical-label 'percent'
+	 DEF:neo_index=##DB##:neo_index:AVERAGE
+	 DEF:temp_3=##DB##:temp_3:AVERAGE
+	 DEF:interfaces=##DB##:interfaces:AVERAGE
+	 DEF:neo_temp=##DB##:neo_temp:AVERAGE
+	 DEF:temp_1=##DB##:temp_1:AVERAGE
+	 DEF:bo=##DB##:bo:AVERAGE
+	 DEF:ibamac1=##DB##:ibamac1:AVERAGE
+      CDEF:missing=neo_index,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:neo_index###COLOR1##:neo_index'
+	'LINE2:temp_3###COLOR2##:temp_3'
+	'LINE2:interfaces###COLOR3##:interfaces'
+	'LINE2:neo_temp###COLOR4##:neo_temp'
+	'LINE2:temp_1###COLOR5##:temp_1'
+	'LINE2:bo###COLOR6##:bo'
+	'LINE2:ibamac1###COLOR7##:ibamac1'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:neo_index:LAST:neo_index         = %.2lf\l'
+	'GPRINT:temp_3:LAST:temp_3         = %.2lf\l'
+	'GPRINT:interfaces:LAST:interfaces         = %.2lf\l'
+	'GPRINT:neo_temp:LAST:neo_temp         = %.2lf\l'
+	'GPRINT:temp_1:LAST:temp_1         = %.2lf\l'
+	'GPRINT:bo:LAST:bo         = %.2lf\l'
+	'GPRINT:ibamac1:LAST:ibamac1         = %.2lf\l'

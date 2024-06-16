@@ -1,0 +1,40 @@
+# rrds/ntpaging - NT paging data
+# CVS $Id: ntpaging,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+data	pagereads=memory:page_reads-sec COUNTER:600:0:U perfcounters
+data	pagewrites=memory:page_writes-sec COUNTER:600:0:U perfcounters
+data	pagesin=memory:pages_output-sec COUNTER:600:0:U perfcounters
+data	pagesout=memory:pages_output-sec COUNTER:600:0:U perfcounters
+data	pagefaults=memory:page_faults-sec COUNTER:600:0:U perfcounters
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+graph	page-rw desc='This shows the number of pages read/written'
+	--title '##HOST## - Paging Volume (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'pages/sec'
+	DEF:pagesin=##DB##:pagesin:AVERAGE
+	DEF:pagesout=##DB##:pagesout:AVERAGE
+	CDEF:missing=pagesin,UN,INF,UNKN,IF
+	'AREA:pagesin###INCOLOR##:Pages Input'
+	'LINE2:pagesout###OUTCOLOR##:Pages Output'
+	'AREA:missing###MISSING##:missing'
+
+graph	page-io desc='This shows the number of read/writes to move those pages'
+	--title '##HOST## - Paging I/O (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'ops/sec'
+	DEF:pagereads=##DB##:pagereads:AVERAGE
+	DEF:pagewrites=##DB##:pagewrites:AVERAGE
+	CDEF:missing=pagereads,UN,INF,UNKN,IF
+	'AREA:pagereads###INCOLOR##:Page Reads'
+	'LINE2:pagewrites###OUTCOLOR##:Page Writes'
+	'AREA:missing###MISSING##:missing'
+

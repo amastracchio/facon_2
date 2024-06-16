@@ -1,0 +1,87 @@
+# rrds/procnetdev-* - network stats via /proc/net/dev on linux
+# CVS $Id: procnetdev-,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	rbytes=procnetdev_rbytes:* DERIVE:600:0:10000000	procnetdev
+data	rpackets=procnetdev_rpackets:* DERIVE:600:0:100000	procnetdev
+data	rerrors=procnetdev_rerrors:* DERIVE:600:0:100000	procnetdev
+data	rdrop=procnetdev_rdrop:* DERIVE:600:0:100000	procnetdev
+data	rfifo=procnetdev_rfifo:* DERIVE:600:0:100000	procnetdev
+data	rframe=procnetdev_rframe:* DERIVE:600:0:100000	procnetdev
+data	tbytes=procnetdev_tbytes:* DERIVE:600:0:10000000	procnetdev
+data	tpackets=procnetdev_tpackets:* DERIVE:600:0:100000	procnetdev
+data	terrors=procnetdev_terrors:* DERIVE:600:0:100000	procnetdev
+data	tdrop=procnetdev_tdrop:* DERIVE:600:0:100000	procnetdev
+data	tfifo=procnetdev_tfifo:* DERIVE:600:0:100000	procnetdev
+data	tcolls=procnetdev_tcolls:* DERIVE:600:0:100000	procnetdev
+data	tcarrier=procnetdev_tcarrier:* DERIVE:600:0:100000	procnetdev
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+# None of these should be occurring.  You'll have to make your own guess for
+# collisions.
+alert tcarrier < 1 1
+alert rdrop < 1 1
+alert rfifo < 1 1
+alert rframe < 1 1
+alert tdrop < 1 1
+alert tfifo < 1 1
+
+graph	bits-* desc="This is collected by the unix-status-collector.  It is Linux specific.  It works by reading and parsing the contents of /proc/net/dev.  Input refers to traffic read by the interface, i.e. traffic coming into the host, and Output refers to traffic written to the interface, i.e. leaving the host."
+		--title '##HOST## - ##WILDPART## Bits (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label bps
+		DEF:rbytes=##DB##:rbytes:AVERAGE
+		DEF:tbytes=##DB##:tbytes:AVERAGE
+		CDEF:rbits=rbytes,8,*
+		CDEF:tbits=tbytes,8,*
+		CDEF:missing=rbytes,UN,INF,UNKN,IF
+		'AREA:rbits###INCOLOR##:in'
+		'LINE2:tbits###OUTCOLOR##:out'
+		'GPRINT:rbits:AVERAGE:in avg=%.0lf%s\g'
+		'GPRINT:rbits:MAX: max=%.0lf%s\g'
+		'GPRINT:rbits:LAST: cur=%.0lf%s'
+		'GPRINT:tbits:AVERAGE:out avg=%.0lf%s\g'
+		'GPRINT:tbits:MAX: max=%.0lf%s\g'
+		'GPRINT:tbits:LAST: cur=%.0lf%s\l'
+		'AREA:missing###MISSING##:missing'
+
+graph	packets-* desc="This is collected by the unix-status-collector.  It is Linux specific.  It works by reading and parsing the contents of /proc/net/dev.  Input refers to traffic read by the interface, i.e. traffic coming into the host, and Output refers to traffic written to the interface, i.e. leaving the host."
+		--title '##HOST## - ##WILDPART## Packets (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label pps
+		DEF:rpackets=##DB##:rpackets:AVERAGE
+		DEF:tpackets=##DB##:tpackets:AVERAGE
+		CDEF:missing=rpackets,UN,INF,UNKN,IF
+		'AREA:rpackets###INCOLOR##:in'
+		'LINE2:tpackets###OUTCOLOR##:out'
+		'GPRINT:rpackets:AVERAGE:in avg=%.0lf%s\g'
+		'GPRINT:rpackets:MAX: max=%.0lf%s\g'
+		'GPRINT:rpackets:LAST: cur=%.0lf%s'
+		'GPRINT:tpackets:AVERAGE:out avg=%.0lf%s\g'
+		'GPRINT:tpackets:MAX: max=%.0lf%s\g'
+		'GPRINT:tpackets:LAST: cur=%.0lf%s\l'
+		'AREA:missing###MISSING##:missing'
+
+graph	errors-* desc="This is collected by the unix-status-collector.  It is Linux specific.  It works by reading and parsing the contents of /proc/net/dev.  Input refers to traffic read by the interface, i.e. traffic coming into the host, and Output refers to traffic written to the interface, i.e. leaving the host.  Errors is a total count of all error types.  Collisions are a normal part of ethernet traffic, but should be only a small fraction of the number of packets sent.  Carrier errors are not normal, but are the next most common.  They often indicate a mismatch in line speed or duplex between the interface and the hub/switch which it is connected to."
+		--title '##HOST## - ##WILDPART## Errors (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label errors
+		DEF:rerrors=##DB##:rerrors:AVERAGE
+		DEF:terrors=##DB##:terrors:AVERAGE
+		DEF:tcolls=##DB##:tcolls:AVERAGE
+		DEF:tcarrier=##DB##:tcarrier:AVERAGE
+		CDEF:missing=rerrors,UN,INF,UNKN,IF
+		'LINE2:rerrors###COLOR1##:in'
+		'LINE2:terrors###COLOR2##:out'
+		'LINE2:tcolls###COLOR3##:collisions'
+		'LINE2:tcarrier###COLOR4##:carrier'
+		'AREA:missing###MISSING##:missing'

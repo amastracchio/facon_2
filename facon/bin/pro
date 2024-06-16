@@ -1,0 +1,21 @@
+Useless use of hash element in void context at ./updater line 200.
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2747.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2864.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2919.
+	(Maybe you should just omit the defined()?)
+updater version 1.23 from facon 1.0.13a
+usage: updater [options] collector
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -f fff  use 'fff' for config-dir [/root/3p/facon/etc/config]
+  -h      show this help
+  -H hhh  only process host 'hhh'
+  -r rrr  update rrd file 'rrr' (see note1)
+  -R RRR  update only rrd 'RRR'
+
+Note1: The -r option must be combined with the -H and -R options and is
+intended only to be used by rt-updater.  It will take data only for the
+specified host (-H) and RRD (-R) and update the specified (-r) RRD file,
+instead of the usual calculated one.

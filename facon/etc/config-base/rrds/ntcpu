@@ -1,0 +1,31 @@
+# rrds/ntcpu - basic processor usage for NT
+# CVS $Id: ntcpu,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+data	system=system:percent_total_privileged_time COUNTER:600:0:10000000 perfcounters
+data	user=system:percent_total_user_time COUNTER:600:0:10000000 perfcounters
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	cpu
+	--title '##HOST## - CPU (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 100 --rigid
+	--vertical-label '%'
+	DEF:system100ns=##DB##:system:AVERAGE
+	DEF:user100ns=##DB##:user:AVERAGE
+	CDEF:system=system100ns,100000,/
+	CDEF:user=user100ns,100000,/
+	CDEF:missing=system100ns,UN,INF,UNKN,IF
+	'AREA:system###COLOR1##:system'
+	'STACK:user###COLOR2##:user'
+	'GPRINT:system:AVERAGE:system avg=%.0lf'
+	'GPRINT:system:MAX:max=%.0lf'
+	'GPRINT:user:AVERAGE:user avg=%.0lf'
+	'GPRINT:user:MAX:max=%.0lf'
+	'AREA:missing###MISSING##:missing'
+

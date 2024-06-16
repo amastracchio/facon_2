@@ -1,0 +1,604 @@
+#!/usr/bin/perl -w
+
+# run-facon2 - control the running of the various facon processes
+#	(created from run-facon 1.14)
+# CVS $Id: run-facon2.pl,v 1.10 2003/05/15 13:12:21 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'run-facon2';
+# Where is the config dir?
+$main::config_dir = '/root/3p/facon/etc/config';
+# Watchdog timer, in case nothing else sets it
+$main::default_timeout = 600 - 10; # seconds
+# Which config-dirs to watch
+@main::config_dirs = ('alert-templates', 'customgraphs', 'dbi-connects',
+	'dbi-selects', 'host-templates', 'hosts', 'page-templates', 'rrds',
+	'run-stages', 'scripts', 'view-templates', 'views');
+# How long to sleep between starting the various steps of a run-stage
+$main::sleep_between_steps = 1;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.10 $'))[1];
+
+# - - -   Setup   - - -
+
+umask 0002; # Don't let it mask out group write bits
+
+use Getopt::Long;
+use lib '.', '/root/3p/facon/lib', '/root/3p/rrdtool/lib/perl/5.8.8';
+require "facon.pl";
+
+# Use a different config-file default for re-named run-facon,
+# providing the new name is run-facon-xxx.
+if ($0 =~ m#$main::prog-([^/]+)$#) {
+	$main::config_dir = "/root/3p/facon/etc/config-$1";
+	&debug("default config-dir modified by program-name to $main::config_dir")
+		if ($main::debug);
+}
+
+# Parse the command-line
+&parse_command_line();
+
+&read_config_dir($main::config_dir, 'general', 'html', 'environment',
+	'run', 'run-stages');
+&show_status("read config file");
+
+# Set a default timeout, in case nothing else does.
+if (defined $main::config{WATCHDOGTIMER}) {
+	$main::timeout = $main::config{WATCHDOGTIMER};
+}
+else { $main::timeout = $main::default_timeout; }
+
+# Need somewhere to store temp stuff
+$main::temp_dir = $main::config{TEMPDIR} . '/run-stages';
+unless (-d $main::temp_dir) {
+	mkdir $main::temp_dir, 0755 or
+		&abort("can't mkdir $main::temp_dir: $!");
+}
+
+# Make sure that we haven't been stopped on purpose
+exit 1 if( &check_stop_file());
+
+&make_environment();
+
+# Lock if requested.
+if ($main::locking) { &lockfile($0); }
+$main::started = 1; # &cleanup trigger
+&show_status("starting");
+%main::pid = ();
+
+# Make sure we're not using a stale uphosts file
+unlink $main::config{TEMPDIR} .'/uphosts'; # ignore errors
+$! = 0;
+
+# Make sure that we can find the programs
+$main::ENV{PATH} = '/root/3p/facon/bin:' . $main::ENV{PATH};
+
+my( $stagewhen, $stage, $when, @pids);
+
+$main::child_count = $main::async_child_count = 0;
+
+# - - -   Mainline   - - -
+
+&put_status('_facon_', 'STATUS.html', 'START');
+
+# Do all the stages
+foreach $stagewhen (@{$main::config{RUN}}) {
+	($stage, $when) = @{$stagewhen};
+	&do_stage( $stage, $when) if( $main::timeout);;
+}
+
+# Wait for the rest to finish
+&put_status('_facon_', 'STATUS.html', 'FINISH');
+&wait_for_children( 'FINISH', 1);
+
+# Unlock
+if (defined $main::lockfile) { &remove_lockfile( $main::lockfile); }
+if (defined $main::opened_log) { close (LOG); }
+&show_errors();
+&show_status('');
+my $now = &timestamp();
+
+# Note that we're done
+&put_status('_facon_', 'STATUS.html', 'Done '. $now);
+&put_status('_facon_', 'SOFTWARE', 'facon version 1.0.13a');
+
+exit 0;
+
+#-------------------------------------------------------------- do_stage ---
+sub do_stage {
+	my( $stage, $when) = @_;
+	$when = '' unless( defined $when);
+	my( $name, $async, $frequency, $command);
+
+	# Note where we've gotten to
+	&debug("") if( $main::debug);
+	&debug('Starting stage ', $stage) if( $main::debug);
+	&show_status( "starting stage $stage");
+	&put_status('_facon_', 'STATUS.html', 'Stage ' . $stage);
+
+	# Should we do this stage at all?
+	if( &check_when( $stage, $when)) {
+		&debug("  check for '$when' passed") if( $main::debug and ! $when);
+		&show_status("  check for '$when' passed") unless( $when eq '');
+	}
+	else {
+		&debug("  check for '$when' failed; skipped") if( $main::debug);
+		&show_status("  check for '$when' failed; skipped");
+		return;
+	}
+
+	# OK.  Do each item.
+	foreach $name (keys %{$main::config{RUNSTAGE}{$stage}}) {
+		$async = $main::config{RUNSTAGE}{$stage}{$name}{ASYNC};
+		$frequency =  $main::config{RUNSTAGE}{$stage}{$name}{FREQUENCY};
+		$command = $main::config{RUNSTAGE}{$stage}{$name}{COMMAND};
+
+		# First, is it time yet?
+		next unless( &check_frequency( $stage, $name, $frequency));
+
+		# Now construct a command-line, redirecting all the output.  
+		# It might be a pipe-line, which must be treated properly.
+		$command = &fix_command( $stage, $name, $command);
+
+		# Run it.
+		&run_command( $stage, $name, $command, $async);
+	}
+
+	&wait_for_children( $stage);
+
+}
+
+#---------------------------------------------------- wait_for_children ---
+sub wait_for_children {
+	my( $stage, $async) = @_;
+	my( $pid);
+
+	# Start alarm-clock
+	local $SIG{ALRM} = sub { die "watchdog\n"; };
+	alarm( $main::timeout);
+
+	# Wait for children to finish
+	while( eval { $pid = wait}, defined $pid and $pid > 0) {
+
+		# Remove the pid from the list
+		if( defined $main::pid{$pid}) {
+			&debug('  ', &timestamp(), ' ', $pid, ' finished for ',
+				$main::pid{$pid}) if( $main::debug);
+			&show_status("  finished $pid for $main::pid{$pid}");
+			delete $main::pid{$pid};
+			$main::child_count --;
+		}
+		elsif( defined $main::async_pid{$pid}) {
+			&debug('  ', &timestamp(), ' ', 'async ', $pid, ' finished for ',
+				$main::async_pid{$pid}) if( $main::debug);
+			&show_status("  finished async $pid for $main::async_pid{$pid}");
+			delete $main::async_pid{$pid};
+			$main::async_child_count --;
+		}
+		else {
+			&error('  ', &timestamp(), ' unknown pid ', $pid, ' finished?');
+			&show_status("  finished unknown $pid? ");
+		}
+
+		# Have we got them all?
+		if( $async and !($main::child_count + $main::async_child_count)) {
+			&debug('  ', &timestamp(), ' no more children') if( $main::debug);
+			last;
+		}
+		elsif( ! $main::child_count) {
+			&debug('  ', &timestamp(), ' no more non-async children')
+				if( $main::debug);
+			last;
+		}
+	}
+
+	# Caught by timeout?
+	if( defined $@ and $@ eq "watchdog\n") {
+		&kill_them_all( $stage, $async);
+	}
+
+	# Nope, keep track of how much time we've got left.
+	else { $main::timeout = alarm(0); }
+
+	&show_status("done stage $stage");
+}
+
+#-------------------------------------------------------- kill_them_all ---
+sub kill_them_all {
+	my( $stage, $async) = @_;
+	my( $signal, $pid, @pids, $killed);
+
+	&error('  ',  &timestamp(), ' timeout; killing children...');
+
+	# Get a list of pids to kill
+	@pids = keys %main::pid;
+	if( $async) { push @pids, keys %main::async_pid; }
+
+	$killed = 0;
+	foreach $signal ('TERM', 'KILL') {
+		last if( $killed == scalar(@pids));
+		$killed += kill $signal, @pids;
+		&debug('  ', &timestamp(), ' killed (', $signal, ')' , $killed, 
+			' of ', scalar(@pids), ' processes') if( $main::debug);
+	}
+
+	if( $killed != scalar(@pids)) {
+		&error('  ', &timestamp(), ' there are still ', scalar(@pids) - $killed,
+			' processes running, after killing?');
+	}
+}
+
+#---------------------------------------------------------- fix_command ---
+# Augment the command-line with stdout and stderr re-direction
+#--------------------------------------------------------------------------
+sub fix_command {
+	my( $stage, $name, $raw_command) = @_;
+	my( @parts, $part, $command, $i, $file, $file_base);
+
+	$i = 1;
+	$file_base = &make_error_file_name( $stage, $name);
+	foreach $part (split('\s*\|\s*', $raw_command)) {
+		$file = $file_base . $i++;
+		push @{$main::stderr_files{$stage}{$name}}, $file;
+		$part .= ' 2>' . $file;
+		if( defined $command) { $command .= '|' . $part; }
+		else { $command = $part; }
+	}
+
+	# Substitute in run-facon2's pid for error-collector
+	$command =~ s/##RUNPID##/$$/go;
+
+	&debug('fix_command: raw=', $raw_command) if( $main::debug>2);
+	&debug('fix_command: new=', $command) if( $main::debug>2);
+	return $command;
+}
+
+#---------------------------------------------------------- run_command ---
+# Fork a command and keep track of it for later.
+#--------------------------------------------------------------------------
+sub run_command {
+	my( $stage, $name, $command, $async) = @_;
+	my( $pid);
+
+
+	# Parent code here
+	if( $pid = fork()) {
+		&debug('  ', &timestamp(), ' ', $pid, ' forked for ', $stage, ':',
+			$name) if( $main::debug);
+		&debug('  command: ', $command) if( $main::debug>1);
+
+		# Keep track of ASYNC processes separately
+		if( $async) {
+			$main::async_pid{$pid} = $stage . ':' . $name;
+			$main::async_child_count ++;
+		}
+		else {
+			$main::pid{$pid} = $stage . ':' . $name;
+			$main::child_count ++;
+		}
+
+		&show_status("forked $pid for $stage:$name");
+		sleep $main::sleep_between_steps; # to not put too heavy a load on
+	}
+
+	# Child code here
+	elsif( defined $pid) {
+		&debug("CHILD: $stage:$name exec: $command") if( $main::child_debug);
+		exec $command or do {
+			&error("can't exec for $stage:$name: $!");
+			exit 1;
+		};
+	}
+
+	# Error?
+	else {
+		&error("$stage:$name: can't fork: $!");
+		return 0;
+	}
+	return 1;
+}
+
+#------------------------------------------------------ check_frequency ---
+# Decide if it's been long enough since this stage last ran.
+#--------------------------------------------------------------------------
+sub check_frequency {
+	my( $stage, $name, $frequency) = @_;
+	my( $file, $last_run, $ok);
+
+	# When was this stage last run?
+	$file = 'run-', &to_filename($stage . '-' . $name);
+	($last_run) = &get_status( 'LAST', $file);
+	if( ! defined $last_run || $last_run eq 'MISSING' || 
+			$last_run eq 'EMPTY') {
+		$last_run = 0;
+	}
+
+	# Decide if it's time
+	$ok = ($last_run == 0 || ($last_run + $frequency) >= time()) ? 1 : 0;
+	&debug('    freq: ', $stage, ':', $name, ': last=',
+		$last_run, ', freq=', $frequency, ' => ', $ok) if( $main::debug);
+	return $ok;
+}
+
+#------------------------------------------------------------- check_when ---
+# The run config-file specifies the order of the stages to run, but it also
+# can specify special conditions.  The only one implemented so far is the
+# CONFIGCHANGED condition, to avoid running the page-makers unnecessarily.
+#----------------------------------------------------------------------------
+sub check_when {
+	my( $stage, $when) = @_;
+	return 1 if( ! defined $when || $when =~ /^\s*$/);
+	my( $dir, $last_changed, $last_change_logged, $check);
+
+	# Has the configuration changed since we last checked?
+	if( $when eq 'CONFIGCHANGE') {
+
+		# Use cached value to avoid checking/updating multiple times
+		return $main::last_config_change_check
+			if( defined $main::last_config_change_check);
+
+		# Get the last change time and last change logged times
+		$last_changed = &last_config_dir_change();
+		($last_change_logged) = &get_status('LAST', 'CONFIGCHANGE');
+		if( defined $last_change_logged && 
+				$last_change_logged =~ /^(\d+)\r?\n?$/) {
+			$last_change_logged = $1;
+		}
+		else { $last_change_logged = 0; }
+		&debug("check_when: logged=$last_change_logged, changed=$last_changed")
+			if( $main::debug>1);
+
+		# Has the configuration changed recently enough?
+		if ($last_change_logged < $last_changed) {
+			$check = 1;
+			&put_status('LAST', 'CONFIGCHANGE', time());
+		}
+		else { $check = 0; }
+
+		# Cached result to avoid complete check and avoid multiple updates
+		# to the CONFIGCHANGE status file.
+		$main::last_config_change_check = $check;
+	}
+
+	# Unknown check
+	else { &abort("check_when: unknown stage check ($when)"); }
+
+	&debug('check_when: stage=', $stage, ', check=', $when, ' => ', $check)
+		if( $main::debug);
+	return $check;
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] [-- options-to-be-passed]
+where options are:
+    --debug=nnn       enable debugging output at level 'nnn'
+    --config_dir=fff  use 'fff' for config-dir [$main::config_dir]
+    --help            show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------------- lockfile ---
+sub lockfile {
+	my ($instance) = @_;
+
+	$main::SIG{TERM} = \&cleanup;
+	$main::SIG{INT} = \&cleanup;
+	$main::SIG{QUIT} = \&cleanup;
+
+	my @temp = split('/', $instance);
+	$instance = pop @temp;
+	$instance =~ tr/-a-zA-Z0-9//dc;
+	$main::lockfile = $instance;
+
+# Does the lock-file exist?
+	if (-f $main::lockfile) {
+		open (FILE, "<$main::lockfile") or 
+			&abort("can't open lockfile $main::lockfile: $!");
+		my $pid = <FILE>;
+		chomp $pid;
+		close (FILE);
+		&abort("locked by $pid ($main::lockfile)");
+	}
+
+	$main::started = 1;
+	$main::lockfile = &make_lockfile( $main::lockfile);
+
+}
+
+#----------------------------------------------------------------- cleanup ---
+sub cleanup {
+	if (defined $main::lockfile and $main::started) {
+		&remove_lockfile( $main::lockfile);
+		&kill_them_all( 'CLEANUP', 1);
+		if (defined $main::opened_log) { close( LOG); }
+		&show_errors();
+		&show_status("");
+	}
+	exit 1;
+}
+
+#----------------------------------------------------------------- abort ---
+sub abort {
+	my $msg = join('', @_);
+	print STDERR 'ABORT: ', $msg, "\n";
+
+	# Make sure we don't loop forever if cleanup has a problem
+	if( $main::aborting) {
+		print STDERR "ABORT while aborting; I give up.\n";
+		exit 7;
+	}
+	$main::aborting = 1;
+
+	if (defined $main::opened_log) {
+		close( LOG);
+		undef $main::opened_log;
+	}
+	&cleanup();
+	if ($main::started) { &show_status("ABORT: $msg"); }
+	exit 6;
+}
+
+#------------------------------------------------------- make_environment ---
+# Push some configuration info into the environment, for simple programs
+#----------------------------------------------------------------------------
+sub make_environment {
+	$main::ENV{'CONFIGDIR'} = $main::config_dir;
+	$main::ENV{'DATADIR'} = $main::config{'DATADIR'};
+	$main::ENV{'HTMLDIR'} = $main::config{'HTMLDIR'};
+	$main::ENV{'HTMLURL'} = $main::config{'HTMLURL'};
+	$main::ENV{'CGIDIR'} = $main::config{'CGIDIR'};
+	$main::ENV{'CGIURL'} = $main::config{'CGIURL'};
+	$main::ENV{'LOGDIR'} =  $main::config{'LOGDIR'};
+	$main::ENV{'TEMPDIR'} = $main::config{'TEMPDIR'};
+}
+
+#--------------------------------------------------------- show_status ---
+sub show_status {
+	my ($msg) = @_;
+	my( @temp, $statusfile, $logfile, $now);
+
+	# Name the files
+	@temp = split('/', $0);
+	$statusfile = pop @temp;
+	$logfile = $main::config{'TEMPDIR'} .'/LOG-'. $statusfile;
+	$statusfile = $main::config{'TEMPDIR'} .'/STATUS-'. $statusfile;
+
+	# Write the current status
+	print "Por entrar a open write status ($statusfile)..\n";
+	open (STATUS, ">$statusfile") or &abort("can't write status: $!");
+	print "Por salir..\n";
+	print STATUS $msg ."\n";
+	close (STATUS);
+
+	# Open the log, if we need to
+	unless (defined $main::log_opened) {
+		if (-f $logfile) { rename $logfile, $logfile .'.old'; }
+		open (LOG, ">$logfile") or &abort("can't open log $logfile: $!");
+		$main::log_opened = 1;
+	}
+
+	# Write the log
+	$now = &timestamp();
+	print LOG  $now .' '. $msg ."\n";
+}
+
+#---------------------------------------------------------- show_errors ---
+sub show_errors {
+	my ($file, $stagewhen, $stage, $name);
+	
+	foreach $stagewhen (@{$main::config{RUN}}) {
+		($stage) = @{$stagewhen};
+		foreach $name ( sort keys %{$main::config{RUNSTAGE}{$stage}}) {
+			foreach $file ( @{$main::stderr_files{$stage}{$name}}) {
+				# Only show empty error files
+				if( -f $file && (-s $file > 0)) {
+					print STDERR "\n", 'Errors for ', $stage, ':', $name, "\n";
+					open( ERRORFILE, "<$file") or do {
+						&error('cannot open ', $file, ': ', $!);
+						next;
+					};
+					print STDERR <ERRORFILE> or do {
+						&error('cannot read ', $file, ': ', $!);
+						next;
+					};
+					close(ERRORFILE);
+					unlink $file or &error("cannot unlink $file: $!");
+				} # if
+				elsif( -f $file) {
+					unlink $file or &error("cannot unlink $file: $!");
+				}
+			} # foreach $file
+		} # foreach $name
+	} # foreach $stage
+}
+
+#---------------------------------------------------- make_error_file_name ---
+# Actually, it makes a base name, which will have sequential integers
+# appended to it.
+#-----------------------------------------------------------------------------
+sub make_error_file_name {
+	my( $stage, $name) = @_;
+
+	my $file = $main::temp_dir . '/' . $stage . '-' . $name .
+		'-out-' . $$ . '.';
+	return $file;
+}
+
+#------------------------------------------------------ parse_command_line ---
+sub parse_command_line {
+	my $help;
+	GetOptions(
+		"d|debug:i" => \$main::debug, 
+		"f|config_dir=s" => \$main::config_dir,
+		"h|help!" => \$help,
+		"l|locking!" => \$main::locking,
+		's|sleep-between-stages=s'	=> \$main::sleep_between_steps,
+	);
+
+	if (defined $help) { &usage(); } # no return
+
+	# Fix up special debug cases
+	unless (defined $main::debug) { $main::debug = 0; }
+	if( $main::debug < 0) {
+		$main::debug = - $main::debug;
+		$main::child_debug = $main::debug;
+	}
+	else { $main::child_debug = 0; }
+
+	if (@ARGV > 0) {
+		$main::args = join(' ', @ARGV);
+		&debug("saving args: $main::args") if ($main::debug);
+	}
+}
+
+#-------------------------------------------------- last_config_dir_change ---
+sub last_config_dir_change {
+	my ($last_change, $dir, $changed, $entry, $file, $mod_time, $full_dir,
+		$last_changed_entry);
+
+	$last_change = 0;
+	for $dir (@main::config_dirs, '.') {
+		$full_dir = $main::config_dir . '/' . $dir;
+		opendir( CONFIGDIR, $full_dir) or &abort("can't opendir $full_dir: $!");
+		while( defined( $entry = readdir( CONFIGDIR))) {
+			next if( ($entry =~ /^\./) or ($entry =~ /^IGNORE-/) or
+				($entry =~ /\~$/));
+			$file = $main::config_dir . '/' . $dir . '/' . $entry;
+			$changed = time() - int((-M $file) * 24 * 60 * 60);
+			if ($changed > $last_change) {
+				$last_change = $changed;
+				$last_changed_entry = $file;
+			}
+			&debug("$file changed on ", &timestamp($changed))
+				if( $main::debug > 2);
+		}
+		closedir( CONFIGDIR);
+	}
+	&debug("last changed config was $last_changed_entry at ",
+		&timestamp($last_change)) if( $main::debug);
+	return $last_change;
+}

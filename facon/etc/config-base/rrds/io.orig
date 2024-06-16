@@ -1,0 +1,286 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	response=memacc-response GAUGE:1200:0:U
+data	readacc=readacc GAUGE:1200:0:U
+data	writeacc=writeacc GAUGE:1200:0:U
+data	ccwriteacc=ccwriteacc GAUGE:1200:0:U
+data	delay=delay GAUGE:1200:0:U
+data    size=tmem GAUGE:1200:0:U
+data    used=tmemuse GAUGE:1200:0:U
+data    free=tmemfree GAUGE:1200:0:U
+data    memacc=memacc GAUGE:1200:0:U
+data    memrss=memrss GAUGE:1200:0:U
+data    memtotal=memtotal GAUGE:1200:0:U
+data    contproc=contproc GAUGE:1200:0:U
+data    cpu=cpuacc GAUGE:1200:0:U
+
+
+data    docdb=db.docdb.work GAUGE:1200:0:U
+data    docsindex=db.docs.index.work GAUGE:1200:0:U
+data    excer=db.excerpts.work GAUGE:1200:0:U
+data    words=db.words.db.work GAUGE:1200:0:U
+
+data    docdbp=db.docdb GAUGE:1200:0:U
+data    docsindexp=db.docs.index GAUGE:1200:0:U
+data    excerp=db.excerpts GAUGE:1200:0:U
+data    wordsp=db.words.db GAUGE:1200:0:U
+
+data    nohup=nohup GAUGE:1200:0:U
+data    nohuperr=nohup.err GAUGE:1200:0:U
+
+data rchar=rchar DERIVE:1200:0:U
+data wchar=wchar DERIVE:1200:0:U
+data syscr=syscr DERIVE:1200:0:U
+data syscw=syscw DERIVE:1200:0:U
+data rbytes=read_bytes DERIVE:1200:0:U
+data wbytes=write_bytes DERIVE:1200:0:U
+data cwbytes=cancelled_write_bytes DERIVE:1200:0:U
+
+data sizeest=sizeest GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+#graph	response desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+#	--title '##RRD## Response (##GRAPHTIME##)'
+#	--lower-limit 0
+#	--watermark 'ariel mastracchio' 
+#	--vertical-label 'ms'
+#	DEF:response=##DB##:response:AVERAGE
+#	CDEF:missing=response,UN,INF,UNKN,IF
+#	'LINE2:response###COLOR1##:response'
+#	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+#	'GPRINT:response:AVERAGE:%.0lf%s,'
+#	'GPRINT:response:MAX:%.0lf%s)'
+#	'AREA:missing###MISSING##:missing'
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'IO  usada (##GRAPHTIME##)'
+	--vertical-label 'kB'
+	--watermark 'ariel mastracchio' 
+	DEF:readacc=##DB##:readacc:AVERAGE
+	DEF:writeacc=##DB##:writeacc:AVERAGE
+	DEF:ccwriteacc=##DB##:ccwriteacc:AVERAGE
+	DEF:delay=##DB##:delay:AVERAGE
+	'LINE2:readacc###COLOR3##:kB_rd/s'
+	'LINE2:writeacc###COLOR4##:kB_wr/s'
+	'LINE2:ccwriteacc###COLOR5##:kB_ccwr/s'
+	'LINE2:delay###COLOR6##:iodelay'
+#	'GPRINT:memacc:MIN:memacc\: min=%.1lf'
+#	'GPRINT:memacc:MAX:max=%.1lf\l'
+#	'GPRINT:memrss:MIN:memrss\: min=%.1lf'
+#	'GPRINT:memrss:MAX:max=%.1lf\l'
+
+
+
+graph		memoria desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Memory Usage - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:size=##DB##:size:AVERAGE
+		DEF:used=##DB##:used:AVERAGE
+		DEF:free=##DB##:free:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=size,UN,INF,UNKN,IF
+		'AREA:size###TOTALCOLOR##:Mem Size'
+		'LINE3:used###USEDCOLOR##:Mem Used'
+		'GPRINT:free:LAST:free=%.1lf%s\g'
+		'GPRINT:size:LAST: of %.1lf%s'
+		'AREA:missing###MISSING##:missing'
+
+
+graph		memlibre desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Memory Usage - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+	--lower-limit 0
+#	--upper-limit 5000000000
+		DEF:free=##DB##:free:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=free,UN,INF,UNKN,IF
+		'LINE2:free###USEDCOLOR##:Mem free'
+		'GPRINT:free:LAST:free=%.1lf%s\g'
+		'AREA:missing###MISSING##:missing'
+
+
+
+
+
+graph		filesize desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - File Sizes - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:docdb=##DB##:docdb:AVERAGE
+		DEF:docsindex=##DB##:docsindex:AVERAGE
+		DEF:excer=##DB##:excer:AVERAGE
+		DEF:words=##DB##:words:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=docdb,UN,INF,UNKN,IF
+		'LINE1:docdb###COLOR1##:db.docdb.work'
+        'GPRINT:docdb:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docdb:AVERAGE:%.0lf%s,'
+        'GPRINT:docdb:MAX:%.0lf%s)\l'
+
+		'LINE1:docsindex###COLOR2##:db.docs.index.work'
+        'GPRINT:docsindex:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docsindex:AVERAGE:%.0lf%s,'
+        'GPRINT:docsindex:MAX:%.0lf%s)\l'
+		'LINE1:excer###COLOR3##:db.excerpts.work '
+        'GPRINT:excer:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:excer:AVERAGE:%.0lf%s,'
+        'GPRINT:excer:MAX:%.0lf%s)\l'
+
+		'LINE1:words###COLOR4##:db.words.db.work '
+
+        'GPRINT:words:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:words:AVERAGE:%.0lf%s,'
+        'GPRINT:words:MAX:%.0lf%s)\l'
+ 
+
+		'AREA:missing###MISSING##:missing'
+
+graph		filesiz desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - File Sizes - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:docdbp=##DB##:docdbp:AVERAGE
+		DEF:docsindexp=##DB##:docsindexp:AVERAGE
+		DEF:excerp=##DB##:excerp:AVERAGE
+		DEF:wordsp=##DB##:wordsp:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=docdbp,UN,INF,UNKN,IF
+		'LINE1:docdbp###COLOR1##:db.docdb'
+        'GPRINT:docdbp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docdbp:AVERAGE:%.0lf%s,'
+        'GPRINT:docdbp:MAX:%.0lf%s)\l'
+
+		'LINE1:docsindexp###COLOR2##:db.docs.index'
+        'GPRINT:docsindexp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:docsindexp:AVERAGE:%.0lf%s,'
+        'GPRINT:docsindexp:MAX:%.0lf%s)\l'
+		'LINE1:excerp###COLOR3##:db.excerpts '
+        'GPRINT:excerp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:excerp:AVERAGE:%.0lf%s,'
+        'GPRINT:excerp:MAX:%.0lf%s)\l'
+
+		'LINE1:wordsp###COLOR4##:db.words.db'
+
+        'GPRINT:wordsp:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:wordsp:AVERAGE:%.0lf%s,'
+        'GPRINT:wordsp:MAX:%.0lf%s)\l'
+ 
+
+
+
+
+
+graph	memoriaotro desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Memoria total usada (##GRAPHTIME##)'
+	--vertical-label 'bytes'
+	--watermark 'ariel mastracchio' 
+	DEF:memacc=##DB##:memacc:AVERAGE
+	DEF:memrss=##DB##:memrss:AVERAGE
+	DEF:memtotal=##DB##:memtotal:AVERAGE
+	CDEF:missing=memacc,UN,INF,UNKN,IF
+	'LINE1:memacc###COLOR3##:Memoria virtual'
+	'LINE2:memrss###COLOR4##:Memoria fisica'
+	'LINE3:memtotal###COLOR5##:Memoria total'
+	'GPRINT:memacc:MIN:memacc\: min=%.1lf'
+	'GPRINT:memacc:MAX:max=%.1lf\l'
+	'GPRINT:memrss:MIN:memrss\: min=%.1lf'
+	'GPRINT:memrss:MAX:max=%.1lf\l'
+	'GPRINT:memtotal:MIN:memtotal\: min=%.1lf'
+	'GPRINT:memtotal:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+
+
+
+
+graph		procs desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Contador de procesos - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		--units-exponent 0
+		DEF:contproc=##DB##:contproc:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=contproc,UN,INF,UNKN,IF
+		'LINE1:contproc###USEDCOLOR##:Procesos'
+		'AREA:missing###MISSING##:missing'
+
+graph		cpu desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - CPU de los procesos - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'percent'
+		--units-exponent 0
+		DEF:cpu=##DB##:cpu:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=cpu,UN,INF,UNKN,IF
+		'LINE1:cpu###USEDCOLOR##:CPU'
+		'AREA:missing###MISSING##:missing'
+
+graph		filesi desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - File Sizes - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:nohup=##DB##:nohup:AVERAGE
+		DEF:nohuperr=##DB##:nohuperr:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=nohup,UN,INF,UNKN,IF
+		'LINE1:nohup###COLOR1##:nohup'
+		'LINE1:nohuperr###COLOR2##:nohup.err'
+        'GPRINT:nohup:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:nohup:AVERAGE:%.0lf%s,'
+        'GPRINT:nohup:MAX:%.0lf%s)\l'
+
+
+
+
+graph   ioproc desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+        --title 'IO  del proceso htdig (##GRAPHTIME##)'
+        --vertical-label 'bytes'
+        --watermark 'ariel mastracchio'
+        DEF:rchar=##DB##:rchar:AVERAGE
+        DEF:wchar=##DB##:wchar:AVERAGE
+        'LINE2:rchar###COLOR3##:rchar'
+        'LINE2:wchar###COLOR4##:wchar'
+
+
+
+
+graph   ioproco desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+        --title 'IO  del proceso htdig cont. (##GRAPHTIME##)'
+        --vertical-label 'bytes'
+        --watermark 'ariel mastracchio'
+        DEF:syscr=##DB##:syscr:AVERAGE
+        DEF:syscw=##DB##:syscw:AVERAGE
+        DEF:rbytes=##DB##:rbytes:AVERAGE
+        DEF:wbytes=##DB##:wbytes:AVERAGE
+        DEF:cwbytes=##DB##:cwbytes:AVERAGE
+        'LINE2:syscr###COLOR1##:syscr'
+        'LINE2:syscw###COLOR2##:syscw'
+        'LINE2:rbytes###COLOR3##:read_bytes'
+        'LINE2:wbytes###COLOR4##:write_bytes'
+        'LINE2:cwbytes###COLOR5##:cancelled_write_bytes'
+
+graph		sizeest desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - File Sizes - ##WILDPART## (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:sizeest=##DB##:sizeest:AVERAGE
+		CDEF:missing=sizeest,UN,INF,UNKN,IF
+		'LINE1:sizeest###COLOR3##:casket'
+        'GPRINT:sizeest:MIN:(min,avg,max) = (%.0lf%s,'
+        'GPRINT:sizeest:AVERAGE:%.0lf%s,'

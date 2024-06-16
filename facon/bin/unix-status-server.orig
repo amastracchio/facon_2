@@ -1,0 +1,1824 @@
+#!/usr/bin/perl -w
+# unix-status-server - show interesting info about the machine it's running on
+# CVS $Id: unix-status-server.pl,v 1.43 2003/05/20 19:28:05 facon Exp $
+# from facon 1.0.13a
+# Copyright 1999 - 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'unix-status-server';
+# How to invoke df (use gnu df; Solaris needs xpg4-df, if you don't have it)
+$main::df = &oneof('/usr/local/bin/df', '/usr/xpg4/bin/df', '/sbin/df', 
+	'/bin/df');
+$main::dfspace_opts = '-Plk';
+$main::dfinodes_opts = '-Pli';
+$main::dfinodes_opts_xpg4 = '-l -o i';
+# How to invoke vmstat
+$main::vmstat_interval = 1;
+$main::vmstat = &oneof("/usr/bin/vmstat", "/usr/ucb/vmstat");
+#$main::vmstat_opts = "-S $main::vmstat_interval 2";
+$main::vmstat_opts = "$main::vmstat_interval 2";
+# How to run uptime (prefer gnu uptime)
+$main::uptime = &oneof('/usr/local/bin/uptime', '/usr/bin/uptime',
+	'/usr/ucb/uptime');
+# where is netstat
+$main::netstat = &oneof('/usr/bin/netstat',
+	'/usr/ucb/netstat', '/usr/sbin/netstat', '/bin/netstat');
+# Where is ifconfig.  Only need it on Solaris for now.
+$main::ifconfig = &oneof('/usr/sbin/ifconfig', '/sbin/ifconfig');
+# Where is uname (prefer the gnu version)
+$main::uname = &oneof('/usr/local/bin/uname','/usr/bin/uname','/bin/uname');
+# Need this to avoid segfault when using perlcc
+$main::sleep = &oneof('/usr/local/bin/sleep','/usr/bin/sleep','/bin/sleep');
+# Where is qmail
+$main::qmaildir = '/var/qmail';
+# a pattern that only matches our site
+$main::sitemailpat = '';
+# Where is ps
+$main::ps = &oneof('/usr/bin/ps', '/bin/ps');
+# Which flags we need for ps.  do_ps will choose one of the above, depending
+# on the operating system.
+$main::sysv_ps_opts = '-eo pid,ppid,user,vsz,rss,pcpu,time,args';
+$main::bsd_ps_opts = 'axl';
+# Where is ftpcount?
+$main::ftpcount = &oneof('/usr/local/sbin/ftpcount','/usr/sbin/ftpcount');
+# Where is sar?
+$main::sar = '/usr/bin/sar'; # never seen it elsewhere
+# Where is ipchains?
+$main::ipchains = &oneof('/sbin/ipchains', '/usr/sbin/ipchains');
+# A timeout to avoid hanging if an external program hangs.
+$main::timeout = 60; # seconds
+# What to add to two-digit years
+$main::epoch = 2000;
+
+# To stop taint complaints even though I don't use the path
+$main::ENV{'PATH'} = '/var/facon/bin:/usr/bin';
+delete $main::ENV{'ENV'};
+delete $main::ENV{'BASH_ENV'};
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.43 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use Time::Local;
+
+$| = 1; # no output buffering please
+
+# Parse the command-line
+&parse_command_line();
+
+# What does the collector want?
+my %do = (TIME => 1);
+$main::complete = 0;
+%main::pattern = %main::filename = ();
+
+while ($_ = &prompt) {
+	tr/\015\012//d;
+	next if (/^#/ or /^\s*$/);
+
+
+	if (/^GO$/) {
+		$main::complete = 1;
+		last;
+	}
+	elsif (/^TIME\s+(\d+)$/) { &do_time($1); next; }
+	elsif (/^DU$/) { $do{DU} = 1; }
+	elsif (/^DEBUG(\s*(\d+)\s*)?$/) { $main::debug = (defined $2) ? $2 : 1; }
+	elsif (/^VER(SION)?$/) { print "$main::prog version $main::version\n"; }
+	elsif (/^HELP$/) { &do_help; }
+	elsif (/^QUIT$/) { exit 0; }
+	elsif (/^UNAME$/) { $do{UNAME} = 1; }
+	elsif (/^VMSTAT$/) { $do{VMSTAT} = 1; }
+	elsif (/^DF$/) { $do{DF} = 1; }
+	elsif (/^UPTIME$/) { $do{UPTIME} = 1; }
+	elsif (/^NETSTAT$/) { $do{NETSTAT} = 1; }
+	elsif (/^NETSTAT-TCPSTATES$/) { $do{'NETSTAT-TCPSTATES'} = 1; }
+	elsif (/^QMAILQSTAT$/) { $do{QMAILQSTAT} = 1; }
+	elsif (/^QMAILQSTAT2$/) { $do{QMAILQSTAT2} = 1; }
+	elsif (/^QMAILQREAD$/) { $do{QMAILQREAD} = 1; }
+	elsif (/^PS$/) { $do{PS} = 1; }
+	elsif (/^FTPCOUNT$/) { $do{FTPCOUNT} = 1; }
+	elsif (/^FILEAGE$/) { $do{FILEAGE} = 1; }
+	elsif (/^MASQCONN$/) { $do{MASQCONN} = 1; }
+	elsif (/^PROC$/) { $do{PROC} = 1; }
+	elsif (/^PROCNAME$/) { $do{PROCNAME} = 1; }
+	elsif (/^PROCDISKIO$/) { $do{PROCDISKIO} = 1; }
+	elsif( /^PROCMEMINFO$/) { $do{PROCMEMINFO} = 1; }
+	elsif( /^PROCNETDEV$/) { $do{PROCNETDEV} = 1; }
+	elsif( /^SAR$/) { $do{SAR} = 1; }
+	elsif (/^[A-Z]/) { &error("unknown directive: $_"); }
+
+# Variables
+	else {
+		($main::variable, $main::section, $main::rest) = split(' ',$_,3);
+		$main::section = uc $main::section;
+
+		if ($main::section eq 'PS') {
+			($main::function, $main::pattern) = split(' ', $main::rest, 2);
+			$main::function = lc $main::function;
+			$main::pattern{$main::section}{$main::variable}{PATTERN} =
+				$main::pattern;
+			$main::pattern{$main::section}{$main::variable}{FUNCTION} =
+				$main::function;
+		}
+		elsif ($main::section eq 'FILEAGE') {
+			$main::filename{$main::variable} = $main::rest;
+		}
+		elsif ($main::section eq 'DU') {
+			$main::filename{$main::variable} = $main::rest;
+		}
+		elsif ($main::section eq 'PROC') {
+			($main::filename, $main::pattern) = split(' ', $main::rest, 2);
+			$main::pattern{$main::section}{$main::variable}{PATTERN} =
+				$main::pattern;
+			$main::pattern{$main::section}{$main::variable}{FILENAME} =
+				$main::filename;
+		}
+		elsif( $main::section eq 'PROCNAME') {
+			$main::pattern{$main::section}{$main::variable}{PATTERN} =
+				$main::rest;
+		}
+		else {
+			&debug("unknown section: '$main::section' in $main::rest")
+				if ($main::debug);
+			next;
+		}
+	}
+}
+&abort("incomplete directives; no GO") unless ($main::complete);
+
+# - - -   Mainline   - - -
+
+# Do uname first, so we know where we are, for the other sections which 
+# need to know the OS info.
+&do_uname(); # need uname stuff for others
+&do_du( %main::filename) if( $do{DU});
+&do_vmstat() if( $do{VMSTAT});
+&do_df() if( $do{DF});
+&do_uptime() if( $do{UPTIME});
+&do_netstat() if( $do{NETSTAT});
+&do_netstat_tcpstates() if( $do{'NETSTAT-TCPSTATES'});
+&do_qmail_qstat2() if( $do{QMAILQSTAT});
+&do_qmail_qstat2() if( $do{QMAILQSTAT2});
+&do_qmail_qread() if( $do{QMAILQREAD});
+&do_ps(%main::pattern) if( $do{PS});
+&do_ftpcount() if( $do{FTPCOUNT});
+&do_fileage( %main::filename) if( $do{FILEAGE});
+&do_masqconn() if( $do{MASQCONN});
+&do_proc() if( $do{PROC});
+&do_procname( %main::pattern) if( $do{PROCNAME});
+&do_proc_diskio() if( $do{PROCDISKIO});
+&do_proc_meminfo() if( $do{PROCMEMINFO});
+&do_proc_net_dev() if( $do{PROCNETDEV});
+&do_sar() if( $do{SAR}); 
+
+# This grossness allows it to not segfault when compiled by perlcc
+close(STDOUT);
+close(STDERR);
+exec "$main::sleep 0" or do {
+	&debug("can't exec $main::sleep: $!\n") 
+		if ($main::debug);
+	exit 0;
+};
+
+#------------------------------------------------------------------ prompt ---
+# Prompt for input, if stdin is a tty, i.e. being used interactively.
+#-----------------------------------------------------------------------------
+sub prompt {
+	if (-t STDIN) { print $main::prog .'> '; }
+	scalar(<STDIN>);
+}
+
+#----------------------------------------------------------------- do_help ---
+# Give them help, if they type HELP.
+#-----------------------------------------------------------------------------
+sub do_help {
+	print <<"EOD_HELP";
+$main::prog version $main::version
+Valid commands are:
+	DEBUG VERSION HELP UNAME VMSTAT DF UPTIME 
+	NETSTAT QMAILQSTAT QMAILQREAD PS FTPCOUNT 
+	FILEAGE TIME PROC QUIT NETSTAT-TCPSTATES
+	PROCNAME PROCDISKIO PROCMEMINFO PROCNETDEV
+	SAR
+and
+	variable PS function pattern
+	variable FILEAGE filename
+	variable PROC /proc/file/name pattern
+	variable PROCNAME pattern
+ending with GO
+EOD_HELP
+}
+
+#------------------------------------------------------------------- usage ---
+# Show how to invoke this program
+#-----------------------------------------------------------------------------
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -h      show this help
+  -r      include remotely-mounted file-systems
+  -t tst  do tests 'tst', a comma-separated list of:
+          VMSTAT, DF, UPTIME, NETSTAT, UNAME, PS, PROC, MASQCONN,
+          FTPCOUNT, NETSTAT-TCPSTATES, FILEAGE, QMAILQSTAT,
+          QMAILQREAD, PROCNAME, PROCDISKIO, PROCMEMINFO, SAR
+EOD_USAGE
+	exit 0;
+}
+
+#------------------------------------------------------------------- debug ---
+sub debug {
+	print 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- oneof ---
+# Find a program in a list of possibilities and return the first one that
+# really exists.
+#-----------------------------------------------------------------------------
+sub oneof {
+	my @progs = @_;
+	my $result;
+	foreach (@progs) {
+		if (-f $_) { $result = $_; last; }
+	}
+	return $result;
+}
+
+#------------------------------------------------------------------- do_df ---
+# Get disk usage info
+# XXX needs to be modified to ask for a list of mount-points and only do them.
+# This will portably avoid the problem with getting hung by stale NFS handles.
+#-----------------------------------------------------------------------------
+sub do_df {
+	my ($size, $free, $used, $percent, $mount, $line, $now, $cmd);
+
+	unless ($main::df) {
+		&debug("can't find df") if ($main::debug);
+		return;
+	}
+	&debug("starting DF") if( $main::debug);
+
+	# First the disk space
+	if ($main::ignore_remote) { $main::dfspace_opts .= 'l'; }
+	$cmd = $main::df . ' ' . $main::dfspace_opts;
+	&debug("using '$cmd' for df") if ($main::debug);
+	open (PIPE, "$cmd|") or do {
+		&error("do_df space $!");
+		return undef;
+	};
+	$SIG{ALRM} = \&catch_alarm;
+	$main::alarms = 0;
+	alarm($main::timeout);
+	while (eval {$line = <PIPE>}, ((defined $line) and (!$main::alarms))) {
+		if (($@ and $@ =~ /^alarm/) or $main::alarms) {
+			alarm(0);
+			&error("do_df: timeout reading df from $main::host; skipped");
+			last;
+		}
+		elsif ($@) {
+			alarm(0);
+			&error("do_df: error reading df from $main::host; skipped");
+			last;
+		}
+		last unless (defined $line);
+		chomp $line;
+		&debug("DF raw: $line") if ($main::debug>1);
+		next if ($line =~ /^Filesystem/); # header-line
+
+		# Deal with df that doesn't know -P, and wraps the lines
+		if ($line =~ /^\S+\s*$/) {
+			$line .= eval {<PIPE>};
+			if (($@ and $@ =~ /^alarm/) or $main::alarms) {
+				alarm(0);
+				&error("do_df: timeout reading df from $main::host; skipped");
+				last;
+			}
+			elsif ($@) {
+				alarm(0);
+				&error("do_df: error reading df from $main::host; skipped: $@");
+				last;
+			}
+			chomp;
+		}
+		next if ($main::ignore_remote and $line =~ m#^\S+:/\S+#); # remote fs
+
+		# XXX deal with some df's returning count or 512-byte blocks
+		(undef, $size, $used, undef, $percent, $mount) = split(' ', $line);
+		if ($percent =~ /(.*)%$/) { $percent = $1; }
+		else { $percent = -1; }
+		if( $main::df eq '/usr/xpg4/bin/df') {
+			$size = $size * 512;
+			$used = $used * 512;
+		}
+		else {
+			$size = $size * 1024;
+			$used = $used * 1024;
+		}
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_DF";
+$now dfsize:$mount $size
+$now dfused:$mount $used
+$now dfpercent:$mount $percent
+EOD_DF
+	}
+	alarm(0);
+	close (PIPE);
+	&debug("DF done blocks") if ($main::debug>1);
+
+	# Build the df command
+	$cmd = $main::df . ' ';
+	if( $main::df eq '/usr/xpg4/bin/df') {
+		$cmd .= $main::dfinodes_opts_xpg4;
+	}
+	else { $cmd .= $main::dfinodes_opts; }
+
+	# Now get the inodes
+	&debug("using '$cmd' for df inodes") if ($main::debug);
+	open (PIPE, "$cmd XXXXX|") or &abort("do_df inodes $!");
+	alarm($main::timeout);
+	while ($line = eval{<PIPE>}, ((defined $line) and !$main::alarms)) {
+		if (($@ and $@ =~ /^alarm/) or $main::alarms) {
+			alarm(0);
+			&error("do_df_inode: timeout reading df from $main::host; skipped");
+			last;
+		}
+		elsif ($@) {
+			alarm(0);
+			&error("do_df_inode: error reading df from $main::host; skipped: $@");
+			last;
+		}
+		last unless (defined $line);
+		chomp $line;
+		&debug("DF raw: $line") if ($main::debug>1);
+		next if ($line =~ /^Filesystem/); # header-line
+		next if ($line =~ m#^\S+:/\S+#); # remote fs
+		if (defined $main::os_name and $main::os_name =~ /^OSF1$/i) {
+			(undef, undef, undef, undef, undef, $used, $free, $percent, $mount)
+				= split(' ', $line);
+			$size = $free + $used;
+		}
+		elsif( defined $main::os_name and $main::os_name =~ /^SunOS$/ and 
+				defined $main::os_release and $main::os_release >= 5) {
+			(undef, $used, $free, $percent, $mount) = split(' ', $line);
+			$size = $used + $free;
+		}
+		else {
+			(undef, $size, $used, undef, $percent, $mount) = split(' ', $line);
+		}
+		if ($percent =~ /(.*)%$/) { $percent = $1; }
+		else { $percent = -1; }
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_INODES";
+$now inodessize:$mount $size
+$now inodesused:$mount $used
+$now inodespercent:$mount $percent
+EOD_INODES
+	}
+	alarm(0);
+	close (PIPE);
+	&debug("DF done inodes") if ($main::debug>1);
+}
+
+#--------------------------------------------------------------- do_vmstat ---
+# Get info from vmstat (free, swap, context-switches)
+#-----------------------------------------------------------------------------
+sub do_vmstat {
+	my ($freemem, $swapmem, $scanrate, $syscalls, $contextswitches, 
+		$cpusystem, $cpuuser, $cpuidle, $now);
+
+	&debug("starting VMSTAT") if( $main::debug);
+	my ($junk, @temp);
+	&debug("using '$main::vmstat $main::vmstat_opts' for vmstat")
+		if ($main::debug);
+	open (PIPE, "$main::vmstat $main::vmstat_opts|") or 
+		(&error("do_vmstat: Can't exec $main::vmstat: $!") and
+		return);
+	while (<PIPE>) {
+		chomp;
+		last if (/^\s*\d+/);
+	}
+	$_ = <PIPE>; # here's the data, the second line beginning with a number
+	chomp;
+	&debug("using data: '$_'") if ($main::debug);
+	@temp = split(' ', $_);
+
+# Old SunOS
+	if (defined $main::os_name and defined $main::os_release and
+			("$main::os_name-$main::os_release" =~ /^SunOS-4/)) {
+			# just too mixed up to be worth attempting to parse
+	}
+
+# Digital Unix
+	elsif (defined $main::os_name and $main::os_name =~ /^OSF1$/i) {
+		($freemem, $syscalls, $contextswitches, $cpuuser, $cpusystem, 
+				$cpuidle) = @temp[4,13,14,15,16,17];
+		if ($freemem =~ /^(\d+)K$/) { $freemem = $1 * 8; }
+		elsif ($freemem =~ /^(\d+)M$/) { $freemem = $1 * 8 * 1024; }
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_VMSTAT2";
+$now syscalls $syscalls
+$now freemem $freemem
+$now contextswitches $contextswitches
+$now cpuuser $cpuuser
+$now cpusystem $cpusystem
+$now cpuidle $cpuidle
+EOD_VMSTAT2
+	}
+
+	elsif (defined $main::os_name and $main::os_name =~ /^Linux$/i) {
+		($freemem, $contextswitches, $cpuuser, $cpusystem, $cpuidle) =
+			@temp[4,12,13,14,15];
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_VMSTAT3";
+$now freemem $freemem
+$now contextswitches $contextswitches
+$now cpuuser $cpuuser
+$now cpusystem $cpusystem
+$now cpuidle $cpuidle
+EOD_VMSTAT3
+	}
+
+# FreeBSD
+
+	elsif (defined $main::os_name and $main::os_name =~ /^FreeBSD$/i) {
+		($freemem, $contextswitches, $cpuuser, $cpusystem, $cpuidle) =
+			@temp[4,15,16,17,18];
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_VMSTAT4";
+$now freemem $freemem
+$now contextswitches $contextswitches
+$now cpuuser $cpuuser
+$now cpusystem $cpusystem
+$now cpuidle $cpuidle
+EOD_VMSTAT4
+	}
+
+# NetBSD
+
+	elsif (defined $main::os_name and $main::os_name =~ /^NetBSD$/i) {
+		if ($main::os_release eq "1.4.3"){
+			($freemem, $contextswitches, $cpuuser, $cpusystem, $cpuidle) =  
+				@temp[4,17,18,19,20];                                         
+		}
+		else {
+			($freemem, $contextswitches, $cpuuser, $cpusystem, $cpuidle) =
+				@temp[4,14,15,16,17];
+		}
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_VMSTAT5";
+$now freemem $freemem
+$now contextswitches $contextswitches
+$now cpuuser $cpuuser
+$now cpusystem $cpusystem
+$now cpuidle $cpuidle
+EOD_VMSTAT5
+        }
+
+# Assume they're like Solaris 2.x
+	else {
+		($swapmem, $freemem, $scanrate, $syscalls, $contextswitches, 
+			$cpuuser, $cpusystem, $cpuidle) =
+			@temp[3,4,11,17,18,19,20,21];
+		$now = time - $main::remote_time_difference;
+		print <<"EOD_VMSTAT1";
+$now swapmem $swapmem
+$now freemem $freemem
+$now scanrate $scanrate
+$now contextswitches $contextswitches
+$now cpuuser $cpuuser
+$now cpusystem $cpusystem
+$now cpuidle $cpuidle
+EOD_VMSTAT1
+
+	}
+	close(PIPE);
+}
+
+#--------------------------------------------------------------- do_uptime ---
+# Get the uptime.  Such a lot of code for such a simple thing.  Why does
+# everyone have to invent yet another way to display this?
+#-----------------------------------------------------------------------------
+sub do_uptime {
+	my ($upseconds, $users, $load1, $load5, $load15, $now, $raw);
+
+# Make sure we found uptime
+	unless (defined $main::uptime) {
+		&debug("no uptime program found") if ($main::debug);
+		return;
+	}
+	&debug("starting UPTIME") if( $main::debug);
+
+	&debug("using '$main::uptime' for uptime") if ($main::debug);
+	open (PIPE, "$main::uptime|") or &abort("do_uptime $!");
+	$raw = <PIPE>;
+	chomp $raw;
+	close (PIPE);
+	# What time is it now?
+	$now = time - $main::remote_time_difference;
+
+	my $matched = 0;
+
+# Uptime
+	# --- up 29 day(s), 14:23,
+	if ($raw =~ /\s+up\s+(\d+)\s+day\(?s?\)?,?\s+(\d+):(\d+),/) {
+		$upseconds = $1*60*60*24 + $2*60*60 + $3*60;
+		$matched = 1;
+	}
+	# --- up 2 day(s), 7 min(s),
+	elsif ($raw =~ /\s+up\s+(\d+)\s+day\(?s?\)?,?\s+(\d+)\s*min/) {
+		$upseconds = $1*60*60*24 + $2*60;
+		$matched = 2;
+	}
+	# --- up 2 day(s), 7 hr(s),
+	elsif ($raw =~ /\s+up\s+(\d+)\s+day\(?s?\)?,?\s+(\d+)\s*hr/) {
+		$upseconds = $1*60*60*24 + $2*60*60;
+		$matched = 3;
+	}
+	# --- up 12 day(s) 09:23
+	elsif ($raw =~ /\s+up\s+(\d+)\s+day\(?s?\)?,?\s+(\d+):(\d+)/) {
+		$upseconds = $1*60*60*24 + $2*60*60 + $3*60;
+		$matched = 4;
+	}
+	# --- up 12 day(s),
+	elsif ($raw =~ /\s+up\s+(\d+)\s+day\(?s?\)?,?/) {
+		$upseconds = $1*60*60*24;
+		$matched = 5;
+	}
+	# --- up 12:23
+	elsif ($raw =~ /\s+up\s+(\d\d?):(\d\d)/) {
+		$upseconds = $1*60*60 + $2*60;
+		$matched = 6;
+	}
+	# --- up 22 hr(s), 12
+	# minutes, we hope
+	elsif ($raw =~ /\sup\s+(\d\d?)\s+hr\(?s?\)?(,?\s+(\d+))?/) {
+		$upseconds = $1*60*60 + ((defined $2) ? $3*60 : 0);
+		$matched = 7;
+	}
+	# --- 12 min
+	# This is grasping at straws
+	elsif ($raw =~ /\s(\d\d?)\s+min/) {
+		$upseconds = $1*60;
+		$matched = 8;
+	}
+
+	else {
+		&error("do_uptime: unknown uptime: $_");
+		&errorlog("unknown uptime: $_");
+		return;
+	}
+
+	# Show what we found
+	if (defined $upseconds) {
+		print "$now uptime $upseconds\n";
+	}
+
+	# Log what we didn't figure out
+	else {
+		# So we can see what the server sees
+		open( TMP, ">>/tmp/uptimes") or 
+			&error("can't open /tmp/uptimes: $!");
+		print TMP 'do_uptime: at ', scalar(localtime()), ': no match for:',
+			"\n", $raw, "\n" or 
+			&error("can't write /tmp/uptimes: $!");
+		close(TMP) or 
+			&error("can't close /tmp/uptimes: $!");
+	}
+
+
+# users
+	if ($raw =~ /\s+(\d+)\s+user/) { $users = $1; }
+	elsif ($raw =~ /\s+no\s+users/) { $users = 0; }
+	if (defined $users) { print "$now users $users\n"; }
+
+# load averages
+	if ($raw =~ /load averages?:\s+(\d+\.\d+),\s+(\d+\.\d+),\s+(\d+\.\d+)/) {
+		($load1, $load5, $load15) = ($1, $2, $3);
+		print "$now load1 $load1\n$now load5 $load5\n$now load15 $load15\n";
+	}
+	else {
+		&errorlog("unknown load-average: $raw");
+	}
+
+}
+
+#---------------------------------------------------- do_netstat_tcpstates ---
+# Get counts of sockets in various states.  Sometimes shows networking
+# problems before they get out of hand.
+#-----------------------------------------------------------------------------
+sub do_netstat_tcpstates {
+
+# Make sure we found netstat
+	unless (defined $main::netstat) {
+		&debug("no netstat program found") if ($main::debug);
+		return;
+	}
+	&debug("starting NETSTAT-TCPSTATES") if( $main::debug);
+
+	my %count = ( 
+		LISTEN		=> 0, 
+		SYN_RCVD	=> 0,
+		SYN_RECV	=> 0, # clever people "improving" names
+		ESTABLISHED	=> 0,
+		CLOSE_WAIT	=> 0,
+		LAST_ACK	=> 0,
+		FIN_WAIT_1	=> 0,
+		FIN_WAIT1	=> 0, # clever people "improving" names
+		FIN_WAIT_2	=> 0,
+		FIN_WAIT2	=> 0, # clever people "improving" names
+		CLOSING		=> 0,
+		CLOSE		=> 0, # clever people "improving" names
+		TIME_WAIT	=> 0,
+		CLOSED		=> 0, # shouldn't happen, but just in case
+		SYN_SENT	=> 0,
+	);
+	my %clever = (	# map the clever names to the correct ones
+		'SYN_RECV'	=> 'SYN_RCVD',
+		'FIN_WAIT1'	=> 'FIN_WAIT_1',
+		'FIN_WAIT2'	=> 'FIN_WAIT_2',
+		'CLOSE'		=> 'CLOSING',
+	);
+	my ($state, %unknown);
+
+# Collect the state counts
+	&debug("using '$main::netstat -na' for netstat") if ($main::debug);
+	open (PIPE, "$main::netstat -na|") or &abort("do_netstat_tcpstates $!");
+	while (<PIPE>) {
+		chomp;
+		next if (/^Proto/);
+		next unless (/^tcp\s/);
+		$state = (split(' ', $_))[5];
+		unless (defined $state) {
+			&errorlog("netstat_tcpstates: unknown: $_");
+			&debug("unknown: $_") if ($main::debug);
+			next;
+		}
+		if (defined $count{$state}) { $count{$state} += 1; }
+		else {
+			&errorlog("netstat_tcpstates: unknown state: $_");
+			&error("unknown state: $_");
+			$count{$state} = 1;
+		}
+	}
+	close( PIPE);
+
+	foreach my $bad (keys %clever) {
+		$count{$clever{$bad}} += $count{$bad};
+		delete $count{$bad};
+	}
+
+# Print them
+	my $now = time() - $main::remote_time_difference;
+	foreach (sort keys %count) {
+		print $now, ' tcpstate:', $_, ' ', $count{$_}, "\n";
+	}
+}
+
+#-------------------------------------------------------------- do_netstat ---
+# Get network I/O stats from netstat -i.  More available than /proc/net/dev,
+# but not really more portable, so we just have to hack in all the different
+# ways to display this.
+#-----------------------------------------------------------------------------
+sub do_netstat {
+
+# First, get the interfaces
+	my ($interface, $net, $inpkt, $inerr, $outpkt, $outerr, $coll, $now, 
+		$flags, $status, %interfaces, $new_linux_netstat);
+	%interfaces = ();
+	$new_linux_netstat = 1;
+	$status = 2;
+	$now = time() - $main::remote_time_difference;
+
+# make sure we found netstat
+	unless (defined $main::netstat) {
+		&debug("no netstat program found") if ($main::debug);
+		return;
+	}
+	&debug("starting NETSTAT") if( $main::debug);
+
+	&debug("using '$main::netstat -i' for netstat") if ($main::debug);
+	open (PIPE, "$main::netstat -i|") or &abort("do_netstat interfaces $!");
+	while (<PIPE>) {
+		chomp;
+		next if (/^Name/ or /^Kernel Interface table/ or 
+			/- no statistics available - /);
+		if (/^Iface/) { $new_linux_netstat = 0; next; }
+		next if (/^\s*$/); # for Solaris 8 with IPV6
+		if ($main::os_name eq 'Linux') {
+			if ($new_linux_netstat) {
+				if (/^(\S+)/) { $interface = $1; }
+				elsif (/^\s+UP/) { $status = 1; }
+				elsif (/RX packets:(\d+)\s+errors:(\d+)/) {
+					($inpkt, $inerr) = ($1, $2);
+				}
+				elsif (/TX packets:(\d+)\s+errors:(\d+)/) {
+					($outpkt, $outerr) = ($1, $2);
+					print <<"EOD_NETSTAT3";
+$now interface_packets_in:$interface $inpkt
+$now interface_errors_in:$interface $inerr
+$now interface_packets_out:$interface $outpkt
+$now interface_errors_out:$interface $outerr
+$now interface_status:$interface $status
+EOD_NETSTAT3
+				}
+			}
+			else {
+				($interface, undef, undef, $inpkt, $inerr, undef, undef,
+					$outpkt, $outerr, undef, undef, $flags) = split(' ',$_);
+				next if (defined $interfaces{$interface}); # for IPV6
+				$interfaces{$interface} = 1;
+				if (defined $flags and $flags =~ /U/i) { $status = 1; }
+				else { $status = 2; }
+				$now = time - $main::remote_time_difference;
+				print <<"EOD_NETSTAT2";
+$now interface_packets_in:$interface $inpkt
+$now interface_errors_in:$interface $inerr
+$now interface_packets_out:$interface $outpkt
+$now interface_errors_out:$interface $outerr
+$now interface_status:$interface $status
+EOD_NETSTAT2
+			}
+		}
+		else {
+			last if(/^\s*$/); # to ignore IPV6 stuff under Solaris 8
+			($interface, undef, $net, undef, $inpkt, $inerr, $outpkt, 
+				$outerr, $coll) = split(' ',$_);
+			if ($interface =~ m#^([a-zA-Z0-9/:]+)$#) { $interface = $1; }
+			else {
+				&debug("invalid interface in: $_") if ($main::debug);
+				next;
+			}
+			next if ($net =~ /^<Link>$/i); # for Digital Unix
+			next if (defined $interfaces{$interface}); # for IPV6
+			$interfaces{$interface} = 1;
+			$now = time - $main::remote_time_difference;
+			if (defined $main::ifconfig) {
+				my $text = `$main::ifconfig $interface`;
+				if (defined $text and $text =~ /flags=\d+<([^>]+)>/) {
+					$text = $1;
+					if ($text =~ /UP/) { $status = 1; }
+					else { $status = 2; }
+					print "$now interface_status:$interface $status\n";
+				}
+				else {
+					&debug("unknown response from $main::ifconfig: $text")
+						if ($main::debug);
+					&errorlog("unknown ifconfig response: $text");
+				}
+			}
+			print <<"EOD_NETSTAT2";
+$now interface_packets_in:$interface $inpkt
+$now interface_errors_in:$interface $inerr
+$now interface_packets_out:$interface $outpkt
+$now interface_errors_out:$interface $outerr
+$now interface_collisions:$interface $coll
+EOD_NETSTAT2
+		}
+	}
+	close (PIPE);
+
+}
+
+#------------------------------------------ do_uname ---
+sub do_uname {
+	my ($now, $hw, $mem, $os, $rel, $ver);
+
+	unless (defined $main::uname) {
+		&debug("no uname program found") if ($main::debug);
+		return;
+	}
+	&debug("starting UNAME") if( $main::debug);
+	&debug("using '$main::uname' for uname") if ($main::debug);
+
+	# Invoke each part separately, in case some-one forgot one of them
+	# Also, the printing of '-a' is unparseable.
+	$hw = `$main::uname -m`;
+	if (defined $hw) { chomp $hw; } else { $hw = 'unknown'; }
+
+	$os = `$main::uname -s`; chomp $os;
+	if (defined $os) { chomp $os; } else { $os = 'unknown'; }
+
+	$rel = `$main::uname -r`; chomp $rel;
+	if (defined $rel) { chomp $rel; } else { $rel = 'unknown'; }
+
+	$ver = `$main::uname -v`; chomp $ver;
+	if (defined $ver) { chomp $ver; } else { $ver = 'unknown'; }
+
+	$now = time - $main::remote_time_difference;
+
+	# Now OS-specific other identification
+	if( $os eq 'Linux') {
+		$hw = &get_linux_cpuinfo( $hw);
+		$mem = &get_linux_memoryinfo();
+	}
+	elsif( $os eq 'SunOS') {
+		$hw = &get_sunos_cpuinfo( $hw);
+		$mem = &get_sunos_memoryinfo();
+	}
+	else {
+		$hw = 'unknown';
+		$mem = 'unknown';
+	}
+
+	# Show whatever we've got
+	print <<"EOD_UNAME";
+$now machine $hw
+$now os_name $os
+$now os_release $rel
+$now os_version $ver
+$now memory_size $mem
+EOD_UNAME
+	$main::os_name = $os;
+	$main::os_release = $rel;
+}
+
+#-------------------------------------------------- get_linux_memoryinfo ---
+sub get_linux_memoryinfo {
+	my $memory = '';
+
+	open( MEMINFO, "</proc/meminfo") or do {
+		&debug("can't open /proc/meminfo: $!") if( $main::debug);
+		return $memory;
+	};
+	while(<MEMINFO>) {
+		chomp;
+		if( /^Mem:\s+(\d+)/) {
+			$memory = $1;
+			last;
+		}
+	}
+	close(MEMINFO);
+	return $memory;
+}
+
+#--------------------------------------------------- get_sunos_memoryinfo ---
+sub get_sunos_memoryinfo {
+	my $memory = '';
+
+	open(PRTCONF, "/usr/sbin/prtconf|") or do {
+		&debug("can't open pipe from prtconf: $!") if( $main::debug);
+		return $memory;
+	};
+
+	while(<PRTCONF>) {
+		chomp;
+		if( /^Memory size:\s+(\d+)\s+(.*)/) {
+			$memory = $1;
+			if( $2 eq 'Megabytes') { $memory *= 1024 * 1024; }
+			elsif( $2 eq 'Gigabytes') { $memory *= 1024 * 1024 * 1024; }
+			last;
+		}
+	}
+	close(PRTCONF);
+	return $memory;
+}
+
+#------------------------------------------------------ get_sunos_cpuinfo ---
+sub get_sunos_cpuinfo {
+	my $old_machine = shift @_;
+	my $implementation = `$main::uname -i`;
+	chomp $implementation;
+	my $platform = `$main::uname -p`;
+	chomp $platform;
+	return $old_machine . ' ' . $platform . ' ' . $implementation;
+}
+
+#------------------------------------------------------ get_linux_cpuinfo ---
+# On linux
+sub get_linux_cpuinfo {
+	my $old_machine = shift @_;
+	my ($machine, $processor, $vendor, $family, $model, $stepping, $mhz);
+
+	open( PROCCPUINFO, "</proc/cpuinfo") or do {
+		return $old_machine;
+	};
+	while(<PROCCPUINFO>) {
+		chomp;
+		if( /^processor\s*:\s+(\d+)/) { $processor = $1; }
+		elsif( /^vendor_id\s*:\s+(.*)/) { $vendor = $1; }
+		elsif( /^cpu family\s*:\s+(\d+)/) { $family = $1; }
+		elsif( /^model\s*:\s+(\d+)/) { $model = $1; }
+		elsif( /^stepping\s*:\s+(\d+)/) { $stepping = $1; }
+		elsif( /^cpu MHz\s*:\s+(\d+)/i) { $mhz = $1; }
+		elsif( /^\s*$/) {
+			my $new = 'CPU ' . $processor . ': x86 Family ' . $family .
+				' Model ' . $model . ' Stepping ' . $stepping . ': ' .
+				$mhz . ' MHz';
+			if( defined $machine) { $machine .= '<BR>' . $new; }
+			else { $machine = $new; }
+		}
+	}
+	return $machine;
+}
+
+#--------------------------------------------------- do_qmail_qstat ---
+sub do_qmail_qstat {
+	my ($now);
+
+	# Make sure that we know where qmail is
+	unless (defined $main::qmaildir) {
+		&debug("qmaildir isn't defined; ; skipping qmailq") if ($main::debug);
+		return;
+	}
+	unless (-d $main::qmaildir) {
+		&debug("qmaildir $main::qmaildir doesn't exist; skipping qmailq")
+			if ($main::debug);
+		return;
+	}
+
+	my $qstat = $main::qmaildir . '/bin/qmail-qstat';
+	unless (-f $qstat) {
+		&debug("$qstat doesn't exist; skipping qmailqstat") if ($main::debug);
+		return;
+	}
+	&debug("starting QMAILQSTAT") if( $main::debug);
+	&debug("using '$qstat' for qmail-qstat") if ($main::debug);
+
+	# Open the pipe explicitly so we can trap errors correctly
+	open( QMAILQSTAT, "$qstat|") or do {
+		&error("can't open pipe from $qstat: $!");
+		return;
+	};
+	my $status = '';
+	while( <QMAILQSTAT>) {
+		$status .= $_;
+	}
+	close(QMAILQSTAT) or do {
+		&error("can't close pipe from $qstat: $!");
+		return;
+	};
+
+	# Overall qmail queue status
+	my ($qsize, $qbacklog);
+	if ($status =~ /messages in queue:\s+(\d+)/) {
+		$qsize = $1;
+	}
+	else { $qsize = -1; }
+	if ($status =~ /messages in queue but not yet preprocessed:\s+(\d+)/){
+		$qbacklog = $1;
+	}
+	else { $qbacklog = -1; }
+	$now = time - $main::remote_time_difference;
+	print <<"EOD_QMAIL1";
+$now qmail_qsize $qsize
+$now qmail_qbacklog $qbacklog
+EOD_QMAIL1
+
+}
+
+#--------------------------------------------------- do_qmail_qstat2 ---
+# do_qmail_qstat2 does what do_qmail_qstat, but without using qmail-qstat.
+# This is done to deal with large queues.  Qmail-qstat breaks on large
+# queues, unfortunately.
+sub do_qmail_qstat2 {
+	my ($now, $files, $file, $dir, $subdir, $qsize, $qbacklog);
+
+	# Make sure that we know where qmail is
+	unless (defined $main::qmaildir) {
+		&debug("qmaildir isn't defined; ; skipping qmailq") if ($main::debug);
+		return;
+	}
+	unless (-d $main::qmaildir) {
+		&debug("qmaildir $main::qmaildir doesn't exist; skipping qmailq")
+			if ($main::debug);
+		return;
+	}
+
+	&debug("starting QMAILQSTAT") if( $main::debug);
+
+	# Count messages first
+	$qsize = 0;
+	$dir = $main::qmaildir . '/queue/mess';
+	opendir( DIR, $dir) or do {
+		&error("QMAILQSTAT: can't opendir $dir; skipped: $!");
+		return;
+	};
+	while($subdir = readdir(DIR)) {
+		next if( $subdir !~ /^\d+$/);
+		$qsize += &count_files_in_dir( $dir . '/' . $subdir);
+	}
+	closedir(DIR);
+
+	# Now count todo messages (not fully entered into the queue)
+	$qbacklog = 0;
+	$dir = $main::qmaildir . '/queue/todo';
+
+	# Do we have the big-todo patch to deal with
+	if( -d $dir . '/0') {
+		opendir( DIR, $dir) or do {
+			&error("QMAILQSTAT: can't opendir $dir; skipped: $!");
+			return;
+		};
+		while( $subdir = readdir(DIR)) {
+			next unless( $subdir =~ /^\d+$/);
+			$qbacklog += &count_files_in_dir( $dir . '/' . $subdir);
+		}
+		closedir(DIR);
+	}
+
+	# No big-todo patch here
+	else {
+		$qbacklog+= &count_files_in_dir( $dir);
+	}
+
+	$now = time() - $main::remote_time_difference;
+	print <<"EOD_QMAIL1";
+$now qmail_qsize $qsize
+$now qmail_qbacklog $qbacklog
+EOD_QMAIL1
+
+}
+
+#----------------------------------------------------- count_files_in_dir ---
+# Actually counts non-dot entries in the directory.  To make it count files,
+# it would have to stat them each, which would be *slow*.
+sub count_files_in_dir {
+	my $dir = shift @_;
+	my( $file, $files);
+
+	$files = 0;
+	opendir( CFID, $dir) or do {
+		&error("cannot opendir $dir; skipped: $!");
+		return 0;
+	};
+	while( $file = readdir( CFID)) {
+		next if( $file =~ /^\./);
+		++$files;
+	}
+	closedir(CFID);
+
+	return $files;
+}
+
+#---------------------------------------------------------- do_qmail_qread ---
+sub do_qmail_qread {
+	my ($now);
+
+# Now a breakdown of the destinations into local, site and remote
+	my $qread = $main::qmaildir . '/bin/qmail-qread';
+	&debug("using '$qread' for qmail-qread") if ($main::debug);
+	open (PIPE, "$qread|") or die "can't open pipe to $qread: $!\n";
+	my ($nlocal, $nsite, $nremote) = (0,0,0);
+	my $dest;
+	while (<PIPE>) {
+		chomp;
+		next if (/^  done/ or /^\s*\d/);
+		if (/^\s+remote\s+(\S+)/) {
+			$dest = $1;
+			if ($dest =~ m/$main::sitemailpat/i) { ++$nsite; }
+			else { ++$nremote; }
+		}
+		elsif (/^\s+local\s/) { ++$nlocal; }
+		elsif (/^warning:/) { next; }
+		else {
+			&errorlog( "$qread output has changed: $_");
+			next;
+		}
+	}
+	close (PIPE);
+	$now = time - $main::remote_time_difference;
+	print <<"EOD_QMAIL2";
+$now qmail_qlocal $nlocal
+$now qmail_qsite $nsite
+$now qmail_qremote $nremote
+EOD_QMAIL2
+	
+}
+
+#-------------------------------------------------------------- do_fileage ---
+# Get file age stats for named files.  Can be usefull for watching for 
+# configuration changes, log-file update times, ...
+#-----------------------------------------------------------------------------
+sub do_du {
+	my (%filename) = @_;
+	my ($filename, $variable, $modtime, $now);
+
+        my $file= "/var/log/apache2";
+	&debug("starting DU") if( $main::debug);
+
+	$now = time - $main::remote_time_difference;
+	my $tam = tamano($file);
+	print "$now used $tam\n";
+}
+
+################
+sub tamano{
+my ($file) = @_;
+
+        open (PIPE, "du -k $file|"); # or
+
+        while (<PIPE>) {
+                last if (/^\s*\d+/);
+        }
+
+        /(\d+)/;
+        my $num = $1;
+
+
+        return $num;
+}
+
+
+
+#-------------------------------------------------------------- do_fileage ---
+# Get file age stats for named files.  Can be usefull for watching for 
+# configuration changes, log-file update times, ...
+#-----------------------------------------------------------------------------
+sub do_fileage {
+	my (%filename) = @_;
+	my ($filename, $variable, $modtime, $now);
+	&debug("starting FILEAGE") if( $main::debug);
+
+	$now = time - $main::remote_time_difference;
+	foreach $variable (keys %filename) {
+		$filename = $filename{$variable};
+		&debug("fileage for $filename:") if ($main::debug);
+		if (-f $filename) {
+			$modtime = int((-M _)*24*60*60); # seconds
+			print "$now fileage:$variable $modtime\n";
+		}
+		else {
+			&error("fileage: no such file as $filename");
+		}
+	}
+}
+
+#------------------------------------------------------------------- do_ps ---
+sub do_ps {
+	my (%pattern) = @_;
+	my $cmd = $main::ps;
+	my (%count, %sum, %last,%average, %min, %max, $variable, $now);
+	&debug("starting PS") if( $main::debug);
+
+# Make sure there is something for do_ps to look for
+	unless (defined $pattern{PS}) {
+		&debug("no patterns for ps; skipped") if ($main::debug);
+		return;
+	}
+
+# Make sure that variables have a zero value, if not found, so we cann't tell
+# the difference between missing and zero
+	%pattern = %{$pattern{PS}};
+	foreach $variable  (keys %pattern) {
+		$count{$variable} = 0;
+		$sum{$variable} = 0;
+		$last{$variable} = 0;
+		$average{$variable} = 0;
+		$min{$variable} = 0;
+		$max{$variable} = 0;
+	}
+
+# Specify the BSD variants
+	if (defined $main::os_name and defined $main::os_release and 
+			($main::os_name eq 'SunOS' and $main::os_release lt 5)
+			) {
+		$cmd .= ' ' . $main::bsd_ps_opts;
+	}
+
+# Assume it's SysV otherwise
+	else {
+		$cmd .= ' ' . $main::sysv_ps_opts;
+	}
+	&debug("using ps command: $cmd") if ($main::debug);
+
+# Look at the output of ps
+	open (PIPE, "$cmd|") or &abort("do_ps open $!");
+	my $junk = <PIPE>; # the header isn't interesting to us
+
+	while (<PIPE>) {
+		chomp;
+		next if (/^\s*$/);
+		&debug("line=$_\n") if ($main::debug>1);
+
+		foreach $variable (keys %pattern) {
+			my ($pattern, $function) = ($pattern{$variable}{PATTERN}, 
+				$pattern{$variable}{FUNCTION});
+			if (/$pattern/i) {
+				if ($function eq 'count') {
+					$count{$variable}++;
+				}
+				elsif ($function eq 'sum') {
+					$sum{$variable} += $1;
+				}
+				elsif ($function eq 'last') {
+					$last{$variable} = $1;
+				}
+				elsif ($function eq 'min') {
+					$min{$variable} = $1 if ($1 < $count{$variable});
+				}
+				elsif ($function eq 'max') {
+					$max{$variable} = $1 if ($1 > $count{$variable});
+				}
+				else {
+					&error( "unknown function '$function' for $variable");
+				}
+			}
+		}
+
+		# Fix up averages
+		foreach $variable (keys %pattern) {
+			my ($pattern, $function) = ($pattern{$variable}{PATTERN}, 
+				$pattern{$variable}{FUNCTION});
+			if ($function eq 'average') {
+				$average{$variable} = $sum{$variable} / $count{$variable};
+			}
+		}
+	}
+	close (PIPE);
+
+	# Tell what we found
+	$now = time - $main::remote_time_difference;
+	foreach $variable (keys %pattern) {
+		my $function = $pattern{$variable}{FUNCTION};
+		print "$now ps:$variable ";
+		if ($function eq 'count') { print $count{$variable} ."\n"; }
+		elsif ($function eq 'sum') { print $sum{$variable} ."\n"; }
+		elsif ($function eq 'last') { print $last{$variable} ."\n"; }
+		elsif ($function eq 'average') { print $average{$variable} ."\n"; }
+		elsif ($function eq 'min') { print $min{$variable} ."\n"; }
+		elsif ($function eq 'max') { print $max{$variable} ."\n"; }
+		else { &error("unknown function for $variable ($function)"); }
+	}
+}
+
+#------------------------------------------------------------- do_ftpcount ---
+sub do_ftpcount {
+	my ($class, $count, $max, $now);
+	
+	unless (defined $main::ftpcount){
+		&error( "do_ftpcount: can't find ftpcount; skipped");
+		return;
+	}
+	&debug("starting FTPCOUNT") if( $main::debug);
+
+	open (FTPCOUNT, "$main::ftpcount|") or
+		(&error("do_ftpcount: can't run $main::ftpcount: $!") and return);
+
+# Service class real-local           -   0 users ( 20 maximum)
+	while (<FTPCOUNT>) {
+		if (/^Service class\s+(\S+)\s+-\s*(\d+)\s+users?\s+\(\s*(\d+)/i) {
+			$class = $1;
+			$count = $2;
+			$max = $3;
+			$now = time - $main::remote_time_difference;
+			print <<"EOD_FTPCOUNT";
+$now ftpcount:$class $count
+$now ftpmax:$class $max
+EOD_FTPCOUNT
+		}
+		else {
+			&debug("unknown ftpcount line: $_") if ($main::debug>1);
+			&errorlog("unknown ftpcount line: $_");
+		}
+	}
+	close (FTPCOUNT);
+}
+
+#------------------------------------------------------- catch_alarm ---
+sub catch_alarm {
+	$main::alarms++;
+	if ($main::alarms > 1) {
+		&abort("second timeout unhandled");
+	}
+}
+
+#----------------------------------------------------------------- do_time ---
+# Notes local time and difference from remote time.  This must be first as
+# the difference is used to calculate the time-stamps which are sent back.
+# This gives us crude time-sync ignoring both skews and time-zone differences.
+#-----------------------------------------------------------------------------
+sub do_time {
+	my ($remote_time) = @_;
+	&debug("starting TIME") if( $main::debug);
+
+	my $local_time = time();
+	$main::remote_time_difference = $local_time - $remote_time;
+	print <<"EOD_TIME";
+$local_time time $local_time
+$local_time timediff $main::remote_time_difference
+EOD_TIME
+}
+
+#----------------------------------------------------------------- do_proc ---
+# Pull info from any file in /proc, according to supplied patterns
+#-----------------------------------------------------------------------------
+sub do_proc {
+	unless( defined $main::pattern{PROC}) {
+		&debug("no PROC patterns; skipped") if ($main::debug);
+		return;
+	}
+	&debug("starting PROC") if( $main::debug);
+
+	my ($var, $filename, $pattern, $data, $now);
+
+	foreach $var (keys %{$main::pattern{PROC}}) {
+		$filename = $main::pattern{PROC}{$var}{FILENAME};
+		$pattern = $main::pattern{PROC}{$var}{PATTERN};
+		&debug("doing proc: $var $filename $pattern") if ($main::debug);
+
+# Get the data; they're all small, so slurp the whole file
+		open (PROC, "<$filename") or do {
+			&error("can't open $filename: $!");
+			next;
+		};
+		$data = join('', <PROC>) or do {
+			close (PROC);
+			&error("can't read $filename: $!");
+			next;
+		};
+		close(PROC);
+
+# Now look for the pattern
+		if ($data =~ /$pattern/m) {
+			if (defined $1) {
+				$now = time - $main::remote_time_difference;
+				print $now, ' proc:', $var, ' ', $1, "\n";
+			}
+			else {
+				&debug("proc: no data for $var $filename $pattern")
+					if ($main::debug);
+			}
+		}
+
+	}
+}
+
+#---------------------------------------------------------------- errorlog ---
+# Log errors locally, so we can look at them periodically and note where it's
+# having problems.  Usually yet another way to display uptime.
+#-----------------------------------------------------------------------------
+sub errorlog {
+	my $msg = shift @_;
+	my $file = "/var/log/${main::prog}.errorlog";
+
+	open (ERRORS, ">>$file") or do {
+		&error("can't open $file: $!");
+		return;
+	};
+	print ERRORS $msg, "\n";
+	close ERRORS;
+}
+
+#------------------------------------------------------------- do_procname ---
+# Count all the processes with a command-name matching the pattern
+#-----------------------------------------------------------------------------
+sub do_procname {
+	my %patterns = @_;
+	my ($var, $filename, $pattern, $data, $now, %count, $entry);
+	&debug("starting PROCNAME") if( $main::debug);
+
+	# This is only valid for linux
+	unless( $main::os_name =~ /linux/i) {
+		&error( "PROCNAME is only valid for linux, not $main::os_name");
+		return;
+	}
+
+	%count = ();
+	opendir( PROC, '/proc') or do {
+		&error("can't opendir /proc: $!");
+		return;
+	};
+
+	# Look at each numeric directory in /proc
+	while( $entry = readdir( PROC)) {
+		next unless( $entry =~ /^\d+$/);
+		$filename = '/proc/' . $entry . '/cmdline';
+		&debug("reading $filename") if( $main::debug>1);
+		open( ENTRY, "<$filename") or do {
+			&debug( "can't open $filename: $!") if ($main::debug);
+			next;
+		};
+		$data = join('', <ENTRY>);
+		close( ENTRY);
+		if( $data =~ /^([^\0]+)\0/) { $data = $1; } 
+		&debug("  process name is '$data'") if( $main::debug>1);
+
+		# Check this process against all the patterns
+		foreach $var (keys %{$patterns{PROCNAME}}) {
+			$pattern = $patterns{PROCNAME}{$var}{PATTERN};
+			&debug("  var=$var pattern=$pattern") if ($main::debug>2);
+
+			# Now look for the pattern
+			if ($data =~ /$pattern/m) {
+				if( defined $count{$var}) { $count{$var} += 1; }
+				else { $count{$var} = 1; }
+			}
+		}
+	}
+
+	# Now see what we've got
+	foreach $var (keys %{$patterns{PROCNAME}}) {
+		unless( defined $count{$var}) { $count{$var} = 0; }
+		$now = time - $main::remote_time_difference;
+		print $now, ' procname:', $var, ' ', $count{$var}, "\n";
+	}
+}
+
+#---------------------------------------------------------- do_proc_diskio ---
+# Get disk I/O information, from /proc/stat on linux
+#-----------------------------------------------------------------------------
+sub do_proc_diskio {
+	my (@temp, $file, $now, $rios, $wios, $rblks, $wblks, $name,
+		$total_rios, $total_wios, $total_rblks, $total_wblks, $total, $i);
+	&debug("starting PROCDISKIO") if( $main::debug);
+
+	return unless( $main::os_name =~ /Linux/i);
+
+	# Look in /proc/stat
+	$file = '/proc/stat';
+	open( PROC, "<$file") or do {
+		&error("can't open $file: $!");
+		return;
+	};
+	while( <PROC>) {
+		chomp;
+		$now = time - $main::remote_time_difference;
+		# Redhat 7.0 or maybe kernels 2.2.x
+		if( /^(disk_rio)\s+(.*)/ || /^(disk_wio)\s+(.*)/ ||
+				/^(disk_rblk)\s+(.*)/ || /^(disk_wblk)\s+(.*)/ ) {
+			$name = $1;
+			@temp = split(' ',$2);
+			$total = 0;
+			for( $i=0; $i<@temp; ++$i) {
+				$total += $temp[$i];
+				print $now, ' proc_', $name, ':disk', $i, ' ', $temp[$i], "\n";
+			}
+			print $now, ' proc_', $name, ' ', $total, "\n";
+		}
+		
+		# This format first happens on Redhat 7.1 or maybe kernels 2.4.x
+		elsif( /disk_io:\s+(.*)/) {
+			@temp = split(' ', $1);
+			$total = 0;
+			for( $i = 0; $i < @temp; ++$i) {
+				if( $temp[$i] =~ /^\((\d+,\d+)\):\(\d+,(\d+),(\d+),(\d+),(\d+)/) {
+					($name, $rios, $rblks, $wios, $wblks) = ($1, $2, $3, $4, $5);
+					$name =~ tr/,/./;
+					print <<"EOD_DISKIO";
+$now proc_disk_rio:disk$name $rios
+$now proc_disk_wio:disk$name $wios
+$now proc_disk_rblk:disk$name $rblks
+$now proc_disk_wblk:disk$name $wblks
+EOD_DISKIO
+					$total_rios += $rios;
+					$total_wios += $wios;
+					$total_rblks += $rblks;
+					$total_wblks += $wblks;
+				}
+			}
+			print <<"EOD_TOTAL_DISKIO";
+$now proc_disk_rio $total_rios
+$now proc_disk_wio $total_wios
+$now proc_disk_rblk $total_rblks
+$now proc_disk_wblk $total_wblks
+EOD_TOTAL_DISKIO
+		}
+	}
+	close(PROC);
+}
+
+#--------------------------------------------------------- do_proc_meminfo ---
+# Get memory usage stuff from /proc/meminfo on linux
+#        total:    used:    free:  shared: buffers:  cached:
+#Mem:  1061040128 990236672 70803456 42319872 557137920 268517376
+#Swap: 542826496 15294464 527532032
+#   ...
+#-----------------------------------------------------------------------------
+sub do_proc_meminfo {
+	my( $line, $total_mem, $free_mem, $shared_mem, $buffer_mem, $cache_mem);
+	my( $total_swap, $free_swap, $now);
+
+	# Make sure it's work attempting
+	unless ( $main::os_name eq 'Linux') {
+		&debug("PROCMEMINFO is only available under linux, not $main::os_name")
+			if( $main::debug);
+		return;
+	}
+	&debug("starting PROCMEMINFO") if( $main::debug);
+
+	open( PROC, "</proc/meminfo") or do {
+		&error("can't open /proc/meminfo: $!");
+		return;
+	};
+
+	# Do the first realline
+	$line = <PROC>;
+	$line = <PROC>;
+	chomp $line;
+	( undef, $total_mem, undef, $free_mem, $shared_mem, $buffer_mem, 
+		$cache_mem) = split( ' ', $line);
+
+	# And the second
+	$line = <PROC>;
+	chomp $line;
+	( undef, $total_swap, undef, $free_swap) = split(' ', $line);
+
+
+	close(PROC);
+
+	# Show the results
+	$now = time - $main::remote_time_difference;
+	print <<"EOD_PROC_MEMINFO";
+$now procmeminfo_total_mem $total_mem
+$now procmeminfo_free_mem $free_mem
+$now procmeminfo_shared_mem $shared_mem
+$now procmeminfo_buffer_mem $buffer_mem
+$now procmeminfo_cache_mem $cache_mem
+$now procmeminfo_total_swap $total_swap
+$now procmeminfo_free_swap $free_swap
+EOD_PROC_MEMINFO
+}
+
+
+#--------------------------------------------------------- do_proc_net_dev ---
+# Get network I/O stats from /proc/net/dev on linux
+#-----------------------------------------------------------------------------
+sub do_proc_net_dev {
+	my( $line, $rbytes, $rpackets, $rerrors, $rdrop, $rfifo, $rframe,
+		$tbytes, $tpackets, $terrors, $tdrop, $tfifo, $tcolls, $tcarrier,
+		$interface, $now);
+
+	# Make sure it's work attempting
+	unless ( $main::os_name eq 'Linux') {
+		&debug("PROCNETDEV is only available under linux, not $main::os_name")
+			if( $main::debug);
+		return;
+	}
+	&debug("starting PROCNETDEV") if( $main::debug);
+
+	open( PROC, "</proc/net/dev") or do {
+		&error("can't open /proc/net/dev: $!");
+		return;
+	};
+	$line = <PROC>;
+	$line = <PROC>;
+
+	while( $line = <PROC>) {
+		chomp $line;
+		if( $line =~ /^\s*([^:]+):(.*)/) {
+			$interface = $1;
+			($rbytes, $rpackets, $rerrors, $rdrop, $rfifo, $rframe, undef,
+				undef, $tbytes, $tpackets, $terrors, $tfifo, $tcolls,
+				$tcarrier) = split(' ', $2);
+			$now = time - $main::remote_time_difference;
+			print <<"EOD_PROCNETDEV";
+$now procnetdev_rbytes:$interface $rbytes
+$now procnetdev_rpackets:$interface $rpackets
+$now procnetdev_rerrors:$interface $rerrors
+$now procnetdev_rdrop:$interface $rdrop
+$now procnetdev_rfifo:$interface $rfifo
+$now procnetdev_rframe:$interface $rframe
+$now procnetdev_tbytes:$interface $tbytes
+$now procnetdev_tpackets:$interface $tpackets
+$now procnetdev_terrors:$interface $terrors
+$now procnetdev_tfifo:$interface $tfifo
+$now procnetdev_tcolls:$interface $tcolls
+$now procnetdev_tcarrier:$interface $tcarrier
+EOD_PROCNETDEV
+		}
+	}
+	close(PROC);
+}
+
+#------------------------------------------------------ parse_command_line ---
+# Pull the options off the command-line
+#-----------------------------------------------------------------------------
+sub parse_command_line {
+	my %opt = ();
+	getopts('d:hrv', \%opt);
+
+	if (defined $opt{'h'}) { &usage; } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if (defined $opt{'r'}) { $main::ignore_remote = 0; }
+	else { $main::ignore_remote = 1; }
+}
+
+#------------------------------------------------------------------ do_sar ---
+# Get info from sar.  It'd be nice if sar was more standardized, but it isn't.
+#-----------------------------------------------------------------------------
+sub do_sar {
+	my( $last_was_empty, $line, $month, $mday, $year, $date, @headers, @data,
+		$i, $last_time, $now, %data, $var, $first, $shift, $instance, $junk);
+
+	&debug("starting SAR") if( $main::debug);
+	&debug("using '$main::sar for sar") if ($main::debug);
+	open (PIPE, "$main::sar -A|") or do {
+		&error("do_sar: cannot open pipe from $main::sar: $!");
+		return;
+	};
+
+	$last_time = 0;
+	while ( $line = <PIPE>) {
+		chomp $line;
+
+		# Ignore empty lines, but keep track of them
+		if( $line =~ /^\s*$/) { $last_was_empty = 1; next; }
+
+		# Ignore average lines
+		if( $line =~ /^Average/) {
+			$last_was_empty = 0; # I.E. do nothing
+		}
+
+		# American date MM/DD/YY (completely assinine)
+		elsif( $line =~ m#(\d\d)/(\d\d)/(\d\d)\s*$#) {
+			($month, $mday, $year) = ($1, $2, $3);
+			$year += $main::epoch;
+			$month -= 1;
+			$date = timelocal( 0, 0, 0, $mday, $month, $year);
+			&debug('DATE:US: ', $date, ' y=', $year, ', m=',
+				$month+1, ', d=', $mday) if( $main::debug>1);
+		}
+
+		# Official Canadian date DD-MM-YYYY (stupid)
+		elsif( $line =~ m#(\d\d)-(\d\d)-(\d\d\d\d)\s*$#) {
+			($month, $mday, $year) = ($1, $2, $3);
+			$year += $main::epoch;
+			$month -= 1;
+			$date = timelocal( 0, 0, 0, $mday, $month, $year);
+			&debug('DATE:CDN: ', $date, ' y=', $year, ', m=',
+				$month+1, ', d=', $mday) if( $main::debug>1);
+		}
+
+		# European date YYYY-MM-DD (sensible)
+		elsif( $line =~ m#(\d\d)-(\d\d)-(\d\d\d\d)\s*$#) {
+			($year, $month, $mday) = ($1, $2, $3);
+			$year += $main::epoch;
+			$month -= 1;
+			$date = timelocal( 0, 0, 0, $mday, $month, $year);
+			&debug('DATE:EURO: ', $date, ' y=', $year, ', m=',
+				$month+1, ', d=', $mday) if( $main::debug>1);
+		}
+
+		# This should be a header, looking like:
+		# 12:00:01 AM   cswch/s
+		elsif( $last_was_empty && 
+				$line =~ /^(\d\d):(\d\d):(\d\d)(\sAM|\sPM)?\s+(.*)$/) {
+			$now = &parse_sar_time( $1, $2, $3, $4, $date) -
+				$main::remote_time_difference;
+			$last_time = $now if( $now > $last_time);
+			@headers = map { $_ = lc $_; s/%/pct/; $_  } split(' ', $5);
+			&debug('HEADERS: ', join(' ', @headers)) if( $main::debug>1);
+
+			# OS-specific hackery
+			$first = $headers[0];
+			if( $main::os_name eq 'Linux') {
+				if( $first eq 'intr') { $shift = 1; $main::instances = 0; }
+				elsif( $first eq 'cpu') { $shift = 1; $main::instances = 1; }
+				elsif( $first eq 'iface') { $shift = 1; $main::instances = 1; }
+				else { $shift = 0; $main::instances = 0; }
+			}
+
+			elsif( $main::os_name eq 'SunOS') {
+				# Throw away the next (should be blank) line, to make Solaris
+				# parse the same as Linux, or at least closer.
+				$junk = <PIPE>;
+				if( $first eq 'device') { $shift = 1; $main::instances = 1; }
+				else { $shift = 0; $main::instances = 0; }
+			}
+
+			# Don't know other OSs
+			else { $shift = 0; $main::instances = 0; }
+			&debug('  shift=', $shift, ', instances=', $main::instances)
+				if( $main::debug>1);
+
+			# Ignore the header for the instance
+			if( $shift) { shift @headers; }
+		}
+
+		# This had better be data, because I don't know any other patterns
+		elsif( ! $last_was_empty &&
+				($line =~ /^(\d\d):(\d\d):(\d\d)(\sAM|\sPM)?\s+(.*)$/ ||
+				$line =~ /^\s+(.*)$/)) {
+			# Solaris doesn't show the time on subsequent lines
+			if( !defined $2) {
+				# Use the previous time
+				@data = split(' ', $1);
+			}
+			else {
+				$now = &parse_sar_time( $1, $2, $3, $4, $date) -
+					$main::remote_time_difference;
+				$last_time = $now if( $now > $last_time);
+				@data = split(' ', $5);
+			}
+
+			# Deal with instances and other aberations
+			if( $shift) { $instance = shift @data; }
+			
+			&debug('DATA: ', ($main::instances) ? 'instance=' . 
+				$instance . ' ' : '', join(' ', @data)) if( $main::debug>1);
+
+			# Store the data away to regurgitate once we've collected it all
+			for( $i=0; $i<= $#data; ++$i) {
+				if( $data[$i] =~ m#^(\d+)/(\d+)$#) {
+					&sar_store( $headers[$i], $instance, $now, $1);
+					&sar_store( $headers[$i] . 'tot', $instance, $now, $2);
+					if( $2 > 0) { # avoid division-by-zero
+						&sar_store( $headers[$i] . 'pct', $instance, $now, 
+							$1/$2*100);
+					}
+				}
+				else {
+					&sar_store( $headers[$i], $instance, $now, $data[$i]);
+				}
+			}
+		}
+
+		# Beats me
+		else {
+			&error("unknown sar line skipped: $line");
+		}
+		$last_was_empty = 0;
+	}
+	close(PIPE);
+
+	# Now spit out the new data, only the last data
+	foreach $var ( sort keys %main::data) {
+		if( defined $main::data{$var}{$last_time}) {
+			print $last_time, ' sar:', $var, ' ',
+				$main::data{$var}{$last_time}, "\n";
+		}
+		else {
+			&debug("no data for $var at $last_time; skipped")
+				if( $main::debug);
+		}
+	}
+}
+
+#---------------------------------------------------------- parse_sar_time ---
+# Pull apart the time and date, according to sar.  I hope this is standard.
+#-----------------------------------------------------------------------------
+sub parse_sar_time {
+	my( $hour, $min, $sec, $ampm, $date) = @_;
+	unless( defined $ampm) { $ampm = ' AM'; }
+	$date += $sec + $min*60 + ($hour*60*60) + ($ampm eq ' AM') ? 0 : 12*60*60;
+	return $date;
+}
+
+#--------------------------------------------------------------- sar_store ---
+# Store away sar data for later.
+#-----------------------------------------------------------------------------
+sub sar_store {
+	my( $var, $instance, $now, $data) = @_;
+	if( $main::instances) {
+		$main::data{$var . ':' . $instance}{$now} = $data;
+	}
+	else {
+		$main::data{$var}{$now} = $data;
+	}
+}
+
+#------------------------------------------------------------- do_masqconn ---
+# Show ipchains masqueraded connection counts (by Alexander Reelsen)
+#-----------------------------------------------------------------------------
+sub do_masqconn {
+	my ($masqconn_tcp, $masqconn_udp, $masqconn_icmp) = 0;
+	my ($now);
+
+	unless (defined($main::ipchains)) {
+		rror( "do_masqconn: can't find ipchains: skipped");
+		return;
+	}
+	open(IPCHAINS, "$main::ipchains -nML|") or
+		(rror("do_masqconn: can't run $main::ipchains: $!") and return);
+	
+	while(<IPCHAINS>) {
+		if (/^TCP/)  { $masqconn_tcp++ }
+		if (/^UDP/)  { $masqconn_udp++ }
+		if (/^ICMP/) { $masqconn_icmp++ }
+	}
+	
+	$now = time - $main::remote_time_difference;
+	if (!defined($masqconn_tcp))  { $masqconn_tcp  = -1 }
+	if (!defined($masqconn_udp))  { $masqconn_udp  = -1 }
+	if (!defined($masqconn_icmp)) { $masqconn_icmp = -1 }
+	
+	print <<"EOD_IPCHAINS";
+$now masqconntcp $masqconn_tcp
+$now masqconnudp $masqconn_udp
+$now masqconnicmp $masqconn_icmp
+EOD_IPCHAINS
+	close(IPCHAINS);
+}
+

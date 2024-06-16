@@ -1,0 +1,218 @@
+#!/usr/bin/perl -w
+
+# artsportms-loader - convert the output of artsportms to
+#	rrdtool update lines
+# $Id: artsportms-loader.pl,v 1.5 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called?
+$main::prog = 'artsportms-loader';
+# Where is the config-dir?
+# $main::config_dir = '/var/facon/etc/config';
+# Which ports to show?
+%main::ports = (20=>'ftpdata', 21=>'ftp', 22=>'ssh',
+	23=>'telnet', 25=>'smtp', 43=>'whois', 53=>'dns', 
+	80=>'http', 110=>'pop3', 113=>'ident', 119=>'nntp', 
+	123=>'ntp', 137=>'nbns', 138=>'nbdgm', 139=>'nbssn', 
+	143=>'imap', 161=>'snmp', 389=>'ldap', 443=>'https', 
+	515=>'lpd', 873=>'rsync', 2401=>'cvspserver', 
+	3128=>'squid', 'other'=>'other');
+@main::ports = ('ftpdata', 'ftp', 'ssh', 
+	'telnet', 'smtp', 'whois', 'dns', 
+	'http', 'pop3', 'ident', 'nntp', 
+	'ntp', 'nbns', 'nbdgm', 'nbssn', 
+	'imap', 'snmp', 'ldap', 'https', 
+	'lpd', 'rsync', 'cvspserver', 
+	'squid', 'other');
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.5 $');
+
+# - - -   Setup   - - -
+
+use Time::Local;
+use Socket;
+use Getopt::Std;
+
+getopts('d:f:hp:');
+
+if (defined $main::opt_h) { &usage; }
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+if (defined $main::opt_p) { %main::ports = split('[=,]', $main::opt_p); }
+
+# Make reverse lookup for &output
+foreach my $port (keys %main::ports) {
+	$main::ports{$main::ports{$port}} = $port;
+}
+
+# - - -   Mainline   - - -
+
+my ($ip, $host, $ifindex, $sec, $min, $hour, $mday, 
+	$mon, $year, $now, $srcport, $dstport, $packets, $bytes, 
+	$filename, $thisport);
+my %iplookup = ();
+
+MainLoop:
+while (<>) {
+	chomp;
+
+# Which router is this group of records for?
+	if (/^router:\s+(\S+)/i) {
+		$ip = $1;
+		if (defined %main::traffic) {
+			&output($host, $ifindex, $now);
+			undef %main::traffic;
+		}
+		if (defined $iplookup{$ip}) {
+			$host = $iplookup{$ip};
+		}
+		else {
+			$host = gethostbyaddr(inet_aton($ip), AF_INET);
+			unless (defined $host) {
+				&abort("can't find name for $ip; add it to DNS");
+			}
+		}
+		&debug("host $host ($ip)") if ($main::debug);
+	}
+
+# Which interface is this group for?
+	elsif (/^ifindex:\s*(\d+)/i) {
+		$ifindex = $1;
+		&debug("  interface = $ifindex") if ($main::debug);
+		$filename = "/var/facon/data/$host/ports-$ifindex.rrd";
+		unless (-f $filename) {
+			&debug("skipping records for $host ports-$ifindex") 
+				if ($main::debug);
+			while (<>) {
+				redo MainLoop if(/^router:/i);
+			}
+			last MainLoop;
+		}
+	}
+
+# Which time-period is this for?
+	elsif (m#^period:\s+\S+\s+\S+\s+-\s+(\d\d)/(\d\d)/(\d\d\d\d) (\d\d):(\d\d):(\d\d)#) {
+		$mon = $1 - 1;
+		$mday = $2;
+		$year = $3;
+		$hour = $4;
+		$min = $5;
+		$sec = $6;
+		$now = timelocal($sec, $min, $hour, $mday, $mon, $year);
+		&debug("  timestamp = $now") if ($main::debug);
+	}
+
+# Headers
+	elsif (/^  srcPort/ or /^  ----/ or /^\s*$/) { next; }
+
+# Data
+	else {
+		&debug("  raw: $_") if ($main::debug>1);
+		($srcport, $dstport, $packets, undef, $bytes) = split(' ', $_);
+		unless (defined $bytes and $bytes =~ /^\d+$/) {
+			&error("  bad record; skipped: $_");
+		}
+
+# Where are we going to store this information
+		if (defined $main::ports{$dstport}) {
+			$thisport = $dstport;
+		}
+		elsif (defined $main::ports{$srcport}) {
+			$thisport = $srcport;
+		}
+		else { $thisport = 'other'; }
+		&debug("  data $srcport > $dstport p=$packets b=$bytes") if ($main::debug>1);
+
+		if (defined $main::traffic{$thisport}) {
+			$main::traffic{$thisport}{BYTES} += $bytes;
+			$main::traffic{$thisport}{PACKETS} += $packets;
+		}
+		else {
+			$main::traffic{$thisport}{BYTES} = $bytes;
+			$main::traffic{$thisport}{PACKETS} = $packets;
+		}
+	}
+}
+
+exit 0;
+
+#-------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] arts-files
+where options are:
+    -d ddd  set debugging level to 'ddd'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h      show this help
+    -p ppp  show ports 'ppp' separately, with 'ppp' a
+            comma-separated list of number=name
+EOD_USAGE
+	exit 0;
+}
+
+#---------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#--------------------------------------------------- output ---
+sub output {
+	my $host = shift @_;
+	my $interface = shift @_;
+	my $now = shift @_;
+	my $port;
+
+# For collector output, which isn't usefull as updater will
+# only do one timestamp per run.  Have to look at that.
+#	foreach my $port (keys %main::traffic) {
+#		print <<"EOD_DATA";
+#$host $now if-$interface-$main::ports{$port}-bytes $main::traffic{$port}{BYTES}
+#$host $now if-$interface-$main::ports{$port}-packets $main::traffic{$port}{PACKETS}
+#EOD_DATA
+#	}
+
+# For rrdtool direct input
+	my $update = "update /var/facon/data/$host/ports-$interface.rrd $now";
+
+	foreach my $portname (@main::ports) { # order matters
+		if (defined $main::ports{$portname}) {
+			$port = $main::ports{$portname};
+		}
+		else {
+			&abort("can't find number for port $portname");
+		}
+
+		if (defined $main::traffic{$port}) {
+			$update .= ':'. $main::traffic{$port}{PACKETS} .':'.
+				$main::traffic{$port}{BYTES};
+		}
+		else { $update .= ':U:U'; }
+	}
+	print $update . "\n";
+}
+
+#----------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#-------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

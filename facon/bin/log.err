@@ -1,0 +1,1368 @@
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: 
+DEBUG: Starting stage check
+DEBUG:   check for '' passed
+DEBUG:     freq: check:check-config: last=0, freq=300 => 1
+DEBUG: fix_command: raw=check-config
+DEBUG: fix_command: new=check-config 2>/root/3p/facon/tmp/run-stages/check-check-config-out-9006.1
+DEBUG:   2016-10-17 22:24:16 9007 forked for check:check-config
+DEBUG:   command: check-config 2>/root/3p/facon/tmp/run-stages/check-check-config-out-9006.1
+DEBUG:   2016-10-17 22:24:17 9007 finished for check:check-config
+DEBUG:   2016-10-17 22:24:17 no more non-async children
+DEBUG: 
+DEBUG: Starting stage ping
+DEBUG:   check for '' passed
+DEBUG:     freq: ping:ping: last=0, freq=300 => 1
+DEBUG: fix_command: raw=ping-collector -F | updater ping
+DEBUG: fix_command: new=ping-collector -F 2>/root/3p/facon/tmp/run-stages/ping-ping-out-9006.1|updater ping 2>/root/3p/facon/tmp/run-stages/ping-ping-out-9006.2
+DEBUG:   2016-10-17 22:24:17 9009 forked for ping:ping
+DEBUG:   command: ping-collector -F 2>/root/3p/facon/tmp/run-stages/ping-ping-out-9006.1|updater ping 2>/root/3p/facon/tmp/run-stages/ping-ping-out-9006.2
+DEBUG:   2016-10-17 22:24:29 9009 finished for ping:ping
+DEBUG:   2016-10-17 22:24:29 no more non-async children
+DEBUG: 
+DEBUG: Starting stage collectors
+DEBUG:   check for '' passed
+DEBUG:     freq: collectors:snmp: last=0, freq=300 => 1
+DEBUG: fix_command: raw=snmp-collector -d 999| updater snmp
+DEBUG: fix_command: new=snmp-collector -d 999 2>/root/3p/facon/tmp/run-stages/collectors-snmp-out-9006.1|updater snmp 2>/root/3p/facon/tmp/run-stages/collectors-snmp-out-9006.2
+DEBUG:   2016-10-17 22:24:29 9017 forked for collectors:snmp
+DEBUG:   command: snmp-collector -d 999 2>/root/3p/facon/tmp/run-stages/collectors-snmp-out-9006.1|updater snmp 2>/root/3p/facon/tmp/run-stages/collectors-snmp-out-9006.2
+DEBUG:     freq: collectors:ping: last=0, freq=300 => 1
+DEBUG: fix_command: raw=ping-collector | updater ping
+DEBUG: fix_command: new=ping-collector 2>/root/3p/facon/tmp/run-stages/collectors-ping-out-9006.1|updater ping 2>/root/3p/facon/tmp/run-stages/collectors-ping-out-9006.2
+DEBUG:   2016-10-17 22:24:30 9021 forked for collectors:ping
+DEBUG:   command: ping-collector 2>/root/3p/facon/tmp/run-stages/collectors-ping-out-9006.1|updater ping 2>/root/3p/facon/tmp/run-stages/collectors-ping-out-9006.2
+DEBUG:     freq: collectors:nt-status: last=0, freq=300 => 1
+DEBUG: fix_command: raw=nt-status-collector -p 9002 | updater -d 999 nt-status
+DEBUG: fix_command: new=nt-status-collector -p 9002 2>/root/3p/facon/tmp/run-stages/collectors-nt-status-out-9006.1|updater -d 999 nt-status 2>/root/3p/facon/tmp/run-stages/collectors-nt-status-out-9006.2
+DEBUG:   2016-10-17 22:24:31 9025 forked for collectors:nt-status
+DEBUG:   command: nt-status-collector -p 9002 2>/root/3p/facon/tmp/run-stages/collectors-nt-status-out-9006.1|updater -d 999 nt-status 2>/root/3p/facon/tmp/run-stages/collectors-nt-status-out-9006.2
+DEBUG:     freq: collectors:log: last=0, freq=300 => 1
+DEBUG: fix_command: raw=log-collector -p 9001 | updater  log
+DEBUG: fix_command: new=log-collector -p 9001 2>/root/3p/facon/tmp/run-stages/collectors-log-out-9006.1|updater  log 2>/root/3p/facon/tmp/run-stages/collectors-log-out-9006.2
+DEBUG:   2016-10-17 22:24:32 9028 forked for collectors:log
+DEBUG:   command: log-collector -p 9001 2>/root/3p/facon/tmp/run-stages/collectors-log-out-9006.1|updater  log 2>/root/3p/facon/tmp/run-stages/collectors-log-out-9006.2
+DEBUG:     freq: collectors:unix-status: last=0, freq=300 => 1
+DEBUG: fix_command: raw=unix-status-collector -u -d 999 -p 9000 -t 240 | updater -d 999 unix-status
+DEBUG: fix_command: new=unix-status-collector -u -d 999 -p 9000 -t 240 2>/root/3p/facon/tmp/run-stages/collectors-unix-status-out-9006.1|updater -d 999 unix-status 2>/root/3p/facon/tmp/run-stages/collectors-unix-status-out-9006.2
+DEBUG:   2016-10-17 22:24:33 9031 forked for collectors:unix-status
+DEBUG:   command: unix-status-collector -u -d 999 -p 9000 -t 240 2>/root/3p/facon/tmp/run-stages/collectors-unix-status-out-9006.1|updater -d 999 unix-status 2>/root/3p/facon/tmp/run-stages/collectors-unix-status-out-9006.2
+DEBUG:     freq: collectors:port: last=0, freq=300 => 1
+DEBUG: fix_command: raw=port-collector | updater port
+DEBUG: fix_command: new=port-collector 2>/root/3p/facon/tmp/run-stages/collectors-port-out-9006.1|updater port 2>/root/3p/facon/tmp/run-stages/collectors-port-out-9006.2
+DEBUG:   2016-10-17 22:24:34 9034 forked for collectors:port
+DEBUG:   command: port-collector 2>/root/3p/facon/tmp/run-stages/collectors-port-out-9006.1|updater port 2>/root/3p/facon/tmp/run-stages/collectors-port-out-9006.2
+DEBUG:     freq: collectors:program: last=0, freq=1 => 1
+DEBUG: fix_command: raw=program-collector -u -d 999  | updater -d 999 program
+DEBUG: fix_command: new=program-collector -u -d 999 2>/root/3p/facon/tmp/run-stages/collectors-program-out-9006.1|updater -d 999 program 2>/root/3p/facon/tmp/run-stages/collectors-program-out-9006.2
+DEBUG:   2016-10-17 22:24:35 9038 forked for collectors:program
+DEBUG:   command: program-collector -u -d 999 2>/root/3p/facon/tmp/run-stages/collectors-program-out-9006.1|updater -d 999 program 2>/root/3p/facon/tmp/run-stages/collectors-program-out-9006.2
+DEBUG:   2016-10-17 22:24:36 9017 finished for collectors:snmp
+DEBUG:   2016-10-17 22:24:36 9025 finished for collectors:nt-status
+DEBUG:   2016-10-17 22:24:36 9028 finished for collectors:log
+DEBUG:   2016-10-17 22:24:36 9031 finished for collectors:unix-status
+DEBUG:   2016-10-17 22:24:36 9034 finished for collectors:port
+DEBUG:   2016-10-17 22:24:36 9038 finished for collectors:program
+DEBUG:   2016-10-17 22:24:42 9021 finished for collectors:ping
+DEBUG:   2016-10-17 22:24:42 no more non-async children
+DEBUG: 
+DEBUG: Starting stage post-collector
+DEBUG:   check for '' passed
+DEBUG:     freq: post-collector:error-collector: last=0, freq=300 => 1
+DEBUG: fix_command: raw=error-collector ##RUNPID## | updater error
+DEBUG: fix_command: new=error-collector 9006 2>/root/3p/facon/tmp/run-stages/post-collector-error-collector-out-9006.1|updater error 2>/root/3p/facon/tmp/run-stages/post-collector-error-collector-out-9006.2
+DEBUG:   2016-10-17 22:24:42 9044 forked for post-collector:error-collector
+DEBUG:   command: error-collector 9006 2>/root/3p/facon/tmp/run-stages/post-collector-error-collector-out-9006.1|updater error 2>/root/3p/facon/tmp/run-stages/post-collector-error-collector-out-9006.2
+DEBUG:   2016-10-17 22:24:43 9044 finished for post-collector:error-collector
+DEBUG:   2016-10-17 22:24:43 no more non-async children
+DEBUG: 
+DEBUG: Starting stage monitors
+DEBUG:   check for '' passed
+DEBUG:     freq: monitors:alert-monitor: last=0, freq=300 => 1
+DEBUG: fix_command: raw=alert-monitor
+DEBUG: fix_command: new=alert-monitor 2>/root/3p/facon/tmp/run-stages/monitors-alert-monitor-out-9006.1
+DEBUG:   2016-10-17 22:24:43 9047 forked for monitors:alert-monitor
+DEBUG:   command: alert-monitor 2>/root/3p/facon/tmp/run-stages/monitors-alert-monitor-out-9006.1
+DEBUG:     freq: monitors:ping-monitor: last=0, freq=300 => 1
+DEBUG: fix_command: raw=ping-monitor
+DEBUG: fix_command: new=ping-monitor 2>/root/3p/facon/tmp/run-stages/monitors-ping-monitor-out-9006.1
+DEBUG:   2016-10-17 22:24:44 9052 forked for monitors:ping-monitor
+DEBUG:   command: ping-monitor 2>/root/3p/facon/tmp/run-stages/monitors-ping-monitor-out-9006.1
+DEBUG:   2016-10-17 22:24:45 9047 finished for monitors:alert-monitor
+DEBUG:   2016-10-17 22:24:45 9052 finished for monitors:ping-monitor
+DEBUG:   2016-10-17 22:24:45 no more non-async children
+DEBUG: 
+DEBUG: Starting stage pagemakers
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-pop3-response changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/load changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-ftp-response changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-ping changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-ping-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-snmp-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/df-percent changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/SYSLOG-DEFAULT changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/qmailq-backlog changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/ntservice changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/EMAIL-FOOTER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-smtp-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/apcups-load changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/qmailq-qsite changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/apcups-temperature changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-ntop-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-generic-response changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/NAGIOS-FOOTER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/bgppeer-sessions changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/df-inodepct changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/snmpcpu changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-port changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-unix-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/FOOTER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/apcupsbatteryreplace changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-snmp changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/apcups-timeleft changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/SYSLOG-HEADER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-log changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/NAGIOS-df-percent changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-http-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-nt-status-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-log-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-unix-status-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-smtp-response changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/ping-rttavg changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/NAGIOS-HEADER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/HEADER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/WINPOPUP-HEADER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-generic-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-ssh-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/dsinuse changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-dbi-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-port-runtime changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/qmailq-qlocal changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/apcups-capacity changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/backup.tar changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/WINPOPUP-FOOTER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/apcups-onbattery changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-pop3-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/ping-rcvd changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/SYSLOG-FOOTER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/DEFAULT changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-ssh-response changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/NAGIOS-bamac-inci changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/cpu changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-ftp-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/qmailq-qremote changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/EMAIL-HEADER changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-dbi changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/bgppeer-start changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-ntop changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/NAGIOS-DEFAULT changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/collector-nt-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/port-http-response changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/memory-freemem changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/NAGIOS-bamac-exec changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/if-err changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/memory-scanrate changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/alert-templates/bgppeer-state changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/customgraphs/vacio changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/dbi-connects/vacio changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/dbi-selects/vacio changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/host-templates/vacio changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/hosts/dattatec.com changed on 2012-09-21 16:00:14
+DEBUG: /root/3p/facon/etc/config/hosts/localhost changed on 2013-04-09 10:39:05
+DEBUG: /root/3p/facon/etc/config/hosts/backup changed on 2015-12-13 08:59:09
+DEBUG: /root/3p/facon/etc/config/hosts/192.168.1.12 changed on 2016-10-17 22:00:56
+DEBUG: /root/3p/facon/etc/config/hosts/sancarlos changed on 2015-12-13 08:59:25
+DEBUG: /root/3p/facon/etc/config/hosts/192.168.1.113 changed on 2016-10-17 22:02:17
+DEBUG: /root/3p/facon/etc/config/hosts/192.168.1.6 changed on 2015-12-18 00:00:23
+DEBUG: /root/3p/facon/etc/config/hosts/yahoo.com changed on 2015-12-27 23:49:21
+DEBUG: /root/3p/facon/etc/config/page-templates/rrd-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/custom-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/graph-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/custom-graph.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/rrd-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/host-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/rrdgraph-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/ping-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/rrdgraph-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/quick-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/quick-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/custom-index.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/page-templates/ping-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/graph-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/host-index changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/page-templates/custom-graph changed on 2012-09-19 15:51:47
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates_parece_andar changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procname-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod4- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procmeminfo.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/namedxfers.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/newshistory changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlspocprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/snmpuptime changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/programdb1- changed on 2013-01-16 16:50:22
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod4- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/sendmaillog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/syslog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/wssyslog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/load changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/program-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-ping changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dbitest1.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlspocprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dnscachelog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblpreprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dlinklogin.bak changed on 2012-09-21 10:40:56
+DEBUG: /root/3p/facon/etc/config/rrds/dlink.bak changed on 2012-09-21 11:11:22
+DEBUG: /root/3p/facon/etc/config/rrds/memory.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/prulog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ftpxferlog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-ping.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukpreprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dupbl changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ping- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procbmh.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/du-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ps-A_TERMINAR.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacpprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntuptime.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/errors-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dbitest1 changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/memory changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/programdb- changed on 2013-01-16 16:50:10
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod3-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/smbdprocs.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/unixtime changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/apcenv changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpaiprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/iostat-.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/du.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates.pred.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/cpu.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates.pred changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/httpdlog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-cisco-access-server changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ciscolinespeeds changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ftpxferlog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/atalkdprocs changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/if- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpaiprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/apcups.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/atalkdprocs.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/snmpcpu.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/snmpif- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/snmpmem changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/afpdprocs changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ports- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procdiskio.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-dns changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsrv-.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/errors- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/wslog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/snmpcpu changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntpaging.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-port changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pssum- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntactivity.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/procdiskio changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacppreprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/uptime changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ind-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukpreprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dsinuse.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/qmail-smtplog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-unix-status changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/namedstats.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dupbl.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/qmail-poplog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/apcupsbatteryreplace changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pssum-.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-snmp changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pssum-.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/httpdlog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-cisco-access-server.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dlink changed on 2012-09-25 09:11:45
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod3- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-snmp.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ftpusers changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ps-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ports-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntlogicaldisk-.orig changed on 2013-01-28 14:39:14
+DEBUG: /root/3p/facon/etc/config/rrds/collector-log changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pixsessions.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntcpu.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/pscount- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ciscotemperatures.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukpreprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/nttime changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/prulog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/frif- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/oralog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/normalloge- changed on 2013-05-10 12:05:35
+DEBUG: /root/3p/facon/etc/config/rrds/qmail-qstat changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpaiprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacppreprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblpreprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procnetdev-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ps- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntmemory.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/nmbdprocs.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/environmentcanada- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/oralog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ftpcount changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/testiglog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/wslog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/du.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bgppeer- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dirsize-.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod3- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-log.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpaiprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procbmh changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod4-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntpaging changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/sarlin-paging changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod3-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/airqualityontario- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacpprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ciscotemperatures changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacppreprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntmemory changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/fileage- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ciscolinespeeds.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/unixtime.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dsinuse changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod4-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dirsize- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod3-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/cftlog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/newsreaders changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukpreprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/airqualityontario-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/procbm3.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-snmp-route changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamlan-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dnssite- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamres- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/nttime.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ind- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pssum-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/normallog- changed on 2013-05-07 14:25:25
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukpreprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntnetwork.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukpreprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/df-_orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/memory.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamac- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacppreprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates_parece_andar.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/pixmem.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/apache-status.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-dns.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/namedstats changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pixmem changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/sendmaillog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/port- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ftpusers.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpaiprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpaiprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/newslog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/uptime.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntactivity changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/squid.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/iostat-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/tcpstates.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-port.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dnscachelog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ducis.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/quemaquinaes- changed on 2013-05-08 11:40:12
+DEBUG: /root/3p/facon/etc/config/rrds/wssyslog-.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/process.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamres-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/memory.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/cpu changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pixsessions changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/port-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/nmbdprocs changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/qmail-poplog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntlogicaldisk-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-snmp-route.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacpprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/qmail-qstat.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod5-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/du- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-dbi.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntservice- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/sarlin-paging.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bgppeer-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/procnetdev- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/snmp-routes-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/testiglog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/fileage-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntuptime changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntop-host-dist.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ping.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dnssite-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dlinklogin changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/apcupsbatteryreplace.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-ntop.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntservice-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/newsreaders.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntcpu changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/syslog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/qmail-smtplog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/inndsize.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/snmpif-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/temp- changed on 2013-02-07 14:32:28
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacpprod2- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/pscount-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/inndsize changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/program- changed on 2013-01-16 15:37:37
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/snmpuptime.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacpprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/iostat-.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/iostat- changed on 2012-12-19 14:03:48
+DEBUG: /root/3p/facon/etc/config/rrds/ducis changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procname- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-unix-status.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-dbi changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dnsamx- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procmeminfo changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/apache-status changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/afpdprocs.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntnetwork changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/df-_orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-ntop changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/squid changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/environmentcanada-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dnsa- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/df- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/collector-nt-status changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/newshistory.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlukprod- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dirsize-.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ntnetworkinterface-.bak changed on 2012-09-21 10:28:34
+DEBUG: /root/3p/facon/etc/config/rrds/bamsrv-.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/cftalog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/cftalog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/weathernetwork changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/procbm3 changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsrv-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/qmaillog changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblpreprod1-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntop-host-dist changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacpprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/linkuptime- changed on 2013-01-18 15:03:18
+DEBUG: /root/3p/facon/etc/config/rrds/cftlog- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod5- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/qmaillog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dnsamx-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamac-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/apcenv.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/linkuptime-.orig changed on 2013-01-18 13:34:25
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod3- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/namedxfers changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/iostat-.19122012 changed on 2012-12-19 12:45:51
+DEBUG: /root/3p/facon/etc/config/rrds/weathernetwork.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/netappcpu changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/netappcpu.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/dirsize-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntnetworkinterface- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/frif-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/df-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/if-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/process changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamlan- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/snmpmem.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/collector-nt-status.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/remoteping-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/wssyslog-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacppreprod-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsrv- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/dnsa-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/wssyslog-.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/ntlogicaldisk- changed on 2013-01-28 14:40:06
+DEBUG: /root/3p/facon/etc/config/rrds/ps-A_TERMINAR changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ftpcount.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamac-.orig changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ping changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/smbdprocs changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/apcups changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/snmp-routes- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/ping-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/newslog.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/remoteping- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlfrpreprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamac-.orig.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlpblpreprod1- changed on 2012-09-21 22:21:33
+DEBUG: /root/3p/facon/etc/config/rrds/bamsqlacppreprod2-.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/rrds/load.bak changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/run-stages/monitors changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/run-stages/collectors-with-ping changed on 2016-10-17 22:17:54
+DEBUG: /root/3p/facon/etc/config/run-stages/check changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/run-stages/post-collector changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/run-stages/collectors changed on 2016-10-17 22:24:29
+DEBUG: /root/3p/facon/etc/config/run-stages/pagemakers changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/run-stages/ping changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/nntp changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/lpd changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/pop3 changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/http changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/http-proxy changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/dlink changed on 2012-09-21 10:18:15
+DEBUG: /root/3p/facon/etc/config/scripts/environmentcanada- changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/netbios changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/imap changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/airqualityontario- changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/httpauth changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/smtp changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/domain changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/proxy changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/whois changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/ldap changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/dlinklogin changed on 2012-09-21 10:42:06
+DEBUG: /root/3p/facon/etc/config/scripts/apache-status changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/telnet changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/scripts/weathernetwork changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/bamactmpl changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/multitail.exe.stackdump changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/bamactmpl.casiorig changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/bamac-preprodtmpl changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/put.pl changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/reporte_a_tmpl changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/bamacdelivery changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/view-templates/bamactmptmpl changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/views/reporte_a changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/views/tmps changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/views/bamac changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/views/bamac-preprod changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./archives changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./pages changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./yvas4180_discos changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./alert-destination-map changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./multitail.exe.stackdump changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./yvas6120_discos changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./log.err changed on 2016-10-17 22:24:36
+DEBUG: /root/3p/facon/etc/config/./environment changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./hosts changed on 2016-10-17 22:01:32
+DEBUG: /root/3p/facon/etc/config/./alerts changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./rrds changed on 2013-05-10 12:05:36
+DEBUG: /root/3p/facon/etc/config/./oids changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./customgraphs changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./general changed on 2016-10-17 22:08:52
+DEBUG: /root/3p/facon/etc/config/./dbi-selects changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./tools changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./access changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./groups changed on 2012-09-19 14:25:24
+DEBUG: /root/3p/facon/etc/config/./alert-template-map changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./views changed on 2012-09-19 14:20:51
+DEBUG: /root/3p/facon/etc/config/./run-stages changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./dbi-connects changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./html changed on 2012-09-25 12:34:44
+DEBUG: /root/3p/facon/etc/config/./discovery changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./page-templates changed on 2012-09-19 16:03:36
+DEBUG: /root/3p/facon/etc/config/./log changed on 2016-10-17 22:24:36
+DEBUG: /root/3p/facon/etc/config/./host-templates changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./times changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./scripts changed on 2012-09-21 10:41:19
+DEBUG: /root/3p/facon/etc/config/./alert-templates changed on 2012-09-19 12:38:11
+DEBUG: /root/3p/facon/etc/config/./ntops changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./availability changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./remotepings changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./run changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./links changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./colors changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./backup_hosts.tar changed on 2012-09-19 13:02:08
+DEBUG: /root/3p/facon/etc/config/./view-templates changed on 2012-09-19 14:20:51
+DEBUG: last changed config was /root/3p/facon/etc/config/./log.err at 2016-10-17 22:24:36
+DEBUG: check_when: logged=1476753845, changed=1476753876
+DEBUG: check_when: stage=pagemakers, check=CONFIGCHANGE => 1
+DEBUG:     freq: pagemakers:datapage-interfaces: last=0, freq=300 => 1
+DEBUG: fix_command: raw=datapage-interfaces
+DEBUG: fix_command: new=datapage-interfaces 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-interfaces-out-9006.1
+DEBUG:   2016-10-17 22:24:45 9054 forked for pagemakers:datapage-interfaces
+DEBUG:   command: datapage-interfaces 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-interfaces-out-9006.1
+DEBUG:     freq: pagemakers:datapage-status: last=0, freq=300 => 1
+DEBUG: fix_command: raw=datapage-status
+DEBUG: fix_command: new=datapage-status 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-status-out-9006.1
+DEBUG:   2016-10-17 22:24:46 9056 forked for pagemakers:datapage-status
+DEBUG:   command: datapage-status 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-status-out-9006.1
+DEBUG:     freq: pagemakers:view-writer: last=0, freq=300 => 1
+DEBUG: fix_command: raw=view-writer
+DEBUG: fix_command: new=view-writer 2>/root/3p/facon/tmp/run-stages/pagemakers-view-writer-out-9006.1
+DEBUG:   2016-10-17 22:24:47 9058 forked for pagemakers:view-writer
+DEBUG:   command: view-writer 2>/root/3p/facon/tmp/run-stages/pagemakers-view-writer-out-9006.1
+DEBUG:     freq: pagemakers:datapage-inventory: last=0, freq=300 => 1
+DEBUG: fix_command: raw=datapage-inventory
+DEBUG: fix_command: new=datapage-inventory 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-inventory-out-9006.1
+DEBUG:   2016-10-17 22:24:48 9060 forked for pagemakers:datapage-inventory
+DEBUG:   command: datapage-inventory 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-inventory-out-9006.1
+DEBUG:     freq: pagemakers:page-writer: last=0, freq=300 => 1
+DEBUG: fix_command: raw=page-writer
+DEBUG: fix_command: new=page-writer 2>/root/3p/facon/tmp/run-stages/pagemakers-page-writer-out-9006.1
+DEBUG:   2016-10-17 22:24:49 9062 forked for pagemakers:page-writer
+DEBUG:   command: page-writer 2>/root/3p/facon/tmp/run-stages/pagemakers-page-writer-out-9006.1
+DEBUG:     freq: pagemakers:snmpif-setspeed: last=0, freq=86400 => 1
+DEBUG: fix_command: raw=snmpif-setspeed
+DEBUG: fix_command: new=snmpif-setspeed 2>/root/3p/facon/tmp/run-stages/pagemakers-snmpif-setspeed-out-9006.1
+DEBUG:   2016-10-17 22:24:50 9065 forked for pagemakers:snmpif-setspeed
+DEBUG:   command: snmpif-setspeed 2>/root/3p/facon/tmp/run-stages/pagemakers-snmpif-setspeed-out-9006.1
+DEBUG:     freq: pagemakers:datapage-alert-writer: last=0, freq=300 => 1
+DEBUG: fix_command: raw=datapage-alert-writer
+DEBUG: fix_command: new=datapage-alert-writer 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-alert-writer-out-9006.1
+DEBUG:   2016-10-17 22:24:51 9067 forked for pagemakers:datapage-alert-writer
+DEBUG:   command: datapage-alert-writer 2>/root/3p/facon/tmp/run-stages/pagemakers-datapage-alert-writer-out-9006.1
+DEBUG:   2016-10-17 22:24:52 9054 finished for pagemakers:datapage-interfaces
+DEBUG:   2016-10-17 22:24:52 9056 finished for pagemakers:datapage-status
+DEBUG:   2016-10-17 22:24:52 9058 finished for pagemakers:view-writer
+DEBUG:   2016-10-17 22:24:52 9060 finished for pagemakers:datapage-inventory
+DEBUG:   2016-10-17 22:24:52 9062 finished for pagemakers:page-writer
+DEBUG:   2016-10-17 22:24:52 9065 finished for pagemakers:snmpif-setspeed
+DEBUG:   2016-10-17 22:24:52 9067 finished for pagemakers:datapage-alert-writer
+DEBUG:   2016-10-17 22:24:52 no more non-async children
+
+Errors for check:check-config
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/alertstuff.pl line 254.
+	(Maybe you should just omit the defined()?)
+
+Errors for ping:ping
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for ping:ping
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:log
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:log
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:nt-status
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:nt-status
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: read_ip_cache: reading file
+DEBUG: get_ip: got ip from config: 192.168.1.12 is 192.168.1.12
+DEBUG: doing updates for 192.168.1.12
+DEBUG:   ping isn't collected by nt-status; skipped
+DEBUG:   snmpuptime isn't collected by nt-status; skipped
+DEBUG:   snmpif-* isn't collected by nt-status; skipped
+DEBUG:   snmpif-* isn't collected by nt-status; skipped
+DEBUG:   snmpif-* isn't collected by nt-status; skipped
+DEBUG: get_ip: got ip from config: 192.168.1.6 is 192.168.1.6
+DEBUG: doing updates for 192.168.1.6
+DEBUG:   ping isn't collected by nt-status; skipped
+DEBUG:   snmpuptime isn't collected by nt-status; skipped
+DEBUG:   snmpif-* isn't collected by nt-status; skipped
+DEBUG:   snmpif-* isn't collected by nt-status; skipped
+DEBUG: get_ip: got ip from config: dattatec.com is 200.58.106.10
+DEBUG: doing updates for dattatec.com
+DEBUG:   ping isn't collected by nt-status; skipped
+DEBUG: get_ip: got ip from config: yahoo.com is 98.139.183.24
+DEBUG: doing updates for yahoo.com
+DEBUG:   ping isn't collected by nt-status; skipped
+DEBUG: get_ip: got ip from config: localhost is 127.0.0.1
+DEBUG: doing updates for localhost
+DEBUG:   df-* isn't collected by nt-status; skipped
+DEBUG:   df-* isn't collected by nt-status; skipped
+DEBUG:   if-* isn't collected by nt-status; skipped
+DEBUG:   procnetdev-* isn't collected by nt-status; skipped
+DEBUG:   dirsize-* isn't collected by nt-status; skipped
+DEBUG:   dirsize-* isn't collected by nt-status; skipped
+DEBUG:   dirsize-* isn't collected by nt-status; skipped
+DEBUG:   dirsize-* isn't collected by nt-status; skipped
+DEBUG:   dirsize-* isn't collected by nt-status; skipped
+DEBUG:   iostat-* isn't collected by nt-status; skipped
+DEBUG:   iostat-* isn't collected by nt-status; skipped
+DEBUG:   iostat-* isn't collected by nt-status; skipped
+DEBUG:   iostat-* isn't collected by nt-status; skipped
+DEBUG:   temp-* isn't collected by nt-status; skipped
+DEBUG:   smbdprocs isn't collected by nt-status; skipped
+DEBUG: get_ip: got ip from config: 192.168.1.113 is 192.168.1.113
+DEBUG: doing updates for 192.168.1.113
+DEBUG:   ping isn't collected by nt-status; skipped
+
+Errors for collectors:ping
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:ping
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:port
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:port
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:program
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: read_ip_cache: reading file
+DEBUG: get_ip: got ip from config: localhost is 127.0.0.1
+DEBUG: doing host localhost
+DEBUG: check_collect_time: rrd=temp--root-3p-bin-get_mother.pl(temp-*) last=1476753635 now=1476753875 step=300 diff=240 collect=1
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+
+Errors for collectors:program
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: RAW: host=localhost, time=1476753875, var=cputemp, value=
+DEBUG: RAW: host=localhost, time=1476753875, var=cputemp-response, value=0
+DEBUG: RAW: host=localhost, time=1476753875, var=mbtemp, value=
+DEBUG: RAW: host=localhost, time=1476753875, var=mbtemp-response, value=0
+DEBUG: read_ip_cache: reading file
+DEBUG: get_ip: got ip from config: 192.168.1.12 is 192.168.1.12
+DEBUG: doing updates for 192.168.1.12
+DEBUG:   ping isn't collected by program; skipped
+DEBUG:   snmpuptime isn't collected by program; skipped
+DEBUG:   snmpif-* isn't collected by program; skipped
+DEBUG:   snmpif-* isn't collected by program; skipped
+DEBUG:   snmpif-* isn't collected by program; skipped
+DEBUG: get_ip: got ip from config: 192.168.1.6 is 192.168.1.6
+DEBUG: doing updates for 192.168.1.6
+DEBUG:   ping isn't collected by program; skipped
+DEBUG:   snmpuptime isn't collected by program; skipped
+DEBUG:   snmpif-* isn't collected by program; skipped
+DEBUG:   snmpif-* isn't collected by program; skipped
+DEBUG: get_ip: got ip from config: dattatec.com is 200.58.106.10
+DEBUG: doing updates for dattatec.com
+DEBUG:   ping isn't collected by program; skipped
+DEBUG: get_ip: got ip from config: yahoo.com is 98.139.183.24
+DEBUG: doing updates for yahoo.com
+DEBUG:   ping isn't collected by program; skipped
+DEBUG: get_ip: got ip from config: localhost is 127.0.0.1
+DEBUG: doing updates for localhost
+DEBUG:   df-* isn't collected by program; skipped
+DEBUG:   df-* isn't collected by program; skipped
+DEBUG:   if-* isn't collected by program; skipped
+DEBUG:   procnetdev-* isn't collected by program; skipped
+DEBUG:   dirsize-* isn't collected by program; skipped
+DEBUG:   dirsize-* isn't collected by program; skipped
+DEBUG:   dirsize-* isn't collected by program; skipped
+DEBUG:   dirsize-* isn't collected by program; skipped
+DEBUG:   dirsize-* isn't collected by program; skipped
+DEBUG:   iostat-* isn't collected by program; skipped
+DEBUG:   iostat-* isn't collected by program; skipped
+DEBUG:   iostat-* isn't collected by program; skipped
+DEBUG:   iostat-* isn't collected by program; skipped
+DEBUG:   temp-* is collected by program
+DEBUG:   rrd temp-/root/3p/bin/get_mother.pl
+DEBUG:     host=localhost, var=cputemp, alias=cputemp
+DEBUG:     host=localhost, var=mbtemp, alias=mbtemp
+DEBUG:     host=localhost, var=responsetime, alias=cputemp-response
+DEBUG:     update packet: 1476753875:::0
+DEBUG:     updated /root/3p/facon/data/localhost/temp--root-3p-bin-get_mother.pl.rrd with 1476753875:::0
+DEBUG:   smbdprocs isn't collected by program; skipped
+DEBUG: get_ip: got ip from config: 192.168.1.113 is 192.168.1.113
+DEBUG: doing updates for 192.168.1.113
+DEBUG:   ping isn't collected by program; skipped
+
+Errors for collectors:snmp
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: snmp_load_oids: bgpPeerInUpdateElapsedTime = 1.3.6.1.2.1.15.3.1.24
+DEBUG: snmp_load_oids: frCircuitState = 1.3.6.1.2.1.10.32.2.1.3
+DEBUG: snmp_load_oids: APCUpsAdvOutputCurrent = 1.3.6.1.4.1.318.1.1.1.4.2.4.0
+DEBUG: snmp_load_oids: HPgdStatusDoorOpen.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.17.0
+DEBUG: snmp_load_oids: cmCallPhoneNumber = 1.3.6.1.4.1.9.9.47.1.3.1.1.10
+DEBUG: snmp_load_oids: ifInDiscards = 1.3.6.1.2.1.2.2.1.13
+DEBUG: snmp_load_oids: hrStorageDescr = 1.3.6.1.2.1.25.2.3.1.3
+DEBUG: snmp_load_oids: cmProtocolUsed = 1.3.6.1.4.1.9.9.47.1.3.1.1.13
+DEBUG: snmp_load_oids: bgpPeerFsmEstablishedTime = 1.3.6.1.2.1.15.3.1.16
+DEBUG: snmp_load_oids: cacheSysStorage = 1.3.6.1.4.1.3495.1.1.2.0
+DEBUG: snmp_load_oids: CiscoCpmDS0CallType = 1.3.6.1.4.1.9.10.19.1.1.1.1.5.0.0
+DEBUG: snmp_load_oids: ifOutNUcastPkts = 1.3.6.1.2.1.2.2.1.18
+DEBUG: snmp_load_oids: APCUpsBasicBatteryStatus = 1.3.6.1.4.1.318.1.1.1.2.1.1.0
+DEBUG: snmp_load_oids: hrStorageAllocationUnits = 1.3.6.1.2.1.25.2.3.1.4
+DEBUG: snmp_load_oids: HPgdStatusInitialize.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.16.0
+DEBUG: snmp_load_oids: CiscoCpuLoad = 1.3.6.1.4.1.9.2.1.58.0
+DEBUG: snmp_load_oids: ucdMemAvailSwap = 1.3.6.1.4.1.2021.4.4.0
+DEBUG: snmp_load_oids: ucdMemTotalSwap = 1.3.6.1.4.1.2021.4.3.0
+DEBUG: snmp_load_oids: APCUpsBasicIdentModel = 1.3.6.1.4.1.318.1.1.1.1.1.1.0
+DEBUG: snmp_load_oids: APCUpsAdvBatteryTemperature = 1.3.6.1.4.1.318.1.1.1.2.2.2.0
+DEBUG: snmp_load_oids: CiscoFreeMem = 1.3.6.1.4.1.9.2.1.8.0
+DEBUG: snmp_load_oids: APCUpsAdvOutputVoltage = 1.3.6.1.4.1.318.1.1.1.4.2.1.0
+DEBUG: snmp_load_oids: APCUpsAdvIdentFirmwareRevision = 1.3.6.1.4.1.318.1.1.1.1.2.1.0
+DEBUG: snmp_load_oids: cmTXRate = 1.3.6.1.4.1.9.9.47.1.3.1.1.14
+DEBUG: snmp_load_oids: ifOutDiscards = 1.3.6.1.2.1.2.2.1.19
+DEBUG: snmp_load_oids: cmTXAnalogSignalLevel = 1.3.6.1.4.1.9.9.47.1.3.1.1.16
+DEBUG: snmp_load_oids: bgpPeerFsmEstablishedTransitions = 1.3.6.1.2.1.15.3.1.15
+DEBUG: snmp_load_oids: cmManufacturerID = 1.3.6.1.4.1.9.9.47.1.3.1.1.3
+DEBUG: snmp_load_oids: ifInOctets = 1.3.6.1.2.1.2.2.1.10
+DEBUG: snmp_load_oids: ifAlias = 1.3.6.1.2.1.31.1.1.1.18
+DEBUG: snmp_load_oids: HPgdStatusSource.0 = 1.3.6.1.4.1.11.2.3.9.1.1.5.0
+DEBUG: snmp_load_oids: APCUpsAdvOutputFrequency = 1.3.6.1.4.1.318.1.1.1.4.2.2.0
+DEBUG: snmp_load_oids: ifOutUcastPkts = 1.3.6.1.2.1.2.2.1.17
+DEBUG: snmp_load_oids: APCUpsBasicOutputStatus = 1.3.6.1.4.1.318.1.1.1.4.1.1.0
+DEBUG: snmp_load_oids: CiscoCpmActiveDS0s = 1.3.6.1.4.1.9.10.19.1.1.4.0
+DEBUG: snmp_load_oids: ucdMemTotalReal = 1.3.6.1.4.1.2021.4.5.0
+DEBUG: snmp_load_oids: ipForwarding = 1.3.6.1.2.1.4.1.0
+DEBUG: snmp_load_oids: CiscoTempInlet = 1.3.6.1.4.1.9.9.13.1.3.1.3.1
+DEBUG: snmp_load_oids: ifInNUcastPkts = 1.3.6.1.2.1.2.2.1.12
+DEBUG: snmp_load_oids: APCUpsAdvInputLineVoltage = 1.3.6.1.4.1.318.1.1.1.3.2.1.0
+DEBUG: snmp_load_oids: ifInErrors = 1.3.6.1.2.1.2.2.1.14
+DEBUG: snmp_load_oids: cacheClients = 1.3.6.1.4.1.3495.1.3.2.1.15.0
+DEBUG: snmp_load_oids: cacheCpuUsage = 1.3.6.1.4.1.3495.1.3.1.5.0
+DEBUG: snmp_load_oids: cmCallDuration = 1.3.6.1.4.1.9.9.47.1.3.1.1.9
+DEBUG: snmp_load_oids: sysUptime = 1.3.6.1.2.1.1.3.0
+DEBUG: snmp_load_oids: bgpPeerLastError = 1.3.6.1.2.1.15.3.1.14
+DEBUG: snmp_load_oids: APCUpsBasicInputPhase = 1.3.6.1.4.1.318.1.1.1.3.1.1.0
+DEBUG: snmp_load_oids: ucdSsSysContext = 1.3.6.1.4.1.2021.11.8.0
+DEBUG: snmp_load_oids: frCircuitSentOctets = 1.3.6.1.2.1.10.32.2.1.7
+DEBUG: snmp_load_oids: APCUpsAdvBatteryReplaceIndicator = 1.3.6.1.4.1.318.1.1.1.2.2.4.0
+DEBUG: snmp_load_oids: ifNumber = 1.3.6.1.2.1.2.1.0
+DEBUG: snmp_load_oids: ifName = 1.3.6.1.2.1.31.1.1.1.1
+DEBUG: snmp_load_oids: bgpPeerOutTotalMessages = 1.3.6.1.2.1.15.3.1.13
+DEBUG: snmp_load_oids: APCUpsAdvInputFrequency = 1.3.6.1.4.1.318.1.1.1.3.2.4.0
+DEBUG: snmp_load_oids: DefaultIpRouteIfIndex = 1.3.6.1.2.1.4.21.1.2.0.0.0.0
+DEBUG: snmp_load_oids: APCUpsAdvInputMinLineVoltage = 1.3.6.1.4.1.318.1.1.1.3.2.3.0
+DEBUG: snmp_load_oids: PixFreeMem = 1.3.6.1.4.1.9.9.48.1.1.1.6.1
+DEBUG: snmp_load_oids: frCircuitExcessBurst = 1.3.6.1.2.1.10.32.2.1.13
+DEBUG: snmp_load_oids: NetappCpuIdleTime = 1.3.6.1.4.1.789.1.2.1.4.0
+DEBUG: snmp_load_oids: PixMaxSessions = 1.3.6.1.4.1.9.9.147.1.2.2.2.1.5.40.7
+DEBUG: snmp_load_oids: hrSWRunName = 1.3.6.1.2.1.25.4.2.1.2
+DEBUG: snmp_load_oids: cmInterface = 1.3.6.1.4.1.9.9.47.1.3.1.1.1
+DEBUG: snmp_load_oids: PixUsedMem = 1.3.6.1.4.1.9.9.48.1.1.1.5.1
+DEBUG: snmp_load_oids: bgpPeerInTotalMessages = 1.3.6.1.2.1.15.3.1.12
+DEBUG: snmp_load_oids: cmRXRate = 1.3.6.1.4.1.9.9.47.1.3.1.1.15
+DEBUG: snmp_load_oids: ifOperStatus = 1.3.6.1.2.1.2.2.1.8
+DEBUG: snmp_load_oids: PixSessions = 1.3.6.1.4.1.9.9.147.1.2.2.2.1.5.40.6
+DEBUG: snmp_load_oids: cacheHttpHits = 1.3.6.1.4.1.3495.1.3.2.1.2.0
+DEBUG: snmp_load_oids: cacheMemUsage = 1.3.6.1.4.1.3495.1.3.1.4.0
+DEBUG: snmp_load_oids: DefaultIpRouteNextHop = 1.3.6.1.2.1.4.21.1.7.0.0.0.0
+DEBUG: snmp_load_oids: APCmUpsEnvironAmbientTemperature = 1.3.6.1.4.1.318.1.1.2.1.1.0
+DEBUG: snmp_load_oids: ifAdminStatus = 1.3.6.1.2.1.2.2.1.7
+DEBUG: snmp_load_oids: APCUpsAdvOutputLoad = 1.3.6.1.4.1.318.1.1.1.4.2.3.0
+DEBUG: snmp_load_oids: ifOutErrors = 1.3.6.1.2.1.2.2.1.20
+DEBUG: snmp_load_oids: hrStorageSize = 1.3.6.1.2.1.25.2.3.1.5
+DEBUG: snmp_load_oids: HPgdStatusDisplay.0 = 1.3.6.1.4.1.11.2.3.9.1.1.3.0
+DEBUG: snmp_load_oids: CiscoComment = 1.3.6.1.4.1.9.2.2.1.1.28
+DEBUG: snmp_load_oids: APCUpsBasicBatteryTimeOnBattery = 1.3.6.1.4.1.318.1.1.1.2.1.2.0
+DEBUG: snmp_load_oids: hrSWRunIndex = 1.3.6.1.2.1.25.4.2.1.1
+DEBUG: snmp_load_oids: sysDescr = 1.3.6.1.2.1.1.1.0
+DEBUG: snmp_load_oids: APCUpsAdvInputMaxLineVoltage = 1.3.6.1.4.1.318.1.1.1.3.2.2.0
+DEBUG: snmp_load_oids: CiscoTotalMem = 1.3.6.1.4.1.9.3.6.6.0
+DEBUG: snmp_load_oids: frCircuitCommittedBurst = 1.3.6.1.2.1.10.32.2.1.12
+DEBUG: snmp_load_oids: hrStorageIndex = 1.3.6.1.2.1.25.2.3.1.1
+DEBUG: snmp_load_oids: NetappCpuBusyTime = 1.3.6.1.4.1.789.1.2.1.2.0
+DEBUG: snmp_load_oids: APCmUpsEnvironRelativeHumidity = 1.3.6.1.4.1.318.1.1.2.1.2.0
+DEBUG: snmp_load_oids: hrStorageUsed = 1.3.6.1.2.1.25.2.3.1.6
+DEBUG: snmp_load_oids: hrSystemProcesses = 1.3.6.1.2.1.25.1.6.0
+DEBUG: snmp_load_oids: cacheHttpOutKb = 1.3.6.1.4.1.3495.1.3.2.1.5.0
+DEBUG: snmp_load_oids: cacheSysVMsize = 1.3.6.1.4.1.3495.1.1.1.0
+DEBUG: snmp_load_oids: APCUpsAdvIdentSerialNumber = 1.3.6.1.4.1.318.1.1.1.1.2.3.0
+DEBUG: snmp_load_oids: APCUpsAdvBatteryCapacity = 1.3.6.1.4.1.318.1.1.1.2.2.1.0
+DEBUG: snmp_load_oids: NetappCpuUpTime = 1.3.6.1.4.1.789.1.2.1.1.0
+DEBUG: snmp_load_oids: ucdMemTotalFree = 1.3.6.1.4.1.2021.4.11.0
+DEBUG: snmp_load_oids: cacheClientHttpRequests = 1.3.6.1.4.1.3495.1.3.2.1.1.0
+DEBUG: snmp_load_oids: ucdSsCpuUser = 1.3.6.1.4.1.2021.11.9.0
+DEBUG: snmp_load_oids: bgpPeerOutUpdates = 1.3.6.1.2.1.15.3.1.11
+DEBUG: snmp_load_oids: cacheHttpInKb = 1.3.6.1.4.1.3495.1.3.2.1.4.0
+DEBUG: snmp_load_oids: HPgdStatusBusy.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.14.0
+DEBUG: snmp_load_oids: cmProductDetails = 1.3.6.1.4.1.9.9.47.1.3.1.1.4
+DEBUG: snmp_load_oids: frCircuitReceivedFrames = 1.3.6.1.2.1.10.32.2.1.8
+DEBUG: snmp_load_oids: ifType = 1.3.6.1.2.1.2.2.1.3
+DEBUG: snmp_load_oids: ucdMemAvailReal = 1.3.6.1.4.1.2021.4.6.0
+DEBUG: snmp_load_oids: ifDescr = 1.3.6.1.2.1.2.2.1.2
+DEBUG: snmp_load_oids: ifInUcastPkts = 1.3.6.1.2.1.2.2.1.11
+DEBUG: snmp_load_oids: hrMemorySize = 1.3.6.1.2.1.25.2.2.0
+DEBUG: snmp_load_oids: bgpPeerState = 1.3.6.1.2.1.15.3.1.2
+DEBUG: snmp_load_oids: HPgdStatusTonerLow.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.10.0
+DEBUG: snmp_load_oids: ucdSsSysInterrupts = 1.3.6.1.4.1.2021.11.7.0
+DEBUG: snmp_load_oids: HPgdStatusPaperJam.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.9.0
+DEBUG: snmp_load_oids: bgpLocalAs = 1.3.6.1.2.1.15.2.0
+DEBUG: snmp_load_oids: CiscoTempOutlet = 1.3.6.1.4.1.9.9.13.1.3.1.3.3
+DEBUG: snmp_load_oids: frCircuitSentFrames = 1.3.6.1.2.1.10.32.2.1.6
+DEBUG: snmp_load_oids: APCUpsAdvBatteryRunTimeRemaining = 1.3.6.1.4.1.318.1.1.1.2.2.3.0
+DEBUG: snmp_load_oids: HPgdStatusIoActive.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.13.0
+DEBUG: snmp_load_oids: cmCallerID = 1.3.6.1.4.1.9.9.47.1.3.1.1.11
+DEBUG: snmp_load_oids: cmRXAnalogSignalLevel = 1.3.6.1.4.1.9.9.47.1.3.1.1.17
+DEBUG: snmp_load_oids: bgpPeerRemoteAs = 1.3.6.1.2.1.15.3.1.9
+DEBUG: snmp_load_oids: ifOutOctets = 1.3.6.1.2.1.2.2.1.16
+DEBUG: snmp_load_oids: ifSpeed = 1.3.6.1.2.1.2.2.1.5
+DEBUG: snmp_load_oids: HPgdStatusPaperOut.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.8.0
+DEBUG: snmp_load_oids: bgpPeerInUpdates = 1.3.6.1.2.1.15.3.1.10
+DEBUG: snmp_load_oids: cacheNumObjCount = 1.3.6.1.4.1.3495.1.3.1.7.0
+DEBUG: snmp_load_oids: cmModulationSchemeUsed = 1.3.6.1.4.1.9.9.47.1.3.1.1.12
+DEBUG: snmp_load_oids: HPgdStatusPrinting.0 = 1.3.6.1.4.1.11.2.3.9.1.1.2.18.0
+DEBUG: snmp_load_oids: HPgdStatusJobName.0 = 1.3.6.1.4.1.11.2.3.9.1.1.4.0
+DEBUG: snmp_load_oids: bgp4PathAttrBest = 1.3.6.1.2.1.15.6.1.13
+DEBUG: snmp_load_oids: cmState = 1.3.6.1.4.1.9.9.47.1.3.1.1.6
+DEBUG: snmp_load_oids: frCircuitReceivedOctets = 1.3.6.1.2.1.10.32.2.1.9
+DEBUG: read_ip_cache: reading file
+DEBUG: get_ip: got ip from config: 192.168.1.12 is 192.168.1.12
+DEBUG: doing host 192.168.1.12 2016-10-17 22:24:29
+DEBUG: using 'public@192.168.1.12' for 192.168.1.12
+DEBUG: getting basic info for 192.168.1.12 at 2016-10-17 22:24:29
+DEBUG:   got basic info for 192.168.1.12 at 2016-10-17 22:24:29
+DEBUG: log_reboot: host=192.168.1.12, uptime=18511, old=18511
+DEBUG: check_collect_time: rrd=snmpuptime(snmpuptime) last=1476753629 now=1476753869 step=300 diff=240 collect=1
+DEBUG:   doing rrd snmpuptime(snmpuptime)
+DEBUG:   using 'public@192.168.1.12' for snmpuptime
+DEBUG:     added oid sysUptime to query
+DEBUG:   sending query for: sysUptime
+DEBUG:   for result 0: oid=1.3.6.1.2.1.1.3.0, name=sysUptime
+DEBUG: check_collect_time: rrd=snmpif-eth-0(snmpif-*) last=1476753629 now=1476753869 step=300 diff=240 collect=1
+DEBUG:   doing rrd snmpif-eth-0(snmpif-*)
+DEBUG: ifindex cache file exists (/root/3p/facon/data/192.168.1.12/IFINDEX-eth-0)
+DEBUG: get_ifname: START(public@192.168.1.12,10000)
+DEBUG: get_ifname: FINISH(eth-0)
+DEBUG:     ifIndex for 192.168.1.12 eth-0 is 10000, fixed='eth-0' (cached)
+DEBUG: get_ifname: START(public@192.168.1.12,10000)
+DEBUG: get_ifname: FINISH(eth-0)
+DEBUG: check_collect_time: rrd=snmpif-atm-0(snmpif-*) last=1476753629 now=1476753869 step=300 diff=240 collect=1
+DEBUG:   doing rrd snmpif-atm-0(snmpif-*)
+DEBUG: ifindex cache file exists (/root/3p/facon/data/192.168.1.12/IFINDEX-atm-0)
+DEBUG: get_ifname: START(public@192.168.1.12,140000)
+DEBUG: get_ifname: FINISH(atm-0)
+DEBUG:     ifIndex for 192.168.1.12 atm-0 is 140000, fixed='atm-0' (cached)
+DEBUG: get_ifname: START(public@192.168.1.12,140000)
+DEBUG: get_ifname: FINISH(atm-0)
+DEBUG: check_collect_time: rrd=snmpif-aal5-0_(snmpif-*) last=1476753630 now=1476753869 step=300 diff=239 collect=1
+DEBUG:   doing rrd snmpif-aal5-0_(snmpif-*)
+DEBUG: ifindex cache file exists (/root/3p/facon/data/192.168.1.12/IFINDEX-aal5-0_)
+DEBUG: get_ifname: START(public@192.168.1.12,150000)
+DEBUG: get_ifname: FINISH(aal5-0_)
+DEBUG:     ifIndex for 192.168.1.12 aal5-0_ is 150000, fixed='aal5-0_' (cached)
+DEBUG: get_ifname: START(public@192.168.1.12,150000)
+DEBUG: get_ifname: FINISH(aal5-0_)
+DEBUG: get_ip: got ip from config: 192.168.1.6 is 192.168.1.6
+DEBUG: doing host 192.168.1.6 2016-10-17 22:24:29
+DEBUG: using 'public@192.168.1.6' for 192.168.1.6
+DEBUG: getting basic info for 192.168.1.6 at 2016-10-17 22:24:29
+DEBUG:   got basic info for 192.168.1.6 at 2016-10-17 22:24:29
+DEBUG: log_reboot: host=192.168.1.6, uptime=3610, old=3610
+DEBUG: check_collect_time: rrd=snmpuptime(snmpuptime) last=1476753630 now=1476753869 step=300 diff=239 collect=1
+DEBUG:   doing rrd snmpuptime(snmpuptime)
+DEBUG:   using 'public@192.168.1.6' for snmpuptime
+DEBUG:     added oid sysUptime to query
+DEBUG:   sending query for: sysUptime
+DEBUG:   for result 0: oid=1.3.6.1.2.1.1.3.0, name=sysUptime
+DEBUG: check_collect_time: rrd=snmpif-enet0(snmpif-*) last=1476753630 now=1476753869 step=300 diff=239 collect=1
+DEBUG:   doing rrd snmpif-enet0(snmpif-*)
+DEBUG: ifindex cache file exists (/root/3p/facon/data/192.168.1.6/IFINDEX-enet0)
+DEBUG: get_ifname: START(public@192.168.1.6,1)
+DEBUG: get_ifname: FINISH(enet0)
+DEBUG:     ifIndex for 192.168.1.6 enet0 is 1, fixed='enet0' (cached)
+DEBUG: get_ifname: START(public@192.168.1.6,1)
+DEBUG: get_ifname: FINISH(enet0)
+DEBUG: check_collect_time: rrd=snmpif-enet1(snmpif-*) last=1476753630 now=1476753869 step=300 diff=239 collect=1
+DEBUG:   doing rrd snmpif-enet1(snmpif-*)
+DEBUG: ifindex cache file exists (/root/3p/facon/data/192.168.1.6/IFINDEX-enet1)
+DEBUG: get_ifname: START(public@192.168.1.6,2)
+DEBUG: get_ifname: FINISH(enet1)
+DEBUG:     ifIndex for 192.168.1.6 enet1 is 2, fixed='enet1' (cached)
+DEBUG: get_ifname: START(public@192.168.1.6,2)
+DEBUG: get_ifname: FINISH(enet1)
+
+Errors for collectors:snmp
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for collectors:unix-status
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: read_ip_cache: reading file
+DEBUG: get_ip: got ip from config: localhost is 127.0.0.1
+DEBUG: doing host localhost
+DEBUG: open_socket: open error on localhost:9000: 
+DEBUG: couldn't connect to localhost:9000
+
+Errors for collectors:unix-status
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+DEBUG: read_ip_cache: reading file
+DEBUG: get_ip: got ip from config: 192.168.1.12 is 192.168.1.12
+DEBUG: doing updates for 192.168.1.12
+DEBUG:   ping isn't collected by unix-status; skipped
+DEBUG:   snmpuptime isn't collected by unix-status; skipped
+DEBUG:   snmpif-* isn't collected by unix-status; skipped
+DEBUG:   snmpif-* isn't collected by unix-status; skipped
+DEBUG:   snmpif-* isn't collected by unix-status; skipped
+DEBUG: get_ip: got ip from config: 192.168.1.6 is 192.168.1.6
+DEBUG: doing updates for 192.168.1.6
+DEBUG:   ping isn't collected by unix-status; skipped
+DEBUG:   snmpuptime isn't collected by unix-status; skipped
+DEBUG:   snmpif-* isn't collected by unix-status; skipped
+DEBUG:   snmpif-* isn't collected by unix-status; skipped
+DEBUG: get_ip: got ip from config: dattatec.com is 200.58.106.10
+DEBUG: doing updates for dattatec.com
+DEBUG:   ping isn't collected by unix-status; skipped
+DEBUG: get_ip: got ip from config: yahoo.com is 98.139.183.24
+DEBUG: doing updates for yahoo.com
+DEBUG:   ping isn't collected by unix-status; skipped
+DEBUG: get_ip: got ip from config: localhost is 127.0.0.1
+DEBUG: doing updates for localhost
+DEBUG:   df-* is collected by unix-status
+DEBUG:   rrd df-/
+DEBUG:     host=localhost, var=size, alias=dfsize:/
+DEBUG:     host=localhost, var=used, alias=dfused:/
+DEBUG:     host=localhost, var=free, alias=dffree:/
+DEBUG:     host=localhost, var=percent, alias=dfpercent:/
+DEBUG:     host=localhost, var=inodes, alias=inodessize:/
+DEBUG:     host=localhost, var=inodeuse, alias=inodesused:/
+DEBUG:     host=localhost, var=inodepct, alias=inodespercent:/
+DEBUG:     no data for df-/ on localhost; skipped update
+DEBUG:   df-* is collected by unix-status
+DEBUG:   rrd df-/grade
+DEBUG:     host=localhost, var=size, alias=dfsize:/grade
+DEBUG:     host=localhost, var=used, alias=dfused:/grade
+DEBUG:     host=localhost, var=free, alias=dffree:/grade
+DEBUG:     host=localhost, var=percent, alias=dfpercent:/grade
+DEBUG:     host=localhost, var=inodes, alias=inodessize:/grade
+DEBUG:     host=localhost, var=inodeuse, alias=inodesused:/grade
+DEBUG:     host=localhost, var=inodepct, alias=inodespercent:/grade
+DEBUG:     no data for df-/grade on localhost; skipped update
+DEBUG:   if-* is collected by unix-status
+DEBUG:   rrd if-eth1
+DEBUG:     host=localhost, var=in, alias=interface_packets_in:eth1
+DEBUG:     host=localhost, var=ierr, alias=interface_errors_in:eth1
+DEBUG:     host=localhost, var=out, alias=interface_packets_out:eth1
+DEBUG:     host=localhost, var=oerr, alias=interface_errors_out:eth1
+DEBUG:     host=localhost, var=coll, alias=interface_collisions:eth1
+DEBUG:     host=localhost, var=status, alias=interface_status:eth1
+DEBUG:     no data for if-eth1 on localhost; skipped update
+DEBUG:   procnetdev-* is collected by unix-status
+DEBUG:   rrd procnetdev-eth1
+DEBUG:     host=localhost, var=rbytes, alias=procnetdev_rbytes:eth1
+DEBUG:     host=localhost, var=rpackets, alias=procnetdev_rpackets:eth1
+DEBUG:     host=localhost, var=rerrors, alias=procnetdev_rerrors:eth1
+DEBUG:     host=localhost, var=rdrop, alias=procnetdev_rdrop:eth1
+DEBUG:     host=localhost, var=rfifo, alias=procnetdev_rfifo:eth1
+DEBUG:     host=localhost, var=rframe, alias=procnetdev_rframe:eth1
+DEBUG:     host=localhost, var=tbytes, alias=procnetdev_tbytes:eth1
+DEBUG:     host=localhost, var=tpackets, alias=procnetdev_tpackets:eth1
+DEBUG:     host=localhost, var=terrors, alias=procnetdev_terrors:eth1
+DEBUG:     host=localhost, var=tdrop, alias=procnetdev_tdrop:eth1
+DEBUG:     host=localhost, var=tfifo, alias=procnetdev_tfifo:eth1
+DEBUG:     host=localhost, var=tcolls, alias=procnetdev_tcolls:eth1
+DEBUG:     host=localhost, var=tcarrier, alias=procnetdev_tcarrier:eth1
+DEBUG:     no data for procnetdev-eth1 on localhost; skipped update
+DEBUG:   dirsize-* is collected by unix-status
+DEBUG:   rrd dirsize-/grade/tomografias
+DEBUG:     host=localhost, var=used, alias=dirsize:/grade/tomografias
+DEBUG:     host=localhost, var=cont, alias=dirsizecont:/grade/tomografias
+DEBUG:     no data for dirsize-/grade/tomografias on localhost; skipped update
+DEBUG:   dirsize-* is collected by unix-status
+DEBUG:   rrd dirsize-/grade/ERGOMETRIA
+DEBUG:     host=localhost, var=used, alias=dirsize:/grade/ERGOMETRIA
+DEBUG:     host=localhost, var=cont, alias=dirsizecont:/grade/ERGOMETRIA
+DEBUG:     no data for dirsize-/grade/ERGOMETRIA on localhost; skipped update
+DEBUG:   dirsize-* is collected by unix-status
+DEBUG:   rrd dirsize-/grade/HOLTER
+DEBUG:     host=localhost, var=used, alias=dirsize:/grade/HOLTER
+DEBUG:     host=localhost, var=cont, alias=dirsizecont:/grade/HOLTER
+DEBUG:     no data for dirsize-/grade/HOLTER on localhost; skipped update
+DEBUG:   dirsize-* is collected by unix-status
+DEBUG:   rrd dirsize-/grade/PEC
+DEBUG:     host=localhost, var=used, alias=dirsize:/grade/PEC
+DEBUG:     host=localhost, var=cont, alias=dirsizecont:/grade/PEC
+DEBUG:     no data for dirsize-/grade/PEC on localhost; skipped update
+DEBUG:   dirsize-* is collected by unix-status
+DEBUG:   rrd dirsize-/grade/soft/mysql/data
+DEBUG:     host=localhost, var=used, alias=dirsize:/grade/soft/mysql/data
+DEBUG:     host=localhost, var=cont, alias=dirsizecont:/grade/soft/mysql/data
+DEBUG:     no data for dirsize-/grade/soft/mysql/data on localhost; skipped update
+DEBUG:   iostat-* is collected by unix-status
+DEBUG:   rrd iostat-sda
+DEBUG:     host=localhost, var=rs, alias=iostatrs:sda
+DEBUG:     host=localhost, var=ws, alias=iostatws:sda
+DEBUG:     host=localhost, var=krs, alias=iostatrsec:sda
+DEBUG:     host=localhost, var=kws, alias=iostatwsec:sda
+DEBUG:     host=localhost, var=wai, alias=iostatwai:sda
+DEBUG:     host=localhost, var=actv, alias=iostatactv:sda
+DEBUG:     host=localhost, var=svct, alias=iostatsvct:sda
+DEBUG:     host=localhost, var=w, alias=iostatw:sda
+DEBUG:     host=localhost, var=b, alias=iostatb:sda
+DEBUG:     no data for iostat-sda on localhost; skipped update
+DEBUG:   iostat-* is collected by unix-status
+DEBUG:   rrd iostat-sdb
+DEBUG:     host=localhost, var=rs, alias=iostatrs:sdb
+DEBUG:     host=localhost, var=ws, alias=iostatws:sdb
+DEBUG:     host=localhost, var=krs, alias=iostatrsec:sdb
+DEBUG:     host=localhost, var=kws, alias=iostatwsec:sdb
+DEBUG:     host=localhost, var=wai, alias=iostatwai:sdb
+DEBUG:     host=localhost, var=actv, alias=iostatactv:sdb
+DEBUG:     host=localhost, var=svct, alias=iostatsvct:sdb
+DEBUG:     host=localhost, var=w, alias=iostatw:sdb
+DEBUG:     host=localhost, var=b, alias=iostatb:sdb
+DEBUG:     no data for iostat-sdb on localhost; skipped update
+DEBUG:   iostat-* is collected by unix-status
+DEBUG:   rrd iostat-sdc
+DEBUG:     host=localhost, var=rs, alias=iostatrs:sdc
+DEBUG:     host=localhost, var=ws, alias=iostatws:sdc
+DEBUG:     host=localhost, var=krs, alias=iostatrsec:sdc
+DEBUG:     host=localhost, var=kws, alias=iostatwsec:sdc
+DEBUG:     host=localhost, var=wai, alias=iostatwai:sdc
+DEBUG:     host=localhost, var=actv, alias=iostatactv:sdc
+DEBUG:     host=localhost, var=svct, alias=iostatsvct:sdc
+DEBUG:     host=localhost, var=w, alias=iostatw:sdc
+DEBUG:     host=localhost, var=b, alias=iostatb:sdc
+DEBUG:     no data for iostat-sdc on localhost; skipped update
+DEBUG:   iostat-* is collected by unix-status
+DEBUG:   rrd iostat-md127
+DEBUG:     host=localhost, var=rs, alias=iostatrs:md127
+DEBUG:     host=localhost, var=ws, alias=iostatws:md127
+DEBUG:     host=localhost, var=krs, alias=iostatrsec:md127
+DEBUG:     host=localhost, var=kws, alias=iostatwsec:md127
+DEBUG:     host=localhost, var=wai, alias=iostatwai:md127
+DEBUG:     host=localhost, var=actv, alias=iostatactv:md127
+DEBUG:     host=localhost, var=svct, alias=iostatsvct:md127
+DEBUG:     host=localhost, var=w, alias=iostatw:md127
+DEBUG:     host=localhost, var=b, alias=iostatb:md127
+DEBUG:     no data for iostat-md127 on localhost; skipped update
+DEBUG:   temp-* isn't collected by unix-status; skipped
+DEBUG:   smbdprocs is collected by unix-status
+DEBUG:   rrd smbdprocs
+DEBUG:     host=localhost, var=smbdprocs, alias=ps:smbdprocs
+DEBUG:     no data for smbdprocs on localhost; skipped update
+DEBUG: get_ip: got ip from config: 192.168.1.113 is 192.168.1.113
+DEBUG: doing updates for 192.168.1.113
+DEBUG:   ping isn't collected by unix-status; skipped
+
+Errors for post-collector:error-collector
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for post-collector:error-collector
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for monitors:alert-monitor
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/alertstuff.pl line 254.
+	(Maybe you should just omit the defined()?)
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0.0166666666666667
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0.02
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= 0
+ARI99 delta= -0.0566666666666666
+ARI99 delta= -0.176666666666666
+ARI99 delta= -0.780000000000001
+ARI99 delta= 0.44
+ARI99 delta= -0.383333333333333
+ARI99 delta= -0.373333333333335
+ARI99 delta= 1.99333333333333
+ARI99 delta= 0.176666666666667
+ARI99 delta= 0.78
+ARI99 delta= -0.956666666666667
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+Can't exec "/var/facon/bin/alert-nagios": No such file or directory at /root/3p/facon/bin/alerter line 286.
+ERROR: can't open pipe to /var/facon/bin/alert-nagios pepe: No such file or directory
+ABORT: no matching destinations for alert
+ERROR: send_alert: alert returned 1 for:
+	/root/3p/facon/bin/alerter 'alerts'  'yahoo.com' '98.139.183.24' 'ping' '' 'rcvd' 'CRITICAL' 'ERROR' '0' '!>' '0' '2016-10-17 22:20:29' '0d00:00:14' 'The linux  machine' '' 'webmaster@B701613'  'ping-rcvd'
+ARI99 delta= 38.3
+ARI99 delta= 64.2933333333333
+ARI99 delta= -102.593333333333
+
+Errors for monitors:ping-monitor
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for pagemakers:datapage-alert-writer
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for pagemakers:datapage-interfaces
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for pagemakers:datapage-inventory
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for pagemakers:datapage-status
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for pagemakers:page-writer
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/alertstuff.pl line 254.
+	(Maybe you should just omit the defined()?)
+ERROR: no such customgraph as 'vacio' for template 'custom-index'; skipped
+ERROR: unknown CUSTOMGRAPH 'vacio' for custom-graph
+
+Errors for pagemakers:snmpif-setspeed
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+
+Errors for pagemakers:view-writer
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2746.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2863.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/facon.pl line 2918.
+	(Maybe you should just omit the defined()?)
+defined(%hash) is deprecated at /root/3p/facon/lib/alertstuff.pl line 254.
+	(Maybe you should just omit the defined()?)

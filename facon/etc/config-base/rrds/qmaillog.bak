@@ -1,0 +1,87 @@
+# rrds/qmaillog - byte, message and delivery counts for qmail
+# CVS $Id: qmaillog,v 1.10 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# This is only useful if you're running qmail.  It will show new message
+# count, message bytes, number of deliveries attempted, and how they fared,
+# and the max concurrency during each period, local and remote.
+
+source	log
+step	300
+
+data	messages DERIVE:600:0:U	count info msg
+data	bytes	DERIVE:600:0:U	sum info msg \d+: bytes (\d+)
+data	del	DERIVE:600:0:U	count starting delivery
+data	delok	DERIVE:600:0:U	count delivery \d+: success
+data	delfail	DERIVE:600:0:U	count delivery \d+: failure
+data	deldefer DERIVE:600:0:U	count delivery \d+: deferral
+data	localmax GAUGE:600:0:U	max status: local (\d+)
+data	remotemax GAUGE:600:0:U	max status: local \d+/\d+ remote (\d+)
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	qmailmsg desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve. In this case, it is examining the log-file produced by qmail-send (part of <A HREF="http://cr.yp.to/qmail.html">qmail</A>).  It counts the number of new messages received into qmail from all sources since the last check.'
+		--title '##HOST## - QMail Messages (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'messages/s'
+		DEF:messages=##DB##:messages:AVERAGE
+		CDEF:missing=messages,UN,INF,UNKN,IF
+		'LINE2:messages###COLOR1##:Messages'
+		'GPRINT:messages:AVERAGE:avg=%.0lf%s\g'
+		'GPRINT:messages:MAX: max=%.0lf%s\g'
+		'GPRINT:messages:LAST: cur=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph	qmailmsgbytes desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve. In this case, it is examining the log-file produced by qmail-send (part of <A HREF="http://cr.yp.to/qmail.html">qmail</A>).  It counts the number of bytes in new messages received into qmail from all sources since the last check.'
+		--title '##HOST## - QMail Msg-bytes (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'bytes/s'
+		DEF:bytes=##DB##:bytes:AVERAGE
+		CDEF:missing=bytes,UN,INF,UNKN,IF
+		'LINE2:bytes###COLOR1##:Msg Bytes'
+		'GPRINT:bytes:AVERAGE:avg=%.0lf%s\g'
+		'GPRINT:bytes:MAX: max=%.0lf%s\g'
+		'GPRINT:bytes:LAST: cur=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph		qmaildel desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve. In this case, it is examining the log-file produced by qmail-send (part of <A HREF="http://cr.yp.to/qmail.html">qmail</A>).  It counts the number of deliveries attempts completed by qmail since the last check.  Each delivery attempt completion falls into one of three categories: ok (successful delivery), defer (temporary error, requeued for later retry), or fail (permanent error, bounced to sender).'
+		--title '##HOST## - QMail Deliveries (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'deliveries/s'
+		DEF:del=##DB##:del:AVERAGE
+		DEF:delok=##DB##:delok:AVERAGE
+		DEF:deldefer=##DB##:deldefer:AVERAGE
+		DEF:delfail=##DB##:delfail:AVERAGE
+		CDEF:missing=del,UN,INF,UNKN,IF
+		'LINE2:del###COLOR3##:total'
+		'LINE2:delfail###PROBLEMCOLOR##:failures'
+		'LINE2:deldefer###COLOR1##:deferrals'
+		'LINE2:delok###COLOR2##:successes'
+		'GPRINT:del:AVERAGE:avg=%.0lf%s\g'
+		'GPRINT:del:MAX: max=%.0lf%s\g'
+		'GPRINT:del:LAST: cur=%.0lf%s\g'
+		'AREA:missing###MISSING##:missing'
+
+graph	qmailconcurrency desc='This is collected by the log-collector.  It works by connecting to the log-server running on the host and requesting it to get information about new records on the log-files that it has been told to serve. In this case, it is examining the log-file produced by qmail-send (part of <A HREF="http://cr.yp.to/qmail.html">qmail</A>).  It notes the maximum number of simultaneous local and remote deliveries during the last period.'
+		--title '##HOST## - QMail Concurrency (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'processes'
+		DEF:local=##DB##:localmax:AVERAGE
+		DEF:remote=##DB##:remotemax:AVERAGE
+		CDEF:missing=local,UN,INF,UNKN,IF
+		'LINE2:remote###COLOR1##:remote'
+		'LINE2:local###COLOR2##:local'
+		'GPRINT:local:AVERAGE:local avg=%.0lf%s\g'
+		'GPRINT:local:MAX: max=%.0lf%s\g'
+		'GPRINT:local:LAST: cur=%.0lf%s\l'
+		'GPRINT:remote:AVERAGE:remote avg=%.0lf%s\g'
+		'GPRINT:remote:MAX: max=%.0lf%s\g'
+		'GPRINT:remote:LAST: cur=%.0lf%s\l'
+		'AREA:missing###MISSING##:missing'
+

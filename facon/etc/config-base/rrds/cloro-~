@@ -1,0 +1,82 @@
+# rrds/program-* - generic get-value-from-running-a-program RRD
+# CVS $Id: program-,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	program
+step	300
+
+data	data34425=34425 GAUGE:1200:0:U
+data	data98956=98956 GAUGE:1200:0:U
+data	data46526=46526 GAUGE:1200:0:U
+data	data27922=27922 GAUGE:1200:0:U
+data	data29877=29877 GAUGE:1200:0:U
+data	data260249=260249 GAUGE:1200:0:U
+data	data34418=34418 GAUGE:1200:0:U
+data	data29878=29878 GAUGE:1200:0:U
+data	data29876=29876 GAUGE:1200:0:U
+data	data165415=165415 GAUGE:1200:0:U
+data	data79634=79634 GAUGE:1200:0:U
+data	responsetime=34425-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+graph	value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	--title '##HOST## - ##WILDPART## Motherboard Temperature (##GRAPHTIME##)'
+	--watermark 'Sanatorio San Carlos' 
+	--vertical-label 'grados'
+	DEF:data34425=##DB##:data34425:AVERAGE
+	DEF:data98956=##DB##:data98956:AVERAGE
+	DEF:data46526=##DB##:data46526:AVERAGE
+	DEF:data27922=##DB##:data27922:AVERAGE
+	DEF:data29877=##DB##:data29877:AVERAGE
+	DEF:data260249=##DB##:data260249:AVERAGE
+	DEF:data34418=##DB##:data34418:AVERAGE
+	DEF:data29878=##DB##:data29878:AVERAGE
+	DEF:data29876=##DB##:data29876:AVERAGE
+	DEF:data165415=##DB##:data165415:AVERAGE
+	DEF:data79634=##DB##:data79634:AVERAGE
+#	CDEF:missing=data34425,UN,INF,UNKN,IF
+	'LINE2:data34425###COLOR1##:Clarificador HTH'
+	'LINE2:data98956###COLOR2##:Cloro Hth Clorotec Pastillas Triple Accion Bal 4 Kg'
+	'LINE2:data46526###COLOR3##:Cloro Hth Clorotec Pastillas Triple Accion Pot 1 Kg'
+	'LINE2:data27922###COLOR4##:Cloro Shock Instantaneo Fresh Clor Pot 1 Kg'
+	'LINE2:data29877###COLOR5##:Cloro Hth Clorotec Shock Granuldo Dis Instanea Pot 1 Kg'
+	'LINE2:data260249###COLOR6##:Cloro Accion Total 2 Kg'
+	'LINE2:data34418###COLOR7##:Cloro Pastillas Grandes Fresh Clor X 1 Kg'
+	'LINE2:data29878###COLOR8##:Cloro Fresh Clor Tecnico Granulado Pot 1 Kg'
+	'LINE2:data29876###COLOR9##:Cloro Hth Clorotec Pastillas Grandes Pot 1 Kg'
+	'LINE2:data165415###COLOR10##:Cloro Tecnico Clorotec X 4 Kg.'
+	'LINE2:data79634###COLOR11##:Cloro Hth Clorotec Shock Bal 4 Kg'
+
+	'GPRINT:data34425:MIN:(min,avg,max) = (%.0lf,\g'
+	'GPRINT:data34425:AVERAGE:%.0lf,\g'
+	'GPRINT:data34425:MAX:%.0lf)\l'
+
+        'GPRINT:data34425:LAST:Clarificador HTH last=%.1lf'
+        'GPRINT:data98956:LAST:Cloro Hth Clorotec Pastillas Triple Accion Bal 4 Kg last=%.1lf'
+        'GPRINT:data46526:LAST:Cloro Hth Clorotec Pastillas Triple Accion Pot 1 Kg last=%.1lf'
+        'GPRINT:data27922:LAST:Cloro Shock Instantaneo Fresh Clor Pot 1 Kg last=%.1lf'
+        'GPRINT:data29877:LAST:Cloro Hth Clorotec Shock Granuldo Dis Instanea Pot 1 Kg last=%.1lf'
+        'GPRINT:data260249:LAST:Cloro Accion Total 2 Kg last=%.1lf'
+        'GPRINT:data34418:LAST:Cloro Pastillas Grandes Fresh Clor X 1 Kg last=%.1lf'
+        'GPRINT:data29878:LAST:Cloro Fresh Clor Tecnico Granulado Pot 1 Kg last=%.1lf'
+
+
+
+#	'AREA:missing###MISSING##:missing'
+
+#graph	response-* desc="This is collected by the program-collector.  It works by running the specified program and timing how long the program took to run; that is the response-time reported here."
+#	--title '##HOST## - ##WILDPART## response-time (##GRAPHTIME##)'
+#	--logarithmic
+#	--watermark 'Sanatorio San Carlos' 
+#	--vertical-label 'seg'
+#	DEF:responsetime=##DB##:responsetime:AVERAGE
+#	CDEF:missing=responsetime,UN,INF,UNKN,IF
+#	'LINE2:responsetime###COLOR1##:responsetime'
+#	'GPRINT:responsetime:MIN:(min,avg,max) = (%.0lf,\g'
+#	'GPRINT:responsetime:AVERAGE:%.0lf,\g'
+#	'GPRINT:responsetime:MAX:%.0lf)\l'
+#	'AREA:missing###MISSING##:missing'
+#

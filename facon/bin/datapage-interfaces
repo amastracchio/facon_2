@@ -1,0 +1,203 @@
+#!/usr/bin/perl -w
+# datapage-interfaces - make datapage templates for all hosts
+#	which have a snmp interface rrd (snmpif-*)
+# CVS $Id: datapage-interfaces.pl,v 1.11 2003/05/20 19:28:05 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999 - 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for messages and files
+$main::prog = 'datapage-interfaces';
+# Where is the default config dir/
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.11 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "snmpstuff.pl";
+use Getopt::Std;
+
+my %opt = ();
+getopts('d:f:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+# - - -   Mainline   - - -
+
+&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times',
+	'rrds', 'groups', 'host-templates', 'hosts');
+
+my ($host, $ip, $dir, $realrrd, $now, $file, $top, $wildrrd, 
+	$fixedif, $if, $wildpart, $middle);
+
+$now = localtime();
+foreach $host (keys %{$main::config{HOST}}) {
+	$ip = &get_ip($host);
+	next unless (defined $ip);
+	&debug("checking $host") if ($main::debug);
+
+	$file = $main::config{DATAPAGEDIR} .'/'. $host .'_interfaces.page';
+	open (PAGE, ">$file.new") or 
+			(&error("can't open $file.new: $!") and next);
+	$top = <<"EOD_HOST1";
+# created by $main::prog version $main::version on $now
+
+oid software $host sysDescr
+oid uptime $host sysUptime
+status status $host STATUS.html
+
+EOD_HOST1
+
+	$middle = <<"EOD_HOST2";
+
+BEGIN-PAGE
+Refresh: 300
+Content-type: text/html
+
+<DATAPAGE::HEADER $host Interfaces>
+<p>
+<table border=1>
+<tr>
+	<td valign=top>host status</td>
+	<td valign=top><DATAPAGE::VAR status></td>
+</tr>
+<tr>
+	<td valign=top>Uptime</td>
+	<td valign=top><b><DATAPAGE::VAR uptime></b></tr>
+</tr>
+<tr>
+	<td valign=top>Software</td>
+	<td valign=top><b><DATAPAGE::VAR software></b></td>
+</tr>
+</table>
+</p>
+
+<h2>Interfaces</h2>
+
+<table border=1>
+<tr>
+	<th valign=center rowspan=2>Interface</th>
+	<th valign=center rowspan=2>Status</th>
+	<th valign=center rowspan=2>Speed</th>
+	<th valign=center rowspan=2>Type</th>
+	<th valign=top colspan=3>Input</th>
+	<th valign=top colspan=3>Output</th>
+	<th valign=center rowspan=2>Comment</th>
+</tr>
+<tr>
+	<th valign=top>bps</th>
+	<th valign=top>ucast pps</th>
+	<th valign=top>non-ucast pps</th>
+	<th valign=top>bps</th>
+	<th valign=top>non-ucast pps</th>
+	<th valign=top>non-ucast pps</th>
+</tr>
+EOD_HOST2
+
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart) = &get_rrd($realrrd);
+		next unless (defined $wildrrd);
+		next unless ($wildrrd eq 'snmpif-*');
+		&debug("  rrd $realrrd") if ($main::debug);
+		$fixedif = &to_filename(&to_ifname($wildpart));
+		$if = $wildpart;
+
+		$top .= <<"EOD_HOST3";
+status ifx-$fixedif $host IFINDEX-$fixedif
+status ifstatus_$fixedif $host STATUS-snmpif-$fixedif
+
+oid iftype_$fixedif $host ifType.\${ifx-$fixedif}
+oid ifspeed_$fixedif $host ifSpeed.\${ifx-$fixedif}
+
+eval iftype_$fixedif &snmpiftype(\${iftype_$fixedif})
+eval ifspeed_$fixedif &siunits(\${ifspeed_$fixedif})
+
+oid ifalias_$fixedif $host ifAlias.\${ifx-$fixedif}
+oid ciscoifcomment_$fixedif $host CiscoComment.\${ifx-$fixedif}
+
+eval ifalias_$fixedif ('\${ifalias_$fixedif}' eq 'NOVALUE') ? '' : '\${ifalias_$fixedif}'
+eval ciscoifcomment_$fixedif ('\${ciscoifcomment_$fixedif}' eq 'NOVALUE') ? '' : '\${ciscoifcomment_$fixedif}'
+eval ifalias_$fixedif ('\${ifalias_$fixedif}' eq '') ? '\${ciscoifcomment_$fixedif}' : '\${ifalias_$fixedif}'
+
+rrd $fixedif-ibps $host snmpif-$fixedif inbytes AVERAGE
+rrd $fixedif-iupps $host snmpif-$fixedif inucastpkts AVERAGE
+rrd $fixedif-inpps $host snmpif-$fixedif innucastpkts AVERAGE
+rrd $fixedif-obps $host snmpif-$fixedif outbytes AVERAGE
+rrd $fixedif-oupps $host snmpif-$fixedif outucastpkts AVERAGE
+rrd $fixedif-onpps $host snmpif-$fixedif outnucastpkts AVERAGE
+
+eval $fixedif-ibps &siunits(\${$fixedif-ibps})
+eval $fixedif-iupps &siunits(\${$fixedif-iupps})
+#eval $fixedif-inpps &siunits(\${$fixedif-inpps})
+eval $fixedif-inpps ('\${$fixedif-inpps}' =~ /^RRDNODATA/) ? '' : &siunits(\${$fixedif-inpps})
+eval $fixedif-obps &siunits(\${$fixedif-obps})
+eval $fixedif-oupps &siunits(\${$fixedif-oupps})
+#eval $fixedif-onpps &siunits(\${$fixedif-onpps})
+eval $fixedif-onpps ('\${$fixedif-onpps}' =~ /^RRDNODATA/) ? '' : &siunits(\${$fixedif-onpps})
+
+
+EOD_HOST3
+		$middle .= <<"EOD_HOST4";
+<tr>
+	<td valign=top>$if</td>
+	<td valign=top><DATAPAGE::VAR ifstatus_$fixedif></td>
+	<td valign=top><DATAPAGE::VAR ifspeed_$fixedif></td>
+	<td valign=top><DATAPAGE::VAR iftype_$fixedif></td>
+	<td valign=top align=right><DATAPAGE::VAR $fixedif-ibps></td>
+	<td valign=top align=right><DATAPAGE::VAR $fixedif-iupps></td>
+	<td valign=top align=right><DATAPAGE::VAR $fixedif-inpps></td>
+	<td valign=top align=right><DATAPAGE::VAR $fixedif-obps></td>
+	<td valign=top align=right><DATAPAGE::VAR $fixedif-oupps></td>
+	<td valign=top align=right><DATAPAGE::VAR $fixedif-onpps></td>
+	<td valign=top><DATAPAGE::VAR ifalias_$fixedif></td>
+</tr>
+EOD_HOST4
+	}
+
+	print PAGE $top . $middle . "</table>\n" .
+		"<DATAPAGE::FOOTER>\n";
+	close(PAGE);
+	rename "$file.new", $file, or
+		(&error("can't rename $file.new to $file: $!") and next);
+}
+
+#------------------------------------------------------ debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options]
+where options are:
+	-d ddd  enable debugging output at level 'ddd'
+	-f fff  use config-file 'fff' [$main::config_dir]
+	-h      show this help
+EOD_USAGE
+	exit 0;
+}

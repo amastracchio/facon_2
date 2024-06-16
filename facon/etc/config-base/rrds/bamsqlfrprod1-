@@ -1,0 +1,64 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    300
+
+
+
+data	referentiel=referentiel:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_6=temp_mv_6:* GAUGE:1200:0:U  bamsql *
+data	ireferentiel1=ireferentiel1:* GAUGE:1200:0:U  bamsql *
+data	ibamac_10m=ibamac_10m:* GAUGE:1200:0:U  bamsql *
+data	sysaux=sysaux:* GAUGE:1200:0:U  bamsql *
+data	temp_mv_3=temp_mv_3:* GAUGE:1200:0:U  bamsql *
+data	ireferentiel2=ireferentiel2:* GAUGE:1200:0:U  bamsql *
+data	ipost=ipost:* GAUGE:1200:0:U  bamsql *
+data	bamac1=bamac1:* GAUGE:1200:0:U  bamsql *
+data	ireferentiel=ireferentiel:* GAUGE:1200:0:U  bamsql *
+data	bamac3=bamac3:* GAUGE:1200:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:referentiel=##DB##:referentiel:AVERAGE
+	 DEF:temp_mv_6=##DB##:temp_mv_6:AVERAGE
+	 DEF:ireferentiel1=##DB##:ireferentiel1:AVERAGE
+	 DEF:ibamac_10m=##DB##:ibamac_10m:AVERAGE
+	 DEF:sysaux=##DB##:sysaux:AVERAGE
+	 DEF:temp_mv_3=##DB##:temp_mv_3:AVERAGE
+	 DEF:ireferentiel2=##DB##:ireferentiel2:AVERAGE
+	 DEF:ipost=##DB##:ipost:AVERAGE
+	 DEF:bamac1=##DB##:bamac1:AVERAGE
+	 DEF:ireferentiel=##DB##:ireferentiel:AVERAGE
+	 DEF:bamac3=##DB##:bamac3:AVERAGE
+      CDEF:missing=referentiel,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:referentiel###COLOR1##:referentiel'
+	'LINE2:temp_mv_6###COLOR2##:temp_mv_6'
+	'LINE2:ireferentiel1###COLOR3##:ireferentiel1'
+	'LINE2:ibamac_10m###COLOR4##:ibamac_10m'
+	'LINE2:sysaux###COLOR5##:sysaux'
+	'LINE2:temp_mv_3###COLOR6##:temp_mv_3'
+	'LINE2:ireferentiel2###COLOR7##:ireferentiel2'
+	'LINE2:ipost###COLOR8##:ipost'
+	'LINE2:bamac1###COLOR9##:bamac1'
+	'LINE2:ireferentiel###COLOR10##:ireferentiel'
+	'LINE2:bamac3###COLOR11##:bamac3'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:referentiel:LAST:referentiel         = %.2lf\l'
+	'GPRINT:temp_mv_6:LAST:temp_mv_6         = %.2lf\l'
+	'GPRINT:ireferentiel1:LAST:ireferentiel1         = %.2lf\l'
+	'GPRINT:ibamac_10m:LAST:ibamac_10m         = %.2lf\l'
+	'GPRINT:sysaux:LAST:sysaux         = %.2lf\l'
+	'GPRINT:temp_mv_3:LAST:temp_mv_3         = %.2lf\l'
+	'GPRINT:ireferentiel2:LAST:ireferentiel2         = %.2lf\l'
+	'GPRINT:ipost:LAST:ipost         = %.2lf\l'
+	'GPRINT:bamac1:LAST:bamac1         = %.2lf\l'
+	'GPRINT:ireferentiel:LAST:ireferentiel         = %.2lf\l'
+	'GPRINT:bamac3:LAST:bamac3         = %.2lf\l'

@@ -1,0 +1,143 @@
+#!/usr/bin/perl -Tw
+
+# remoteping-server - a facon server for getting ping stats remotely
+# $Id: remoteping-server.pl,v 1.7 2002/08/11 19:34:08 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'remoteping-server';
+# Where is multiping
+$main::multiping = '/var/facon/bin/multiping';
+# How many pings to send
+$main::pings = 10;
+# Options to use; if you change them, you'll need to change other things
+# in the script as well.  Just leave them alone.
+$main::multiping_opts = "-n -t -c $main::pings -i 1";
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.7 $'))[1];
+
+# - - -   Setup   - - -
+
+# Make taint checks stop complaining.
+%main::ENV = (); # clean up for taint checks
+$main::ENV{'PATH'} = '/usr/local/bin:/usr/bin:/bin';
+#require "facon.pl"; # avoid this as long as possible
+use Getopt::Std;
+use Socket;
+
+# Parse the command-line
+getopts('d:h');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; }
+else { $main::debug = 0; }
+
+# - - -   Mainline   - - -
+
+# Collect the list of hosts to ping
+my $hosts = '';
+my $ips = '';
+my ($host, $ip, %ip);
+&debug("hosts are: $hosts\n") if ($main::debug);
+while (<STDIN>) {
+	tr/\015\012//d;
+
+# directives, as opposed to hostnames
+	if (/^#/ or /^\s*$/) { next; }
+	elsif (/^GO$/) { last; }
+	elsif (/^DEBUG$/) { $main::debug++; next; }
+
+# A hostname to ping
+	($host,$ip) = split(' ', $_);
+	unless (defined $ip) {
+		&error("can't get IP number for $host; skipped.");
+		next;
+	}
+	$ip{$ip} = $host;
+	$hosts .= ' '. $host;
+	$ips .= ' '. $ip;
+	&debug("host $host is $ip") if ($main::debug>1);
+}
+
+# Untaint these.  I specified them, so perl can bug out.
+$main::multiping =~ /(.*)/ and $main::multiping = $1;
+$main::multiping_opts =~ /(.*)/ and $main::multiping_opts = $1;
+$ips =~ /(.*)/ and $ips = $1;
+
+# Ping them
+open (PIPE, "$main::multiping $main::multiping_opts $ips|") or
+	&abort("can't open pipe to $main::multiping: $!");
+
+# Ignore the stuff at the beginning of the output
+while (<PIPE>) {
+	last if(/^-----/);
+}
+
+# Here's the good stuff
+my $now = time;
+my ($sent, $rcvd, $min, $avg, $max);
+while (<PIPE>) {
+	chomp;
+	last if (/^-----/);
+	($ip, $sent, $rcvd, undef, undef, $min, $avg, $max) =
+		split(' ',$_);
+	if (defined $ip{$ip}) {
+		$host = $ip{$ip};
+	}
+	else {
+		&debug("couldn't find hostname for $ip") if ($main::debug);
+		next;
+	}
+	print <<"EOD_STATS";
+$host $now ping-sent $sent
+$host $now ping-rcvd $rcvd
+$host $now pingrtt-min $min
+$host $now pingrtt-avg $avg
+$host $now pingrtt-max $max
+EOD_STATS
+}
+close (PIPE);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+	-d nnn	enable debugging output at level 'nnn'
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

@@ -1,0 +1,12 @@
+# run-stages/monitors - check out the new data
+# $Id: monitors,v 1.2 2002/07/11 11:59:41 remstats Exp $
+#
+# Note: we are chdir'd to @@TMPDIR@@ first
+# Note2: stderr will be sent to NAME.$$
+#
+# NAME ASYNC FREQ COMMAND
+#
+# Figure out if hosts are reachable, and creates status files for them
+ping-monitor no 300 ping-monitor
+# Is anything out of limits?  Complain.
+alert-monitor no 300 alert-monitor

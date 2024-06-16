@@ -1,0 +1,6 @@
+The nt-status-collector is not returning any data.  This might
+mean that the NT machine running the nt-status-server is
+unreachable.  Or DNS might be down.  Or ...
+
+This started at ##START## and has been in this state
+for ##DURATION##.

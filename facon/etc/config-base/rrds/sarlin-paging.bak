@@ -1,0 +1,47 @@
+# rrds/sarlin-paging - sar stats for Linux paging
+# CVS $Id: sarlin-paging,v 1.2 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	active=sar:activepg GAUGE:600:0:U	sar
+data	pgpgin=sar:pgpgin/s GAUGE:600:0:U	sar
+data	pgpgout=sar:pgpgout/s GAUGE:600:0:U	sar
+data	inactdirty=sar:inadtypg GAUGE:600:0:U	sar
+data	inactclean=sar:inaclnpg GAUGE:600:0:U	sar
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	activity desc='This is collected by the unix-status-collector.  It works by running the <B>sar</B> command on the remote host and parsing the output to look for paging activity.  Here we are seeing the number of blocks paged in or out per second.'
+	--title '##HOST## - Paging Activity (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'pg/s'
+	DEF:pgpgin=##DB##:pgpgin:AVERAGE
+	DEF:pgpgout=##DB##:pgpgout:AVERAGE
+	CDEF:missing=pgpgin,UN,INF,UNKN,IF
+	'AREA:pgpgin###INCOLOR##:in'
+	'LINE2:pgpgout###OUTCOLOR##:out'
+	'GPRINT:pgpgin:AVERAGE:in avg=%.1lf%s\g'
+	'GPRINT:pgpgin:MAX: max=%.1lf%s\g'
+	'GPRINT:pgpgin:LAST: cur=%.11lf%s'
+	'GPRINT:pgpgout:AVERAGE:out avg=%.1lf%s\g'
+	'GPRINT:pgpgout:MAX: max=%.1lf%s\g'
+	'GPRINT:pgpgout:LAST: cur=%.11lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	types desc='This is collected by the unix-status-collector.  It works by running the <B>sar</B> command on the remote host and parsing the output to look for paging activity.  Here we are seeing the different types of page use.'
+	--title '##HOST## - Paging Types (##GRAPHTIME##)'
+	--vertical-label 'pg'
+	DEF:active=##DB##:active:AVERAGE
+	DEF:inactdirty=##DB##:inactdirty:AVERAGE
+	DEF:inactclean=##DB##:inactclean:AVERAGE
+	CDEF:missing=active,UN,INF,UNKN,IF
+	'AREA:active:###COLOR1##:active'
+	'AREA:inactdirty:###COLOR1##:inactdirty'
+	'AREA:inactclean:###COLOR1##:inactclean'
+	'AREA:missing###MISSING##:missing'
+

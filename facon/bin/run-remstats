@@ -1,0 +1,490 @@
+#!/usr/bin/perl -w
+
+# run-facon - control the running of the various facon processes
+# $Id: run-facon.pl,v 1.20 2002/09/10 13:03:32 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'run-facon';
+# Where is the config dir?
+$main::config_dir = '/root/3p/facon/etc/config';
+# Watchdog timer, in case nothing else sets it
+$main::default_timeout = 600 - 10; # seconds
+# Which config-dirs to watch
+@main::config_dirs = ('alert-templates', 'customgraphs', 'dbi-connects',
+	'dbi-selects', 'host-templates', 'hosts', 'page-templates',
+	'rrds', 'scripts', 'view-templates', 'views');
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.20 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Long;
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+
+# use a different config-file default for re-named run-facon,
+# providing the new name is run-facon-xxx.
+my $basename = $0;
+if ($0 =~ m#run-facon-([^/]+)$#) {
+	$main::config_dir = "/root/3p/facon/etc/config-$1";
+	&debug("default config-dir modified by program-name to $main::config_dir")
+		if ($main::debug);
+}
+
+# Parse the command-line
+my ($help);
+GetOptions( "d|debug:i" => \$main::debug, 
+	"f|config_dir=s" => \$main::config_dir,
+	"l|locking!" => \$main::locking,
+	"h|help!" => \$help,
+);
+
+if (defined $help) { &usage; } # no return
+unless (defined $main::debug) { $main::debug = 0; }
+
+if ($#ARGV >= 0) {
+	$main::args = join(' ', @ARGV);
+	&debug("saving args: $main::args") if ($main::debug);
+}
+
+&read_config_dir($main::config_dir, 'general', 'html', 'environment' );
+&show_status("read config file");
+
+if (defined $main::config{WATCHDOGTIMER}) {
+	$main::timeout = $main::config{WATCHDOGTIMER};
+}
+else { $main::timeout = $main::default_timeout; }
+
+unless (-d $main::config{TEMPDIR}) {
+	mkdir $main::config{TEMPDIR}, 0755 or
+		&abort("can't mkdir $main::config{TEMPDIR}: $!");
+}
+
+# Make sure that we haven't been stopped on purpose
+exit 1 if( &check_stop_file());
+
+&make_environment();
+
+# For passing to sub-processes
+my $config;
+if ($main::config_dir ne '/root/3p/facon/etc/config') {
+	$config = ' -f '. $main::config_dir .' ';
+}
+else { $config = ''; }
+
+if ($main::locking) { &lockfile($0); }
+$main::started = 1; # &cleanup trigger
+&show_status("starting");
+%main::pid = ();
+
+# Make sure we're not using a stale uphosts file
+unlink $main::config{TEMPDIR} .'/uphosts'; # ignore errors
+$! = 0;
+
+# Make sure that we can find the programs
+$main::ENV{PATH} = '/root/3p/facon/bin:' . $main::ENV{PATH};
+
+# - - -   Mainline   - - -
+
+$main::extra_args = '';
+&put_status('_facon_', 'STATUS.html', 'Checking');
+@main::stderrs = &do_em(undef, $config, 'check-config');
+
+if (defined $main::config{PINGER}) {
+	&debug("") if( $main::debug);
+	&debug("Running pinger") if( $main::debug);
+	&put_status('_facon_', 'STATUS.html', 'Pinging');
+	if ($main::timeout > 0) {
+		push @main::stderrs, &do_em( '-collector', $config, 
+			$main::config{PINGER})
+	}
+	else {
+		&error("no time for pinger");
+	}
+}
+else { &debug("no pre-collector pinger; skipped") if ($main::debug); }
+
+if (defined $main::config{COLLECTORS}) {
+	if ($main::timeout > 0) {
+		&debug("") if( $main::debug);
+		&debug("Running collectors") if( $main::debug);
+		&put_status('_facon_', 'STATUS.html', 'Collecting');
+		if ($main::config{FORCECOLLECTION}) { $main::extra_args = ' -F '; }
+		else { $main::extra_args = ''; }
+		push @main::stderrs, &do_em( '-collector', $config, 
+			@{$main::config{COLLECTORS}});
+		$main::extra_args = '';
+	}
+	else {
+		&error("no time for collectors");
+	}
+}
+else { &debug("no collectors; skipped") if ($main::debug); }
+
+# Don't want to timeout the monitors or pagemakers, so reset the timeout.
+# They don't get hung anyway.
+if (defined $main::config{WATCHDOGTIMER}) {
+	$main::timeout = $main::config{WATCHDOGTIMER};
+}
+else { $main::timeout = $main::default_timeout; }
+
+if (defined $main::config{MONITORS}) {
+	if ($main::timeout > 0) {
+		&debug("") if( $main::debug);
+		&debug("Running monitors") if( $main::debug);
+		&put_status('_facon_', 'STATUS.html', 'Monitoring');
+		push @main::stderrs, &do_em( '-monitor', $config, 
+			@{$main::config{MONITORS}});
+	}
+	else {
+		&error("no time for monitors");
+	}
+}
+else { &debug("no monitors; skipped") if ($main::debug); }
+
+# Do we need to do the pagemakers
+my ($last_change_logged, $config_dir_changed);
+if (defined $main::config{PAGEMAKERS}) {
+	($last_change_logged) = &get_status('LAST', 'CONFIGCHANGE');
+	if ((!defined $last_change_logged) or $last_change_logged !~ /^\d+\s*$/) {
+		$last_change_logged = 0;
+	}
+	$config_dir_changed = &last_config_dir_change();
+	&debug("") if( $main::debug);
+	&debug("Running pagemakers") if( $main::debug);
+	if ($last_change_logged < $config_dir_changed) {
+		&put_status('LAST', 'CONFIGCHANGE', $config_dir_changed);
+		&debug("config-dir changed ". &timestamp($config_dir_changed)) 
+			if ($main::debug);
+		if ($main::timeout > 0) {
+			&put_status('_facon_', 'STATUS.html', 'Pagemaking');
+			push @main::stderrs, &do_em( undef, $config, 
+				@{$main::config{PAGEMAKERS}});
+		}
+		else {
+			&error("no time for pagemakers");
+		}
+	}
+	else {
+		&debug("config-dir hasn't changed since ". 
+		&timestamp($config_dir_changed) .'; skipped pagemakers')
+			if ($main::debug);
+	}
+}
+else { &debug("no pagemakers; skipped") if ($main::debug); }
+
+if (defined $main::lockfile) { &remove_lockfile( $main::lockfile); }
+if (defined $main::opened_log) { close (LOG); }
+&show_errors(@main::stderrs);
+&show_status('');
+my $now = &timestamp();
+&put_status('_facon_', 'STATUS.html', 'Done '. $now);
+&put_status('_facon_', 'SOFTWARE', 'facon version 1.0.13a');
+
+exit 0;
+
+#----------------------------------------------------------------- do_em ---
+sub do_em {
+	my ($suffix, $config, @raw) = @_;
+	my ($program, @rawprograms, @programs, @good, $i, @stderrs, $stderr, 
+		$rawprogram, $raw, $pid);
+	&show_status("preparing" . 
+		((defined $suffix) ? ' '. substr($suffix,1).'s' : ''));
+
+# Complete the command-lines
+	@rawprograms = @raw;
+	if (defined $suffix) { @rawprograms = map { $_.$suffix } @rawprograms; }
+	@programs = @rawprograms;
+#	@programs = map { '/root/3p/facon/bin/'.$_ } @programs; 
+
+# Make sure that they all exist
+	@good = ();
+	foreach $program (@programs) {
+		$rawprogram = shift @rawprograms;
+		$raw = shift @raw;
+		if (-f ('/root/3p/facon/bin/' . $program)) {
+			push @good, $program;
+			# keep @programs and @rawprograms in sync
+			push @rawprograms, $rawprogram;
+			push @raw, $raw;
+		}
+		else {
+			&error("no such file: $program; skipped");
+			next;
+		}
+	}
+	@programs = @good;
+
+# Where to save stderr output
+	@stderrs = map { $main::config{'TEMPDIR'} .'/'. $_ .  '.'. $$ }
+		@rawprograms;
+
+# The rest gets a bit tricky with the stderr handling
+	for ($i = 0; $i <= $#programs; ++$i) {
+
+		# Give them global args, if any
+		if (defined $main::args and $main::args !~ /^\s*$/) {
+			$programs[$i] .= ' '. $main::args;
+		}
+		# add on the location of the config-dir
+		$programs[$i] .= $config;
+
+		# extra args anyone?
+		if (defined $main::extra_args and length($main::extra_args)>0) {
+			$programs[$i] .= $main::extra_args;
+		}
+
+		# and re-direct stderr to safe place
+		$programs[$i] .=  ' 2>'. $stderrs[$i];
+
+		# Pipe collectors to updater
+		if (defined $suffix and ($suffix eq '-collector')) {
+			unless (defined $main::config{'PINGER'}) {
+				$programs[$i] .= ' -u';
+			}
+			$programs[$i] .= ' | updater '. $config . $raw[$i]
+				.' 2>>'. $stderrs[$i];
+		}
+	}
+
+# Start your engines
+	%main::pid = ();
+	foreach $program (@programs) {
+
+		&debug("forking $program...") if ($main::debug);
+		$rawprogram = shift @rawprograms;
+
+		# Parent
+		if ($pid = fork) {
+			$main::pid{$pid} = $program;
+			&debug("  PARENT: forked $pid for $program") if ($main::debug>1);
+			&show_status("forked $pid for $rawprogram");
+			sleep 1;
+		}
+
+		# Child
+		elsif (defined $pid) {
+			&debug("  CHILD: exec-ing $program") if ($main::debug>1);
+			exec $program or do {
+				&error("can't exec $program: $!");
+				next;
+			};
+			&error("exec returned for $program: $!");
+		}
+
+		# Error
+		else { &error("can't fork: $!"); }
+	}
+
+# Now wait for them to finish
+	&show_status('waiting'. 
+		((defined $suffix)? ' for '. substr($suffix,1) : ''));
+	local $SIG{ALRM} = sub { die "watchdog\n"; };
+	alarm( $main::timeout);
+
+	while (eval {$pid = wait}, defined $pid and $pid > 0) {
+		&debug("finished $pid for $main::pid{$pid}") if ($main::debug);
+		delete $main::pid{$pid};
+		&show_status("finished $pid");
+		undef $pid;
+		last if (keys(%main::pid) <= 0);
+	}
+	$main::timeout = alarm(0);
+
+# Caught by the timeout
+	if (defined $@ and $@ eq "watchdog\n") {
+		&kill_em_all;
+	}
+	return @stderrs;
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] [-- options-to-be-passed]
+where options are:
+    --debug=nnn       enable debugging output at level 'nnn'
+    --config_dir=fff  use 'fff' for config-dir [$main::config_dir]
+	--locking         create a lock-file to prevent two instances running
+    --help            show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#--------------------------------------------------------------- lockfile ---
+sub lockfile {
+	my ($instance) = @_;
+
+	$main::SIG{TERM} = \&cleanup;
+	$main::SIG{INT} = \&cleanup;
+	$main::SIG{QUIT} = \&cleanup;
+
+	my @temp = split('/', $instance);
+	$instance = pop @temp;
+	$instance =~ tr/-a-zA-Z0-9//dc;
+	$main::lockfile = $main::config{TEMPDIR} . '/LOCK-' . $instance;
+
+# Does the lock-file exist?
+	if (-f $main::lockfile) {
+		open (FILE, "<$main::lockfile") or 
+			&abort("can't open lockfile $main::lockfile: $!");
+		my $pid = <FILE>;
+		chomp $pid;
+		close (FILE);
+		&abort("locked by $pid ($main::lockfile)");
+	}
+
+	$main::started = 1;
+	$main::lockfile = &make_lockfile( $main::lockfile);
+
+}
+
+#----------------------------------------------------------------- cleanup ---
+sub cleanup {
+	if (defined $main::lockfile and $main::started) {
+		&remove_lockfile( $main::lockfile);
+		&kill_em_all; # kill pending child processes
+		if (defined $main::opened_log) { close( LOG); }
+		&show_errors(@main::stderrs);
+		&show_status("");
+	}
+	exit 1;
+}
+
+#----------------------------------------------------------------- abort ---
+sub abort {
+	my $msg = join('', @_);
+
+	print STDERR 'ABORT: ', $msg, "\n";
+	if( $main::aborting) {
+		print STDERR "ABORT while aborting; I give up.\n";
+		exit 6;
+	}
+	$main::aborting = 1;
+	if (defined $main::opened_log) { close( LOG); }
+	&cleanup();
+	if ($main::started) { &show_status("ABORT: $msg"); }
+	exit 1;
+}
+
+#------------------------------------------------------- make_environment ---
+sub make_environment {
+	$main::ENV{'CONFIGDIR'} = $main::config_dir;
+	$main::ENV{'DATADIR'} = $main::config{'DATADIR'};
+	$main::ENV{'HTMLDIR'} = $main::config{'HTMLDIR'};
+	$main::ENV{'HTMLURL'} = $main::config{'HTMLURL'};
+	$main::ENV{'LOGDIR'} =  $main::config{'LOGDIR'};
+	$main::ENV{'TEMPDIR'} = $main::config{'TEMPDIR'};
+}
+
+#--------------------------------------------------------- show_status ---
+sub show_status {
+	my ($msg) = @_;
+	my @temp = split('/', $0);
+	my $statusfile = pop @temp;
+	$statusfile = $main::config{'TEMPDIR'} .'/STATUS-'. $statusfile;
+
+	open (STATUS, ">$statusfile") or &abort("can't write status: $!");
+	print STATUS $msg ."\n";
+	close (STATUS);
+
+	unless (defined $main::log_opened) {
+		my $logfile = $main::config{'TEMPDIR'} .'/LOG-'. $main::prog;
+		if (-f $logfile) { rename $logfile, $logfile .'.old'; }
+		open (LOG, ">$logfile") or &abort("can't open log $logfile: $!");
+		$main::log_opened = 1;
+	}
+	my $now = time();
+	print LOG  $now .' '. $msg ."\n";
+}
+
+#------------------------------------------------------ kill_em_all ---
+# kill all pending child processes
+sub kill_em_all {
+	my $showed_status = 0;
+	foreach my $pid (keys %main::pid) {
+		unless ($showed_status) {
+			&show_status("killing timed-out processes");
+			++$showed_status;
+		}
+		if( kill 'TERM', $pid) {
+			&error("timeout: killed $pid for $main::pid{$pid}");
+		}
+		else {
+			&error("timeout: can't kill $pid for $main::pid{$pid}: $!");
+			next;
+		}
+	}
+}
+
+#----------------------------------------------------- show_errors ---
+sub show_errors {
+	my @names = @_;
+	my ($file, $name);
+	
+	foreach my $file (@names) {
+		unless (-f $file and (-s $file > 0)) {
+			&debug("empty error-file $file; skipped") if ($main::debug>1);
+			unlink $file;
+			next;
+		}
+		open (FILE, "<$file") or do {
+			&error("can't open error-file $file: $!");
+			unlink $file;
+			next;
+		};
+
+		if ($file =~ m#([^/]+)\.\d+$#) {
+			$name = $1;
+		}
+		else { &abort("unknown form for temp-file ($file)"); }
+
+		print STDERR "\nErrors from $name:\n\n";
+		print <FILE>;
+		close (FILE);
+		unlink $file;
+	}
+}
+
+#-------------------------------------------------- last_config_dir_change ---
+sub last_config_dir_change {
+	my ($last_change, $dir, $changed, $entry, $file, $mod_time, $full_dir);
+
+	$last_change = 0;
+	for $dir (@main::config_dirs, '.') {
+		$full_dir = $main::config_dir . '/' . $dir;
+		opendir( CONFIGDIR, $full_dir) or &abort("can't opendir $full_dir: $!");
+		while( defined( $entry = readdir( CONFIGDIR))) {
+			next if( ($entry =~ /^\./) or ($entry =~ /^IGNORE-/) or
+				($entry =~ /\~$/));
+			$file = $main::config_dir . '/' . $dir . '/' . $entry;
+			$changed = time() - int((-M $file) * 24 * 60 * 60);
+			if ($changed > $last_change) { $last_change = $changed; }
+			&debug("$file changed on ", &timestamp($changed))
+				if( $main::debug>2);
+		}
+		closedir( CONFIGDIR);
+	}
+	return $last_change;
+}

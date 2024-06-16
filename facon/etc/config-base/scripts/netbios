@@ -1,0 +1,5 @@
+# scripts/netbios - Make sure a windows box is up
+# $Id: netbios,v 1.2 2002/04/16 15:21:22 remstats Exp $
+
+timeout	5
+port	139

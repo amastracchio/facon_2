@@ -1,0 +1,385 @@
+#!/usr/bin/perl -w
+
+# macinfo - look up information on which MAC addresses are where
+#	and also IP numbers and domain-names, from that.
+# CVS $Id: macinfo.pl,v 1.10 2003/03/13 14:15:15 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002, 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# Where does arpwatch store its data?
+$main::arpwatch_data = '/var/arpwatch/arp.dat';
+# Where is the arp-cache accessible via /proc
+$main::arp_via_proc = '/proc/net/arp';
+# How to show unknowns
+$main::unknown_string = '?';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.10 $'))[1];
+
+#------------------------------------------------------------------ Setup ---
+
+&parse_options();
+&initialize();
+
+#--------------------------------------------------------------- Mainline ---
+
+# Pull the mac info for each port
+&get_mac_by_port();
+
+# Now get the ifIndex for each port
+&get_ifindex_by_port();
+
+# Now the interface name for that interface
+&get_ifname_by_ifindex();
+
+# Prime ARP info from arpwatch, if available
+&load_arp_from_arpwatch( $main::arpwatch_data);
+
+# Load local ARP table from /proc/net/arp
+&load_arp_from_proc( $main::arp_via_proc);
+
+# Now show what we've found in a coherent way
+&show_info();
+
+exit 0;
+	
+#------------------------------------------------------------------ to_mac ---
+# Convert OID string to MAC address
+#-----------------------------------------------------------------------------
+sub to_mac {
+	my $oid_string = shift @_;
+	my @bytes = split('\.', $oid_string);
+	my( $mac, $byte, $hex);
+
+	foreach $byte (@bytes) {
+		$hex = uc sprintf '%02x', ($byte+0);
+		if( defined $mac) { $mac .= ':' . $hex; }
+		else { $mac = $hex; }
+	}
+
+	return $mac;
+}
+
+#----------------------------------------------------------------- fix_mac ---
+# Convert a MAC address from lower to UPPER and from one or two digits per
+# part to two.
+#-----------------------------------------------------------------------------
+sub fix_mac {
+	my $original = uc shift @_;
+	my @parts = split(':', $original);
+	@parts = map { (length($_) == 1) ? '0' . $_ : $_ } @parts;
+	return join(':', @parts);
+}
+
+#--------------------------------------------------------------- debug ---
+sub debug { print STDERR 'DEBUG: ', @_, "\n"; }
+
+#---------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$0 version $main::version from facon 1.0.13a
+usage: $0 [options] [community@]host
+where options are:
+  -d ddd  enable debugging output at level 'ddd'
+  -h      show this help
+  -i      show IP numbers, where available
+  -m      show MAC addresses
+  -n      show domain-names
+  -N      show short domain-names (before the first ".")
+  -u uuu  show unknown name/ip/mac as 'uuu' [$main::unknown_string]
+
+Note: if community isn't supplied on the command-line, then it must be
+supplied in the environment in COMMUNITY.
+EOD_USAGE
+	exit 1;
+}
+
+#--------------------------------------------------------- parse_options ---
+sub parse_options {
+	use Getopt::Std;
+	my %opt = ();
+	getopts('d:himnNu:', \%opt);
+
+	if( defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+	else { $main::debug = 0; }
+	if( defined $opt{'h'}) { &usage(); } # no return
+	if( defined $opt{'i'}) { $main::show_ip = 1; }
+	if( defined $opt{'m'}) { $main::show_mac = 1; }
+	if( defined $opt{'n'}) { $main::show_name = 1; }
+	if( defined $opt{'N'}) { $main::show_short_name = 1; }
+	if( defined $opt{'u'}) { $main::unknown_string = $opt{'u'}; }
+
+	if( $main::show_short_name) { $main::show_name = 1; }
+
+	unless( $main::show_ip or $main::show_mac or $main::show_name) {
+		print STDERR "You must specify one of -i, -m, -n or -N\n";
+		&usage; # no return
+	}
+
+	$main::comhost = shift @ARGV;
+	unless( defined $main::comhost) {
+		print STDERR "You must specify a host (an ethernet switch).\n";
+		&usage; # no return
+	}
+
+	# Make sure we've got a community
+	if( $main::comhost !~ /\@/) {
+		if( defined $ENV{COMMUNITY}) {
+			$main::comhost = $ENV{COMMUNITY} . '@' . $main::comhost;
+		}
+		else { &usage; } # no return
+	}
+}
+
+#----------------------------------------------------------- initialize ---
+sub initialize {
+	use SNMP_util;
+	use Socket;
+
+	&snmpmapOID('dot1dTpFdbPort', '1.3.6.1.2.1.17.4.3.1.2');
+	&snmpmapOID('dot1dBasePortIfIndex', '1.3.6.1.2.1.17.1.4.1.2');
+	&snmpmapOID('ifName', '1.3.6.1.2.1.31.1.1.1.1');
+}
+
+#--------------------------------------------------------- get_mac_by_port ---
+# Gets MAC address for each port in bridge MIB via SNMP
+#-----------------------------------------------------------------------------
+sub get_mac_by_port {
+	my( $entry, $port, $mac);
+
+	foreach $entry (&snmpwalk( $main::comhost, 'dot1dTpFdbPort')) {
+		if( defined $entry) {
+			($mac, $port) = split(':', $entry, 2);
+			if( $port == 0) {
+				&debug("no MAC for port $port; skipped") if( $main::debug);
+				next;
+			}
+			$mac = &to_mac( $mac);
+			&debug( $mac, ' on ', $port) if( $main::debug);
+			if( defined $main::info{$port}{MAC}) {
+				push @{$main::info{$port}{MAC}}, $mac;
+			}
+			else {
+				$main::info{$port}{MAC} = [ $mac ] ;
+			}
+#			$main::mac2port{$mac} = $port;
+		}
+		else {
+			&debug("undefined MAC info for port") if( $main::debug);
+		}
+	}
+}
+
+#----------------------------------------------------- get_ifindex_by_port ---
+# Get ifIndex for each port in the bridge MIB via SNMP
+#-----------------------------------------------------------------------------
+sub get_ifindex_by_port {
+	my( $entry, $port, $ifindex);
+
+	foreach $entry (&snmpwalk( $main::comhost, 'dot1dBasePortIfIndex')) {
+		if( defined $entry) {
+			($port, $ifindex) = split(':', $entry);
+			&debug( "port $port is index $ifindex") if( $main::debug);
+			$main::info{$port}{IFINDEX} = $ifindex;
+			$main::index2port{$ifindex} = $port;
+		}
+		else {
+			&debug("undefined ifIndex for port") if( $main::debug);
+		}
+	}
+}
+
+#--------------------------------------------------- get_ifname_by_ifindex ---
+# Get interface names (actually ifName or, failing that, ifDescr) via SNMP
+#-----------------------------------------------------------------------------
+sub get_ifname_by_ifindex {
+	my( $entry, $ifindex, $interface, @ifdescrs, $ifdescr);
+
+	@ifdescrs = &snmpwalk( $main::comhost, 'ifDescr');
+	foreach $entry (&snmpwalk( $main::comhost, 'ifName')) {
+
+		# Choose ifName, if there is one
+		$ifdescr = shift @ifdescrs;
+		if( defined $entry) {
+			($ifindex, $interface) = split(':', $entry);
+			if( $interface =~ /^\s*$/ and defined $ifdescr) {
+				($ifindex, $interface) = split(':', $ifdescr);
+			}
+		}
+		elsif( defined $ifdescr) {
+			($ifindex, $interface) = split(':', $ifdescr);
+		}
+		else {
+			&debug("undefined ifName and ifDescr for ifIndex")
+				if( $main::debug);
+			next;
+		}
+
+		# Make sure that it's usefully defined
+		if( $interface =~ /^\s*$/) {
+			&debug("undefined or blank ifName and ifDescr for ifIndex") 
+				if( $main::debug);
+			next;
+		}
+		&debug( "index $ifindex is interface $interface") if( $main::debug);
+
+		# Munge it to standard form
+		$interface = &convert_to_ifname( $interface);
+
+		if( defined $main::index2port{$ifindex}) {
+			$main::info{$main::index2port{$ifindex}}{INTERFACE} = $interface;
+		}
+		else {
+			&debug("no MAC info for ifIndex $ifindex; skipped")
+				if( $main::debug);
+			next;
+		}
+	}
+}
+
+#------------------------------------------------------- convert_to_ifname ---
+# Munge ifname to standard form
+#-----------------------------------------------------------------------------
+sub convert_to_ifname {
+	my $ifname = shift @_;
+	if (defined $ifname) {
+		$ifname =~ tr/A-Z /a-z_/;
+		$ifname =~ tr#-a-z0-9:_\./##cd;
+	}
+	return $ifname;
+}
+
+#------------------------------------------------------ load_arp_from_proc ---
+# Read in the ARP cache, via /proc/net/arp (a linux-ism)
+#-----------------------------------------------------------------------------
+sub load_arp_from_proc {
+	my $file = shift @_;
+	my( $ip, $mac);
+	next unless ( -f $file);
+
+	open( ARPTABLE, "<$file") or die "can't open $file: $!";
+	while(<ARPTABLE>) {
+		chomp;
+		next if(/^IP address/);
+		if(/^(\d+\.\d+\.\d+\.\d+)\s+\S+\s+\S+\s+([0-9A-F]{2,2}(:[0-9A-F]{2,2}){5,5})/) {
+			($ip, $mac) = ($1, $2);
+			$main::mac2ip{$mac} = $ip;
+		}
+		else {
+			&debug("unknown line from $file: $_") if( $main::debug);
+		}
+	}
+	close(ARPTABLE) or die "can't close $file: $!";
+}
+
+#------------------------------------------------------------------ mac2ip ---
+# Look up the IP number from the MAC address, if we've got it
+#-----------------------------------------------------------------------------
+sub mac2ip {
+	my( $mac) = shift @_;
+	if( defined $main::mac2ip{$mac}) { return $main::mac2ip{$mac}; }
+	else { return $main::unknown_string; }
+}
+
+#--------------------------------------------------------------- show_info ---
+# Show what we found
+#-----------------------------------------------------------------------------
+sub show_info {
+	my( $port, @macs, $interface, @ips, @what, $eval);
+
+	foreach $port (sort keys %main::info) {
+		@macs = @{$main::info{$port}{MAC}};
+		$interface = $main::info{$port}{INTERFACE};
+		next unless( defined $interface);
+
+		# Build up an eval string to create the output
+		$eval = '';
+		if( $main::show_name) {
+			$eval = '&mac2name($_)';
+		}
+
+		if( $main::show_ip) {
+			if( $eval) { $eval .= ' . \'=\' . &mac2ip($_)'; }
+			else { $eval = '&mac2ip($_)'; }
+		}
+
+		if( $main::show_mac) {
+			if( $eval) { $eval .= ' . \'=\' . $_'; }
+			else { $eval = '$_'; }
+		}
+		$eval = '@what = map { ' . $eval . ' } @macs';
+		&debug("eval is: $eval") if( $main::debug>1);
+		eval $eval or die "can't eval $eval: $! or $@";
+
+		print $interface, ' ', join(' ', @what), "\n";
+	}
+}
+
+#-------------------------------------------------- load_arp_from_arpwatch ---
+# Arpwatch will have historical ARP data which may not be in the ARP cache.
+# Load that first so that it can be overridden by the ARP cache.
+#-----------------------------------------------------------------------------
+sub load_arp_from_arpwatch {
+	my $file = shift @_;
+	return unless( -f $file);
+	my( $mac, $ip, $date, $name, %macdate);
+
+	open( ARPWATCH, "<$file") or do {
+		warn "can't open $file: $!";
+		return;
+	};
+	while(<ARPWATCH>) {
+		chomp;
+		($mac, $ip, $date, $name) = split(' ', $_, 4);
+		$mac = &fix_mac( $mac);
+		next if( defined $macdate{$mac} and $macdate{$mac} < $date);
+		$macdate{$mac} = $date;
+		$main::mac2ip{$mac} = $ip;
+	}
+	close(ARPWATCH);
+}
+
+#----------------------------------------------------------------- ip2name ---
+sub ip2name {
+	my $ip = shift @_;
+	my $name = gethostbyaddr( inet_aton( $ip), AF_INET);
+	return (defined $name) ? $name : $ip;
+}
+
+#---------------------------------------------------------------- mac2name ---
+sub mac2name {
+	my $mac = shift @_;
+	my( $ip, $name);
+
+	$ip = &mac2ip( $mac);
+	if( $ip eq $main::unknown_string) { $name = $main::unknown_string; }
+	else {
+		$name = &ip2name($ip);
+		if( $main::show_short_name) {
+			if( $name =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/) {
+				$name = $1;
+			}
+			elsif( $name =~ /^([^\.]+)/) { $name = $1; }
+		}
+	}
+	return $name;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+

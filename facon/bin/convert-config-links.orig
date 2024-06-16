@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# convert-config-links - convert the likely-to-be-changed config-files
+#	from symlinks to copies
+# $Id: convert-config-links.sh,v 1.4 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+if [ $# -gt 0 ] ; then
+	if [ "$1" = '-h' ] ; then
+		echo >&2 "usage: $0 [-h]"
+		exit 0
+	fi
+fi
+
+cd /var/facon/etc/config
+if [ ! -d ../config-base ] ; then
+	echo >&2 "$0: can't find the config-base to copy from"
+	exit 1
+fi
+
+for file in alerts alert-destination-map general html links tools ; do
+	if [ ! -e $file ] ; then
+		echo >&2 "$0: missing $file. Is /var/facon/etc/config really your configuration directory?"
+		exit 2
+	fi
+	if [ ! -f ../config-base/$file ] ; then
+		echo >&2 "$0: missing ../config-base/$file.  Is /var/facon/etc/config../config-base really your config-base?"
+		exit 4
+	fi
+	mv $file $file.bak
+	cp ../config-base/$file $file || (echo "$0: error copying $file" && exit 3)
+	echo "... $file"
+done

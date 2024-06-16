@@ -1,0 +1,85 @@
+#!/usr/bin/perl -w
+
+# htmlfixup - munge html file header info from pod-contained info
+# $Id: htmlfixup.pl,v 1.6 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# The pod file will begin like:
+#	=cut
+#	
+#	TITLE=xxx
+#	DESCRIPTION=yyy
+#	KEYWORDS=zzz
+#	DOCTOP=aaa
+#	DOCPREV=bbb
+#	DOCNEXT=ccc
+#
+#	=pod
+#
+# htmlfixup will read the pod file up to the first "=pod", looking for
+# the special lines above and then read the html file,
+# substituting "@@TITLE@@" by "xxx", ... and writing the result to stdout.
+
+# - - -   Configuration   - - -
+
+$main::prog = 'htmlfixup';
+
+# - - -   Version History   - - -
+
+# $Revision: 1.6 $
+
+# - - -   Setup   - - -
+
+unless ($#ARGV == 1) {
+	print STDERR "usage: $main::prog podfile htmlfile\n";
+	exit 1;
+}
+my $podfile = shift @ARGV;
+my $htmlfile = shift @ARGV;
+
+# - - -   Mainline   - - -
+
+my ($title, $description, $keywords) = ('unknown', 'unknown', 'unknown');
+my ($doctop, $docprev, $docnext, $docthis);
+open (POD, "<$podfile") or die "$main::prog: can't open $podfile: $!\n";
+while (<POD>) {
+	chomp;
+	if (/^TITLE=(.*)/) { $title = $1; }
+	elsif (/^DESCRIPTION=(.*)/) { $description = $1; }
+	elsif (/^KEYWORDS=(.*)/) { $keywords = $1; }
+	elsif (/^DOCTOP=(.*)/) { $doctop = $1; }
+	elsif (/^DOCPREV=(.*)/) { $docprev = $1; }
+	elsif (/^DOCNEXT=(.*)/) { $docnext = $1; }
+	last if (/^=pod/);
+}
+close (POD);
+$docthis = $podfile;
+$docthis =~ s/\.[^\.]+$//;
+
+open (HTML, "<$htmlfile") or die "$main::prog: can't open $htmlfile: $!\n";
+while (<HTML>) {
+	s/\@\@TITLE\@\@/$title/g;
+	s/\@\@DESCRIPTION\@\@/$description/g;
+	s/\@\@KEYWORDS\@\@/$keywords/g;
+	s/\@\@DOCTOP\@\@/$doctop/g;
+	s/\@\@DOCPREV\@\@/$docprev/g;
+	s/\@\@DOCNEXT\@\@/$docnext/g;
+	s/\@\@DOCTHIS\@\@/$docthis/g;
+	print $_;
+}
+close (HTML);
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+

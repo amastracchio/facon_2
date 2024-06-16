@@ -1,0 +1,335 @@
+#!/usr/bin/perl -w
+# alerter - actually send alerts triggered by alert-monitor
+# CVS $Id: alerter.pl,v 1.15 2003/05/20 19:28:04 facon Exp $
+# from facon 1.0.13a
+
+# - - -   Configuration   - - -
+
+$main::debug=1; # for now, until I figure out the problem
+
+use strict;
+
+# What is this program called for error-messages and file-names
+$main::prog = 'alerter';
+# Where is the configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.15 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "htmlstuff.pl";
+use Getopt::Std;
+use POSIX qw(strftime); # for email Date: header
+
+# Where are we?  This isn't done often enough to be worth pulling in another
+# non-standard module for. (Sys::Hostname);
+$main::hostname = `hostname`;
+chomp $main::hostname;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+&read_config_dir($main::config_dir, 'general', 'html',
+	'alert-destination-map');
+
+# - - -   Mainline   - - -
+
+my ($dest, $times, $dows, $doms, $mons, $alias, @times, $sec, $min, $hour, 
+	$mday, $mon, $year, $dow, $now, $found, %map, $fixedrrd, $now_string,
+	$now_string2, $header_file, $header, $footer_file, $footer,
+	$sent_alert, $line, $range, $start, $end, @dows, @doms, @mons, $dom,
+	$meth_addr, @meth_addrs, $cmd, $template_file, $addr, $method, @temp,
+	$alerthost, $text);
+
+my ($towho, $host, $ip, $realrrd, $wildpart, $var, $status, $old_status, $value,$delta,
+	$relation, $threshold, $alertstart, $duration, $hostdesc, $rrddesc,
+	$webmaster, $template) = @ARGV;
+&debug(<<"EOD_ARGS") if ($main::debug);;
+args:
+	towho = '$towho'
+	host = '$host'
+	ip = '$ip'
+	realrrd = '$realrrd'
+	wildpart = '$wildpart'
+	var = '$var'
+	status = '$status'
+	old_status = '$old_status'
+	value = '$value'
+	relation = '$relation'
+	threshold = '$threshold'
+	alertstart = '$alertstart'
+	duration = '$duration'
+	hostdesc = '$hostdesc'
+	rrddesc = '$rrddesc'
+	webmaster = '$webmaster'
+	template = '$template'
+EOD_ARGS
+unless (defined $template) { &usage; } # no return
+
+my $template_dir = $main::config_dir .'/alert-templates';
+
+$sent_alert = 0;
+foreach $line (@{$main::config{ALERTDEST}{DEST}}) {
+	($dest, $times, $dows, $doms, $mons, $alias) = 
+		@{$line};
+
+# For $towho?
+	unless ($dest eq $towho or $dest eq '*') {
+		&debug("$dest: alert-destination $dest != $towho; skipped") if ($main::debug);
+		next;
+	}
+
+# When is now?
+	($sec, $min, $hour, $mday, $mon, $year, $dow) = localtime;
+	$now = sprintf('%02d%02d', $hour, $min);
+
+# Valid time?
+	@times = split(',', $times);
+	$found = 0;
+	foreach $range (@times) {
+		($start, $end) = split('-', $range);
+		if ($start eq '*') { $found = 1; last; }
+		unless (defined $end) { $end = $start; }
+		unless (length($start) == 4) {
+			&abort("bad start-time '$start' in:". join(' ', @$line));
+		}
+		unless (length($end) == 4) {
+			&abort("bad end-time '$end' in:". join(' ', @$line));
+		}
+		if ($now ge $start and $now le $end) {
+			$found = 1;
+			last;
+		}
+	}
+	unless ($found) {
+		&debug("$dest: time $now not in time-range $times; skipped")
+			if ($main::debug);
+		next;
+	}
+
+# Valid Day-Of-Week?
+	@dows = split(',', $dows);
+	unless ($dow eq '*' or grep $dow, @dows) {
+		&debug("$dest: dow $dow not in $dows; skipped") if ($main::debug);
+		next;
+	}
+
+# Valid Day-Of-Month?
+	@doms = split(',', $doms);
+	$found = 0;
+	foreach $range (@doms) {
+		($start, $end) = split('-', $range);
+		if ($start eq '*') { $found = 1; last; }
+		unless (defined $end) { $end = $start; }
+		if ($dom >= $start and $dom <= $end) {
+			$found = 1;
+			last;
+		}
+	}
+	unless ($found) {
+		&debug("$dest: dom $dom not in $doms; skipped") if ($main::debug);
+		next;
+	}
+
+# Valid Month?
+	@mons = split(',', $mons);
+	$found = 0;
+	foreach $range (@mons) {
+		($start, $end) = split('-', $range);
+		if ($start eq '*') { $found = 1; last; }
+		unless (defined $end) { $end = $start; }
+		if ($mon >= $start and $mon <= $end) {
+			$found = 1;
+			last;
+		}
+	}
+	unless ($found) {
+		&debug("$dest: month $mon not in $mons; skipped") if ($main::debug);
+		next;
+	}
+	
+# A matching map!
+	@meth_addrs = @{$main::config{ALERTDEST}{ALIAS}{$alias}};
+	unless (@{$main::config{ALERTDEST}{ALIAS}{$alias}} and
+			@{$main::config{ALERTDEST}{ALIAS}{$alias}} > 0 ) {
+		&error("alias $alias found in map for $dest but not defined");
+		next;
+	}
+
+	foreach $meth_addr (@meth_addrs) {
+		($method, $addr) = split(':', $meth_addr, 2);
+		&debug("$dest: method:addr = $meth_addr") if ($main::debug);
+		unless (defined $main::config{ALERTDEST}{METHOD}{$method}) {
+			&error("method $method used in $meth_addr, but not defined");
+			next;
+		}
+		$cmd = $main::config{ALERTDEST}{METHOD}{$method};
+
+# Find the appropriate template file
+		$template_file = $template_dir .'/'. uc ($method) .'-'. $template;
+		unless (-f $template_file or -l $template_file) {
+			&debug($dest, ': no method template \'', $template_file,
+				'\'; trying method default') if ($main::debug);
+			$template_file = $template_dir .'/'. uc ($method) . '-DEFAULT';
+		}
+		unless (-f $template_file or -l $template_file) {
+			&debug("$dest: no method default '$template_file'; trying generic")
+				if ($main::debug);
+			$template_file = $template_dir .'/'. $template;
+		}
+		unless (-f $template_file or -l $template_file) {
+			&debug("$dest: no generic '$template_file'; trying default")
+				if($main::debug);
+			$template_file = $template_dir .'/'. 'DEFAULT';
+		}
+		unless (-f $template_file or -l $template_file) {
+			&abort("can't find default template '$template_file'");
+			next;
+		}
+
+		&debug("$dest: using template $template_file") if ($main::debug);
+		open (TEMPLATE, "<$template_file") or do {
+			&error("can't open $template_file: $!");
+			next;
+		};
+		@temp = <TEMPLATE>;
+		$text = join('', @temp);
+		close (TEMPLATE);
+
+# Read in the header
+		$header_file = $template_dir .'/'. uc ($method) . '-HEADER';
+		unless (-f $header_file or -l $header_file) {
+			&debug($dest, ': no method header \'', $header_file,
+				'\'; trying generic header') if ($main::debug);
+			$header_file = $template_dir .'/'. 'HEADER';
+		}
+		unless (-f $header_file or -l $header_file) {
+			&abort("no generic header file '$header_file'");
+		}
+		&debug("$dest: using header $header_file") if ($main::debug);
+		open (HEADER, "<$header_file") or do {
+			&error("can't open $header_file: $!");
+			next;
+		};
+		@temp = <HEADER>;
+		$header = join('', @temp);
+		close (HEADER);
+
+# Read in the footer
+		$footer_file = $template_dir .'/'. uc ($method) . '-FOOTER';
+		unless (-f $footer_file or -l $footer_file) {
+			&debug($dest, ': no method footer \'', $footer_file,
+				'\'; trying generic footer') if ($main::debug);
+			$footer_file = $template_dir .'/'. 'FOOTER';
+		}
+		unless (-f $footer_file or -l $footer_file) {
+			&abort("no generic footer file '$footer_file'");
+		}
+		&debug("$dest: using footer $footer_file") if ($main::debug);
+		open (FOOTER, "<$footer_file") or do {
+			&error("can't open $footer_file: $!");
+			next;
+		};
+		@temp = <FOOTER>;
+		$footer = join('', @temp);
+		close (FOOTER);
+
+		$text = $header . $text . $footer;
+
+# Now replace magic cookies
+		$fixedrrd = &to_filename($realrrd);
+		$now_string = sprintf('%04d%02d%02d-%02d%02d%02dUTC',
+			$year, $mon, $mday, $hour, $min, $sec);
+		$now_string2 = strftime( '%a, %d %h %Y %T %Z', $sec, $min,
+			$hour, $mday, $mon, $year);
+		$alerthost = $main::hostname;
+		%map = (
+			HOST => $host,
+			IP => $ip,
+			REALRRD => $realrrd,
+			WILDPART => $wildpart,
+			FIXEDRRD => $fixedrrd,
+			VAR => $var,
+			STATUS => $status,
+			OLDSTATUS => $old_status,
+			VALUE => $value,
+			RELATION => $relation,
+			THRESHOLD => $threshold,
+			START => $alertstart,
+			DURATION => $duration,
+			HOSTDESC => $hostdesc,
+			RRDDESC => $rrddesc,
+			NOW => $now_string,
+			TEXTNOW => $now_string2,
+			ALERTHOST => $alerthost,
+			TOWHO => $towho,
+			WEBMASTER => $webmaster,
+			HTMLURL => $main::config{HTMLURL},
+			CGIURL => $main::config{CGIURL},
+			HOSTINDEXURL => &make_host_index_url( $host),
+		);
+		$text =~ s/##([A-Z0-9_]+)##/$map{$1}/egm;
+
+# Now run the program
+		$cmd .= ' '. $addr;
+		&debug("$dest: command: $cmd") if ($main::debug);
+		open (PIPE, "|$cmd") or do {
+			&error("can't open pipe to $cmd: $!");
+			next;
+		};
+		print PIPE $text or do {
+			&error("can't write to pipe to $cmd: $!");
+			next;
+		};
+		close(PIPE);
+		$sent_alert++;
+		&debug("$dest: sent alert using $cmd") if( $main::debug);
+	}
+}
+
+unless ($sent_alert) {
+	&abort("no matching destinations for alert");
+}
+0;
+
+#------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#-------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#--------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] args
+where options are:
+    -d ddd  set debugging output to level 'ddd'
+    -h      show this help
+    -f fff  use 'fff' as configuration directory [$main::config_dir]
+The args are documented in alert-monitor; a quick list:
+    towho host ip realrrd wildpart var status old_status value relation 
+    threshold alertstart duration hostdesc rrddesc webmaster template
+EOD_USAGE
+	exit 0;
+}

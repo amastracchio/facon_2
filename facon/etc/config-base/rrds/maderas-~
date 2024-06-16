@@ -1,0 +1,209 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1324389=1324389  GAUGE:1200:0:U
+data    data1324375=1324375  GAUGE:1200:0:U
+data    data1163696=1163696  GAUGE:1200:0:U
+data    data1324395=1324395  GAUGE:1200:0:U
+data    data1324393=1324393  GAUGE:1200:0:U
+data    data1324391=1324391  GAUGE:1200:0:U
+data    data1324386=1324386  GAUGE:1200:0:U
+data    data1324384=1324384  GAUGE:1200:0:U
+data    data1324382=1324382  GAUGE:1200:0:U
+data    data1324380=1324380  GAUGE:1200:0:U
+data    data1324373=1324373  GAUGE:1200:0:U
+data    data1324414=1324414  GAUGE:1200:0:U
+data    data1324410=1324410  GAUGE:1200:0:U
+data    data1324408=1324408  GAUGE:1200:0:U
+data    data1324412=1324412  GAUGE:1200:0:U
+data    data1634333=1634333  GAUGE:1200:0:U
+data    data1634330=1634330  GAUGE:1200:0:U
+data    data1631199=1631199  GAUGE:1200:0:U
+data    data1631193=1631193  GAUGE:1200:0:U
+data    data1631192=1631192  GAUGE:1200:0:U
+data    data1631189=1631189  GAUGE:1200:0:U
+data    data1631186=1631186  GAUGE:1200:0:U
+data    data1631179=1631179  GAUGE:1200:0:U
+data    data1049134=1049134  GAUGE:1200:0:U
+data    data1049135=1049135  GAUGE:1200:0:U
+data    data1049136=1049136  GAUGE:1200:0:U
+data    data1049137=1049137  GAUGE:1200:0:U
+data    data1049138=1049138  GAUGE:1200:0:U
+data    data1049139=1049139  GAUGE:1200:0:U
+data    data1049140=1049140  GAUGE:1200:0:U
+data    data1049141=1049141  GAUGE:1200:0:U
+data    data1049142=1049142  GAUGE:1200:0:U
+data    data1049143=1049143  GAUGE:1200:0:U
+data    data1049144=1049144  GAUGE:1200:0:U
+data    data1049145=1049145  GAUGE:1200:0:U
+data    data1049146=1049146  GAUGE:1200:0:U
+data    data1049147=1049147  GAUGE:1200:0:U
+data    data1049133=1049133  GAUGE:1200:0:U
+data    responsetime=1324389-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1- desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+      DEF:data1324389=##DB##:data1324389:AVERAGE
+      'LINE2:data1324389###COLOR1##:Pino Cepillado 2x6x3.05 Mts '
+      'GPRINT:data1324389:LAST:Pino Cepillado 2x6x3.05 Mts  last=%.1lf'
+      DEF:data1324375=##DB##:data1324375:AVERAGE
+      'LINE2:data1324375###COLOR2##:Pino Cepillado 2x4x3.66 Mts '
+      'GPRINT:data1324375:LAST:Pino Cepillado 2x4x3.66 Mts  last=%.1lf'
+      DEF:data1163696=##DB##:data1163696:AVERAGE
+      'LINE2:data1163696###COLOR3##:Pino Cepillado 1 x 2 x 1.83 m nc '
+      'GPRINT:data1163696:LAST:Pino Cepillado 1 x 2 x 1.83 m nc  last=%.1lf'
+      DEF:data1324395=##DB##:data1324395:AVERAGE
+      'LINE2:data1324395###COLOR4##:Pino Cepillado 2x6x4.88 Mts '
+      'GPRINT:data1324395:LAST:Pino Cepillado 2x6x4.88 Mts  last=%.1lf'
+      DEF:data1324393=##DB##:data1324393:AVERAGE
+      'LINE2:data1324393###COLOR5##:Pino Cepillado 2x6x4.27 Mts '
+      'GPRINT:data1324393:LAST:Pino Cepillado 2x6x4.27 Mts  last=%.1lf'
+
+graph   value2- desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+      DEF:data1324391=##DB##:data1324391:AVERAGE
+      'LINE2:data1324391###COLOR1##:Pino Cepillado 2x6x3.66 Mts '
+      'GPRINT:data1324391:LAST:Pino Cepillado 2x6x3.66 Mts  last=%.1lf'
+      DEF:data1324386=##DB##:data1324386:AVERAGE
+      'LINE2:data1324386###COLOR2##:Pino Cepillado 2x5x4.88 Mts '
+      'GPRINT:data1324386:LAST:Pino Cepillado 2x5x4.88 Mts  last=%.1lf'
+      DEF:data1324384=##DB##:data1324384:AVERAGE
+      'LINE2:data1324384###COLOR3##:Pino Cepillado 2x5x4.27 Mts '
+      'GPRINT:data1324384:LAST:Pino Cepillado 2x5x4.27 Mts  last=%.1lf'
+      DEF:data1324382=##DB##:data1324382:AVERAGE
+      'LINE2:data1324382###COLOR4##:Pino Cepillado 2x5x3.66 Mts '
+      'GPRINT:data1324382:LAST:Pino Cepillado 2x5x3.66 Mts  last=%.1lf'
+      DEF:data1324380=##DB##:data1324380:AVERAGE
+      'LINE2:data1324380###COLOR5##:Pino Cepillado 2x5x3.05 Mts '
+      'GPRINT:data1324380:LAST:Pino Cepillado 2x5x3.05 Mts  last=%.1lf'
+
+graph   value3- desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+      DEF:data1324373=##DB##:data1324373:AVERAGE
+      'LINE2:data1324373###COLOR1##:Pino Cepillado 2x4x3.05 Mts '
+      'GPRINT:data1324373:LAST:Pino Cepillado 2x4x3.05 Mts  last=%.1lf'
+      DEF:data1324414=##DB##:data1324414:AVERAGE
+      'LINE2:data1324414###COLOR2##:Pino Cepillado 3x6x4.88 Mts '
+      'GPRINT:data1324414:LAST:Pino Cepillado 3x6x4.88 Mts  last=%.1lf'
+      DEF:data1324410=##DB##:data1324410:AVERAGE
+      'LINE2:data1324410###COLOR3##:Pino Cepillado 3x6x3.66 Mts '
+      'GPRINT:data1324410:LAST:Pino Cepillado 3x6x3.66 Mts  last=%.1lf'
+      DEF:data1324408=##DB##:data1324408:AVERAGE
+      'LINE2:data1324408###COLOR4##:Pino Cepillado 3x6x3.05 Mts '
+      'GPRINT:data1324408:LAST:Pino Cepillado 3x6x3.05 Mts  last=%.1lf'
+      DEF:data1324412=##DB##:data1324412:AVERAGE
+      'LINE2:data1324412###COLOR5##:Pino Cepillado 3x6x4.27 Mts '
+      'GPRINT:data1324412:LAST:Pino Cepillado 3x6x4.27 Mts  last=%.1lf'
+
+graph   value4- desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #4 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+      DEF:data1634333=##DB##:data1634333:AVERAGE
+      'LINE2:data1634333###COLOR1##:Pino Multilaminado 3x8x6.00 Mts Cuyo '
+      'GPRINT:data1634333:LAST:Pino Multilaminado 3x8x6.00 Mts Cuyo  last=%.1lf'
+      DEF:data1634330=##DB##:data1634330:AVERAGE
+      'LINE2:data1634330###COLOR2##:Pino Multilaminado 3x8x4.50 Mts Cuyo '
+      'GPRINT:data1634330:LAST:Pino Multilaminado 3x8x4.50 Mts Cuyo  last=%.1lf'
+      DEF:data1631199=##DB##:data1631199:AVERAGE
+      'LINE2:data1631199###COLOR3##:Pino Multilaminado 3x6x6.00 Mts Cuyo '
+      'GPRINT:data1631199:LAST:Pino Multilaminado 3x6x6.00 Mts Cuyo  last=%.1lf'
+      DEF:data1631193=##DB##:data1631193:AVERAGE
+      'LINE2:data1631193###COLOR4##:Pino Multilaminado 3x6x3.00 Mts Cuyo '
+      'GPRINT:data1631193:LAST:Pino Multilaminado 3x6x3.00 Mts Cuyo  last=%.1lf'
+      DEF:data1631192=##DB##:data1631192:AVERAGE
+      'LINE2:data1631192###COLOR5##:Pino Multilaminado 2x6x6.00 Mts Cuyo '
+      'GPRINT:data1631192:LAST:Pino Multilaminado 2x6x6.00 Mts Cuyo  last=%.1lf'
+
+graph   value5- desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #5 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1631189=##DB##:data1631189:AVERAGE
+      'LINE2:data1631189###COLOR1##:Pino Multilaminado 2x6x4.50 Mts Cuyo '
+      'GPRINT:data1631189:LAST:Pino Multilaminado 2x6x4.50 Mts Cuyo  last=%.1lf'
+      DEF:data1631186=##DB##:data1631186:AVERAGE
+      'LINE2:data1631186###COLOR2##:Pino Multilaminado 2x6x3.00 Mts Cuyo '
+      'GPRINT:data1631186:LAST:Pino Multilaminado 2x6x3.00 Mts Cuyo  last=%.1lf'
+      DEF:data1631179=##DB##:data1631179:AVERAGE
+      'LINE2:data1631179###COLOR3##:Pino Multilaminado 2x5x3.00 Mts Cuyo '
+      'GPRINT:data1631179:LAST:Pino Multilaminado 2x5x3.00 Mts Cuyo  last=%.1lf'
+      DEF:data1049134=##DB##:data1049134:AVERAGE
+      'LINE2:data1049134###COLOR4##:Tirante Cedrella Grit200 2x4x3.66 Mts '
+      'GPRINT:data1049134:LAST:Tirante Cedrella Grit200 2x4x3.66 Mts  last=%.1lf'
+      DEF:data1049135=##DB##:data1049135:AVERAGE
+      'LINE2:data1049135###COLOR5##:Tirante Cedrella Grit200 2x5x3.05 Mts '
+      'GPRINT:data1049135:LAST:Tirante Cedrella Grit200 2x5x3.05 Mts  last=%.1lf'
+
+graph   value6-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #6 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1049136=##DB##:data1049136:AVERAGE
+      'LINE2:data1049136###COLOR1##:Tirante Cedrella Grit200 2x5x3.66 Mts '
+      'GPRINT:data1049136:LAST:Tirante Cedrella Grit200 2x5x3.66 Mts  last=%.1lf'
+      DEF:data1049137=##DB##:data1049137:AVERAGE
+      'LINE2:data1049137###COLOR2##:Tirante Cedrella Grit200 2x5x4.27 Mts '
+      'GPRINT:data1049137:LAST:Tirante Cedrella Grit200 2x5x4.27 Mts  last=%.1lf'
+      DEF:data1049138=##DB##:data1049138:AVERAGE
+      'LINE2:data1049138###COLOR3##:Tirante Cedrella Grit200 2X5X4.88M '
+      'GPRINT:data1049138:LAST:Tirante Cedrella Grit200 2X5X4.88M  last=%.1lf'
+      DEF:data1049139=##DB##:data1049139:AVERAGE
+      'LINE2:data1049139###COLOR4##:Tirante Cedrella Grit200 2X6X3.05M '
+      'GPRINT:data1049139:LAST:Tirante Cedrella Grit200 2X6X3.05M  last=%.1lf'
+      DEF:data1049140=##DB##:data1049140:AVERAGE
+      'LINE2:data1049140###COLOR5##:Tirante Cedrella Grit200 2x6x3.66 Mts '
+      'GPRINT:data1049140:LAST:Tirante Cedrella Grit200 2x6x3.66 Mts  last=%.1lf'
+
+graph   value7-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #7 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1049141=##DB##:data1049141:AVERAGE
+      'LINE2:data1049141###COLOR1##:Tirante Cedrella Grit200 2X6X4.27M '
+      'GPRINT:data1049141:LAST:Tirante Cedrella Grit200 2X6X4.27M  last=%.1lf'
+      DEF:data1049142=##DB##:data1049142:AVERAGE
+      'LINE2:data1049142###COLOR2##:Tirante Cedrella Grit200 2X6X4.88M '
+      'GPRINT:data1049142:LAST:Tirante Cedrella Grit200 2X6X4.88M  last=%.1lf'
+      DEF:data1049143=##DB##:data1049143:AVERAGE
+      'LINE2:data1049143###COLOR3##:Tirante Cedrella Grit200 3x6x3.66 Mts '
+      'GPRINT:data1049143:LAST:Tirante Cedrella Grit200 3x6x3.66 Mts  last=%.1lf'
+      DEF:data1049144=##DB##:data1049144:AVERAGE
+      'LINE2:data1049144###COLOR4##:Tirante Cedrella Grit200 3x6x4.27 Mts '
+      'GPRINT:data1049144:LAST:Tirante Cedrella Grit200 3x6x4.27 Mts  last=%.1lf'
+      DEF:data1049145=##DB##:data1049145:AVERAGE
+      'LINE2:data1049145###COLOR5##:Tirante Cedrella Grit200 3x6x4.88 Mts '
+      'GPRINT:data1049145:LAST:Tirante Cedrella Grit200 3x6x4.88 Mts  last=%.1lf'
+
+graph   value8-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	                --title '##HOST## - ##WILDPART## Auto Graph #8 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1049146=##DB##:data1049146:AVERAGE
+      'LINE2:data1049146###COLOR1##:Tirante Cedrella Grit200 3x8x4.27 Mts '
+      'GPRINT:data1049146:LAST:Tirante Cedrella Grit200 3x8x4.27 Mts  last=%.1lf'
+      DEF:data1049147=##DB##:data1049147:AVERAGE
+      'LINE2:data1049147###COLOR2##:Tirante Cedrella Grit200 3x8x4.88 Mts '
+      'GPRINT:data1049147:LAST:Tirante Cedrella Grit200 3x8x4.88 Mts  last=%.1lf'
+      DEF:data1049133=##DB##:data1049133:AVERAGE
+      'LINE2:data1049133###COLOR3##:Tirante Cedrella Grit200 2x4x3.05 Mts '
+      'GPRINT:data1049133:LAST:Tirante Cedrella Grit200 2x4x3.05 Mts  last=%.1lf'

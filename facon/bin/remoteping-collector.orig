@@ -1,0 +1,223 @@
+#!/usr/bin/perl -w
+
+# remoteping-collector - a facon collector for remote pinging
+# $Id: remoteping-collector.pl,v 1.18 2003/05/15 12:05:20 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'remoteping-collector';
+# Which collector is this
+$main::collector = 'remoteping';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Which port does the remote-ping server run on
+$main::port = 1959;
+# How long to wait for the responses
+$main::timeout = 60;
+# Munge remote timestamps to deal with server time-sync problems
+$main::fix_timestamps = 1;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.18 $'))[1];
+
+# - - -   Setup   - - -
+
+require 5.0;
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+require "socketstuff.pl";
+use Getopt::Std;
+use RRDs;
+
+# Parse the command-line
+my( %opt, @hosts, @groups, @keys, @all_hosts, $host, $ip);
+%opt = ();
+getopts('d:f:FhG:H:K:p:t:u', \%opt);
+
+if (defined $opt{'h'}) { &usage(); } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'p'}) { $main::port = $opt{'p'}; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'}; }
+# -u is ignored on purpose
+# -F is ignored too for now as the code to implement it has to be different here
+
+&read_config_dir($main::config_dir, 'general', 'remotepings', 
+	'oids', 'times', 'rrds', 'groups', 'host-templates', 'hosts');
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# If there are no remoteping-server hosts, there's no point in trying.
+unless (@{$main::config{REMOTEPING}}) {
+	&error("no remoteping servers defined");
+	exit 0;
+}
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+# Figure out which hosts are being collected.
+@all_hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# - - -   Mainline   - - -
+
+my ($start_time, $run_time);
+$start_time = time();
+
+# Collect the hosts to ping
+@hosts = ();
+foreach $host (@all_hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("adding host $host") if ($main::debug>1);
+	push @hosts, $host.' '.$ip;
+}
+
+# Have we got any left?
+unless (@hosts > 0) {
+	&error("no hosts requested remoteping");
+	exit 0;
+}
+
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+
+# Talk to each remoteping-server
+foreach $host (@{$main::config{REMOTEPING}}) {
+	&do_ping($host, $host, @hosts);
+}
+
+# Now facon instrumentation info
+my $now = time();
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#--------------------------------------------------------------- do_ping ---
+sub do_ping {
+	my ($host, $server, @hosts) = @_;
+	my ($port, $line, @lines, $ip, $status, $socket);
+
+	($host, $port) = split(':', $host);
+	unless (defined $port) { $port = $main::port; }
+
+	# Where is this remoteping-server anyway?
+	$ip = &get_ip ($host);
+	unless (defined $ip) {
+		&error("can't get IP number for $host; skipped");
+		return;
+	}
+
+	# Open connection to remoteping-server
+	&debug("connecting to $host ($ip) port=$port...") if ($main::debug);
+	($socket, $status, $main::timeout) = 
+		&open_socket( $host, $port, $main::timeout, $ip);
+	unless ($status == $main::SOCKET_OK) {
+		&put_error("can't connect to $host:$port");
+		return;
+	}
+
+	# Tell them what we want.
+	($status, $main::timeout) = &write_socket( $socket, 
+		join("\n", @hosts) . "\nGO\n", $main::timeout);
+	unless ($status == $main::SOCKET_OK) {
+		&error("can't send hosts");
+		return;
+	}
+	&debug("  sent request") if ($main::debug);
+	$main::requests += $#hosts + 1;
+
+	# Collect the results
+	while (($line, $status, $main::timeout) = &read_socket( $socket, 
+			$main::timeout, "response from host"),
+			((defined $line) and ($status == $main::SOCKET_OK))) {
+		$line =~ tr/\015\012//d;
+		&debug("  raw data: $line") if ($main::debug>1);
+		++$main::entries_collected;
+		next if ($line =~ /^#/ or $line =~/^\s*$/);
+
+		# Deal with special output
+		if ($line =~ /^DEBUG:\s*(.*)/) {
+			&debug("REMOTE($host): $1") if ($main::debug);
+		}
+		elsif ($line =~ /^ERROR:\s*(.*)/) {
+			&error("collect_host: REMOTE($host): $1");
+		}
+		elsif ($line =~ /^ABORT:\s*(.*)/) {
+			&abort("REMOTE($host) $1");
+		}
+		else {
+			($pinghost, $pingtime, $pingvar, $pingval) = split(' ', $line, 4);
+			if( $main::fix_timestamps) { $pingtime = time(); }
+			print "$pinghost $pingtime $pingvar:$server $pingval\n";
+			print TMP "$pinghost $pingtime $pingvar:$server $pingval\n";
+			++$main::entries_used;
+		}
+	}
+	$socket->close();
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for config-dir [$main::config_dir]
+    -h      show this help
+    -p ppp  use port 'ppp' instead of the default [$main::port]
+    -t ttt  use 'ttt' for timeout [$main::timeout]
+    -u      for run-facon compatibility
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

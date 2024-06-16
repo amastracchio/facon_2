@@ -1,0 +1,26 @@
+# rrds/smbdprocs - number of smbd's running (part of Samba)
+# CVS $Id: smbdprocs,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	smbdprocs=ps:smbdprocs GAUGE:1200:0:U ps count smbd
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	smbdprocs desc="This is collected by the unix-status-collector.  It works by running the ps command on the remote host and parsing the output to look for the specified program by name, and counting how many are running.  The smbd process is part of Samba and must be running for Samba to work.  See also nmbdprocs."
+	--title '##HOST## - SMBD processes (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:smbdprocs=##DB##:smbdprocs:AVERAGE
+	CDEF:missing=smbdprocs,UN,INF,UNKN,IF
+	'LINE2:smbdprocs###COLOR1##:processes'
+	'GPRINT:smbdprocs:AVERAGE:avg=%.0lf%s'
+	'GPRINT:smbdprocs:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,218 @@
+#!/usr/bin/perl -w
+
+# rrddump-munge - munge an rrd dump (xml form)
+# $Id: rrddump-munge.pl,v 1.7 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$prog = 'rrddump-munge';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.7 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+# use Data::Dumper;
+
+# Parse the command-line
+use vars qw( $opt_d $opt_h $opt_l );
+getopts('d:hl');
+
+if (defined $opt_h) { &usage; } # no return
+if (defined $opt_d) { $debug = $opt_d; } else { $debug = 0; }
+if (defined $opt_l) { $listit = 1; } else { $listit = 0; }
+
+if ($#ARGV < 0) { $file = '-'; }
+elsif ($#ARGV == 0) { $file = shift @ARGV; }
+else { &usage; } # no return
+
+open (FILE, "<$file") or &abort("can't open $file: $!");
+
+# - - -   Mainline   - - -
+
+if ($listit) { &listit; }
+else { &abort("unimplemented, only -l for now"); }
+
+close(FILE);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] file ...
+where options are:
+	-d	enable debugging output
+	-h	show this help
+	-l	list the rrd instead
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- listit ---
+sub listit {
+	&readit (1); 
+}
+
+#---------------------------------------------------------------- readit ---
+sub readit {
+	my ($listit) = @_;
+	my ($in_rrd, $in_ds, $in_rra, $dsname, $dstype, $dsheartbeat, $dsmin, $dsmax);
+	my ($rranum, $cf, $in_database, @dsnames);
+	$in_rrd = $in_ds = $in_rra = $in_database = 0;
+	$rranum = 0;
+	
+	while (<FILE>) {
+		chomp;
+		s/(<!--.*?-->)//g; # remove comments
+		next if (/^\s*$/);
+
+		if (/^\s*<rrd>/) {
+			$in_rrd = 1;
+			&list( "rrdtool create FILE") if ($listit);
+		}
+		elsif (m#^\s*<version>\s*(\d+)\s*</version>#) {
+			$version = $1;
+			&list ( "  # RRD version $version") if ($listit);
+		}
+		elsif (m#^\s*<step>\s*(\d+)\s*</step>#) {
+			$step = $1;
+			&list( "  --step $step") if ($listit);
+		}
+		elsif (m#^\s*<lastupdate>\s*(\d+)\s*</lastupdate>#) {
+			$last_update = $1;
+			&list( "  # last update at $last_update") if ($listit);
+		}
+
+		elsif (m#^\s*<ds>\s*$#) { $in_ds = 1; &debug("IN DS") if ($main::debug);}
+		elsif (m#^\s*<rra>\s*$#) { $in_rra = 1; &debug("IN RRA") if ($main::debug);}
+
+# Picking up DS definition
+		elsif ($in_ds) {
+			if (m#^\s*</ds>#) {
+				$in_ds = 0;
+				$dsmin = &clean_num($dsmin);
+				$dsmax = &clean_num($dsmax);
+				$dsheartbeat = &clean_num($dsheartbeat);
+				&list("  DS:${dsname}:${dstype}:${dsheartbeat}:${dsmin}:${dsmax}") 
+					if ($listit);
+				&debug("  DONE DS") if ($main::debug);
+			}
+			elsif (m#<name>\s*(\S+)\s*</name>#) {
+				$dsname = $1;
+				push @dsnames, $dsname;
+			}
+			elsif (m#<type>\s*(\S+)\s*</type>#) {
+				$dstype = $1;
+				$rrd{DS}{$dsname}{TYPE} = $dstype;
+			}
+			elsif (m#<minimal_heartbeat>\s*(\d+)\s*</minimal_heartbeat>#) {
+				$dsheartbeat = $1;
+				$rrd{DS}{$dsname}{HEARTBEAT} = $dsheartbeat;
+			}
+			elsif (m#<min>\s*(\S+)\s*</min>#) {
+				$dsmin = $1;
+				if ($dsmin eq 'NaN') { $dsmin = 'U'; }
+				$rrd{DS}{$dsname}{MIN} = $dsmin;
+			}
+			elsif (m#<max>\s*(\S+)\s*</max>#) {
+				$dsmax = $1;
+				if ($dsmax eq 'NaN') { $dsmax = 'U'; }
+				$rrd{DS}{$dsname}{MAX} = $dsmax;
+			}
+		}
+
+# Picking up RRA definition and data
+		elsif ($in_rra) {
+			if (m#</rra>#) {
+				$in_rra = 0;
+				&list("  RRA:$cf:?:$pdp_per_row:?") if ($listit);
+				&debug("  DONE RRA") if ($main::debug);
+				print Dumper($rra[$rranum]) if ($main::debug>3);
+				foreach $row ($rra[$rranum]{VALUES}) {
+					my @row = @{$row};
+					foreach my $temp (@{$row}) {
+						my @temp = @{$temp};
+#						&list('  values:'. join(':',@temp)) if ($listit);
+					}
+				}
+				++$rranum;
+			}
+			elsif (m#<cf>\s*(\S+)\s*</cf>#) {
+				$cf = $1;
+				$rra[$rranum]{CF} = $cf;
+			}
+			elsif (m#<pdp_per_row>\s*(\d+)\s*</pdp_per_row>#) {
+				$pdp_per_row = $1;
+				$rra[$rranum]{PDP_PER_ROW} = $pdp_per_row;
+			}
+			elsif (m#<database>#) {
+				$in_database = 1;
+				$in_rra = 0; # hack
+				&debug("IN DATABASE") if ($main::debug);
+			}
+		}
+
+		elsif ($in_database) {
+			if (m#</database>#) {
+				$in_database = 0;
+				$in_rra = 1; # hack
+				&debug("  DONE DATABASE") if ($main::debug);
+			}
+			elsif(m#<row>\s*<v>\s*(.*?)\s*</v>\s*</row>#) {
+				my $values = $1;
+				my @row = &clean_num(split('\s*</v>\s*<v>\s*', $values));
+				push @{$rra[$rranum]{VALUES}}, [@row];
+				&debug("  VALUES: ". join(', ', @row)) if ($main::debug>2);
+			}
+			else {
+				&debug("unknown database line: $_") if ($main::debug);
+			}
+		}
+	}
+}
+
+#----------------------------------------------------- list ---
+sub list {
+	my ($msg) = @_;
+	print STDERR $msg . "\n";
+}
+
+#----------------------------------------------- clean_num ---
+# Clean up display of a number
+sub clean_num {
+	my @nums = @_;
+	my @newnums = ();
+
+	foreach my $num (@nums) {
+		if ($num eq 'NaN' or $num eq 'U') { $num = 'U'; }
+		else { $num = $num+0; }
+		push @newnums, $num;
+	}
+return wantarray ? @newnums : $newnums[0];
+}

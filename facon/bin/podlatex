@@ -1,0 +1,377 @@
+#!/usr/bin/perl -w
+
+# podhtml - convert pod file to latex
+#		The one major difference is that lines with only whitespace
+#		are treated as empty lines.  If it looks like a paragraph
+#		break, it is a paragraph break.
+# $Id: podlatex.pl,v 1.6 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'podlatex';
+# What's the suffix for html files?
+$main::html_suffix = '.html';
+$main::html_suffix_pattern = '\.html';
+# Debugging anyone?
+$main::debug = 0;
+
+# What's the suffix for pod files? (it's a regex)
+$main::pod_suffix_pattern = '\.[^\.]+';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.6 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:hs:S:u:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+if (defined $opt{'s'}) { $main::html_suffix = $opt{'s'}; }
+if (defined $opt{'S'}) { $main::pod_suffix_pattern = $opt{'S'}; }
+if (defined $opt{'u'}) { $main::baseurl = $opt{'u'}; } else { $main::baseurl = ''; }
+
+if ($#ARGV != 0) { &usage; } # no return
+$main::podfile = shift @ARGV;
+open (POD, "<$main::podfile") or &abort("can't open $main::podfile: $!");
+
+if ($main::podfile =~ /^(.*)\.pod$/) { $main::latexfile = $1 .'.tex'; }
+else { $main::latexfile = $main::podfile . '.tex'; }
+open (LATEX, ">$main::latexfile") or &abort("can't open $main::latexfile: $!");
+
+# Special characters and their substitution
+%main::special = (
+	'\\' => '$\\backslash$',
+	'~' => '\~{}',
+	'#' => '\\#',
+	'$' => '\\$',
+	'%' => '\\%',
+	'^' => '\\^',
+	'&' => '\\&',
+	'_' => '\\_',
+	'{' => '\\{',
+	'}' => '\\}',
+);
+$main::special = quotemeta join('', keys %main::special);
+
+# - - -   Mainline   - - -
+
+my ($state, $line, $paragraph);
+
+$state = 'between_paragraphs';
+$main::cutting = 0;
+$main::inlist = 0;
+$main::startlist = 0;
+$main::chapter = '';
+
+while ($state ne 'done') {
+
+	if ($state eq 'between_paragraphs') {
+		$line = &readline;
+		if (! defined $line) {
+			$state = 'done';
+		}
+		elsif ($line !~ /^\s*$/) {
+			$paragraph = $line;
+			$state = 'reading_paragraph';
+		}
+	}
+
+	elsif ($state eq 'reading_paragraph') {
+		$line = &readline;
+		if (! defined $line) {
+			$state = 'done';
+		}
+		elsif ($line =~ /^\s*$/) {
+			$state = 'done_paragraph';
+		}
+		else {
+			$paragraph .= "\n" . $line;
+		}
+	}
+
+	elsif ($state eq 'done_paragraph') {
+		&process($paragraph);
+		$state = 'between_paragraphs';
+		undef $paragraph;
+	}
+
+	else {
+		&abort("unknown internal state: $state");
+	}
+
+}
+&process($paragraph);
+close(LATEX);
+close (POD);
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] podfile
+where options are:
+	-d ddd  enable debugging output
+	-h      show this help
+	-s sss  use 'sss' as the suffix for html files [$main::html_suffix]
+	-u uuu  use 'uuu' as a URL prefix
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#--------------------------------------------------------------- readline ---
+sub readline {
+	my $line = <POD>;
+	chomp $line if (defined $line);
+$line;
+}
+
+#----------------------------------------------------------------- process ---
+sub process {
+	my ($paragraph) = @_;
+	my ($startitem, $level, $word1, $word2, $rest, $what, $name);
+
+	return unless (defined $paragraph);
+	($word1, $word2, $rest) = split(' ', $paragraph,3);
+	unless (defined $word2) { $word2 = ''; }
+	unless (defined $rest) { $rest = ''; }
+	$name = &fixup($word2 .' '. $rest);
+
+	if ($word1 eq '=pod') { $main::cutting = 0; }
+
+	elsif ($main::cutting) {
+		if ($rest =~ /^SECTION=(.*)/m) {
+			$main::chapter = $1;
+		}
+		return;
+	}
+
+	elsif ($word1 eq '=cut') { $main::cutting = 1; }
+
+	elsif ($word1 =~ /^=head(\d)$/i) {
+		$level = $1;
+		if ($level == 1 and $main::chapter) {
+			print LATEX "\n\\chapter\{". &fixup($main::chapter) ."}\n".
+				"\\index{". $main::chapter ."}\n";
+			if ($main::chapter eq $name) { $what = 'done'; }
+			else { $what = 'section'; }
+		}
+		elsif ($level == 1) { $what = 'section'; }
+		elsif ($level == 2) { $what = 'subsection'; }
+		else {
+			&error("I can't handle =head$level; treated as =head2");
+			$what = 'subsection';
+		}
+		if (not defined $what) {
+			&error("word1='$word1', name='$name', rest=$rest");
+		}
+		elsif ($what ne 'done') {
+			print LATEX "\n\\${what}\{". $name ."}%\n".
+				"\\index{". $name ."}\n";
+		}
+	}
+
+	elsif ($word1 eq '=over') { $main::inlist++; $main::startlist = 1; }
+	elsif ($word1 eq '=back') {
+		print LATEX "\n". $main::endlist[$main::inlist];
+		$main::inlist--;
+		$main::startlist = 0;
+	}
+
+	elsif ($word1 eq '=item') {
+		if ($main::startlist) {
+			if ($word2 =~ /^\d/) {
+				print LATEX "\n\\begin{enumerate}\n";
+				$main::lose_word2[$main::inlist] = 1;
+				$main::endlist[$main::inlist] = "\n\\end{enumerate}";
+			}
+			elsif ($word2 =~ /^[-+o\*]$/) {
+				print LATEX "\n\\begin{itemize}\n";
+				$main::lose_word2[$main::inlist] = 1;
+				$main::endlist[$main::inlist] = "\n\\end{itemize}";
+			}
+			else {
+				$main::lose_word2[$main::inlist] = 0;
+				print LATEX "\n\\begin{itemize}\n";
+				$main::endlist[$main::inlist] = "\n\\end{itemize}";
+			}
+		}
+		$startitem = "\n\n\\item ";
+
+		$main::startlist = 0;
+		if ($main::lose_word2[$main::inlist]) { $word2 = ''; }
+		print LATEX ($startitem . &fixup($word2 .' '. $rest));
+	}
+
+	elsif ($word1 eq '=for' and $word2 =~ /^latex$/i) {
+		print LATEX $rest . "\n";
+	}
+
+	elsif ($word1 eq '=for') {
+		# junk it; it's not for html
+	}
+
+	elsif ($word1 eq '=exec') {
+		$rest =~ s/\$\\backslash\$/\\/g;
+		print LATEX "\n\\begin{verbatim}%\n". `$word2 $rest` ."\\end{verbatim}\n";
+	}
+
+	elsif ($word1 =~ /^=/) {
+		&error("unknown pod keyword ($word1); ignored");
+		print LATEX &fixup($word2 .' '. $rest);
+	}
+
+	elsif ($paragraph =~ /^\s/) {
+		print LATEX "\n\\begin{verbatim}%\n". &fixup($paragraph) . "\\end{verbatim}\n";
+	}
+
+	else {
+		print LATEX "\n". &fixup($paragraph) ."\n";
+	}
+}
+
+#---------------------------------------------------------------- fixup ---
+sub fixup {
+	my ($text) = @_;
+
+#	$text =~ s/\\/\044\\backslash\044/g;
+#	$text =~ s/([\&\$\^\_\#\%\{\}])/\\$1/g;
+##	$text =~ s/\_/\\\_/g;
+##	$text =~ s/\&/\\\&/g;
+##	$text =~ s/\$/\\\$/g;
+##	$text =~ s/\^/\\\^/g;
+##	$text =~ s/\#/\\\#/g;
+##	$text =~ s/\%/\\\%/g;
+##	$text =~ s/\{/\\\{/g;
+##	$text =~ s/\}/\\\}/g;
+#	$text =~ s/\~/\\verb|~|/g;
+	$text =~ s/([$main::special])/$main::special{"$1"}/eg;
+	$text =~ s/([A-Z])<(.*?)>/&do_tag("$1", "$2")/egs;
+	$text =~ s/([<>])/\$$1\$/g;
+
+$text;
+}
+
+#---------------------------------------------------------------- do_tag ---
+sub do_tag {
+	my ($tag, $text) = @_;
+
+	&debug("do_tag: $tag, text='$text'") if ($main::debug>1);
+	if ($tag eq 'I') { $text = '\\textit{'. $text .'}'; }
+	elsif ($tag eq 'B') { $text = '\\textbf{'. $text .'}'; }
+	elsif ($tag eq 'C') { $text = '\\texttt{'. $text .'}'; }
+	elsif ($tag eq 'E') { $text = &do_escape($text); }
+	elsif ($tag eq 'F') { $text = '\\textif{'. $text .'}'; }
+	elsif ($tag eq 'L') { $text = &do_link($text); }
+	elsif ($tag eq 'S') { $text =~ s/ /\\ /g; }
+	elsif ($tag eq 'U') { $text = '\\textsl{'. $text .'}'; }
+	elsif ($tag eq 'X') { $text = &do_index($text); }
+	elsif ($tag eq 'Z') { $text = ''; }
+	else { &debug("unknown pod tag ($tag); ignored") if($main::debug); }
+	&debug("do_tag: done text='$text'") if ($main::debug>1);
+
+$text;
+}
+
+#--------------------------------------------------------------- do_link ---
+sub do_link {
+	my ($text) = @_;
+	my ($linktext, $link, $sublink);
+
+	if ($text =~ /^([^\|]+)\|(.*)$/) { $linktext = $1; $link = $2; }
+	else { $linktext = $text; $link = $text; }
+
+	if ($link =~ m#^(http:|ftp:)#) { $sublink = ''; }
+	elsif ($link =~ m#^([^/]*)/(.*)$#) { $link = $1; $sublink = '#'. $2; }
+	else { $sublink = ''; }
+
+	if ($link !~ /$main::html_suffix_pattern$/i and 
+			$link !~ /\./) {
+		$link .= $main::html_suffix;
+	}
+
+	if ($link =~ /^(http:|ftp:)/) {
+		$text = $linktext .' (see \\textbf{'. $link . $sublink .'})';
+	}
+	else {
+		$text = $linktext .' (see the '. $linktext .' section) ';
+	}
+
+$text;
+}
+
+#--------------------------------------------------------------- do_index ---
+sub do_index {
+	my ($text) = @_;
+
+$text;
+}
+
+#--------------------------------------------------------------- do_escape ---
+sub do_escape {
+	my ($text) = @_;
+
+	if    ($text eq 'lt') { $text = '<'; }
+	elsif ($text eq 'gt') { $text = '>'; }
+	elsif ($text eq 'sol') { $text = '/'; }
+	elsif ($text eq 'verbar') { $text = '|'; }
+	elsif ($text =~ /^\d+$/) { $text = '\\unknowncharacter{'. $text .'}'; }
+	else { $text = '\\unknowncharacter{'. $text . '}'; }
+
+$text;
+}
+
+#--------------------------------------------------------- makename ---
+sub makename {
+	my ($text) = @_;
+	my $name = $text;
+	my $thisurl = $main::podfile;
+
+	$thisurl =~ s/$main::pod_suffix_pattern$/$main::html_suffix/i;
+
+	$name =~ s/^\s+//gsm;
+	$name =~ s/\s+$//gsm;
+	$name =~ s/\s+/_/gsm;
+	$name =~ s/[A-Z]<(.*?)>/$1/gsm;
+	$name =~ tr/A-Z/a-z/;
+	$name =~ tr/-a-z0-9\._//cd;
+
+	$text =~ s/[A-Z]<([^\>\|]+)(|[^\>]+)?>/$1/gsm;
+
+	open (INDEX, ">>podhtml--rawindex") or 
+		&abort("$main::prog: can't open podhtml--rawindex: $!");
+	print INDEX "${main::baseurl}${thisurl}#${name} $text\n";
+	close (INDEX);
+
+$name;
+}

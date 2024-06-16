@@ -1,0 +1,121 @@
+#!/usr/bin/perl -w
+
+# new-ping-hosts - make a config-file fragment from a file of hostnames
+# $Id: new-ping-hosts.pl,v 1.11 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'new-ping-hosts';
+# Where is the config-dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.11 $');
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib';
+use Socket;
+use Getopt::Std;
+require "facon.pl";
+
+# Parse the command-line
+my $opt = ();
+getopts('d:f:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+if (@ARGV < 1) { &usage; }
+my $group = shift @ARGV;
+$group =~ tr/_/ /;
+if (@ARGV < 1) { push @ARGV, '-'; } # read stdin
+
+unless (-d $main::config_dir) {
+	&abort("missing config-dir $main::config_dir");
+}
+&read_config_dir( $main::config_dir, 'general');
+
+&add_group_if_missing( $group);
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $hostfile);
+foreach my $file (@ARGV) {
+	open (FILE, "<$file") or die "can't open $file: $!\n";
+	while (<FILE>) {
+		chomp;
+		next if (/^#/ or /^\s*$/);
+		$host = lc $_;
+		$ip = &get_ip($host);
+		if (defined $ip) { $ip = "\n#ip	$ip"; }
+		else { $ip = ''; }
+
+		$hostfile = $main::config_dir .'/hosts/'. $host;
+		if (-f $hostfile) {
+			open (HOST, ">>$hostfile") or 
+				&abort("can't open $hostfile: $!");
+			print HOST "rrd\tping\n";
+			close(HOST);
+		}
+		else {
+			open (HOST, ">$hostfile") or
+				&abort("can't open $hostfile: $!");
+			print HOST <<"EOD_HOST";
+# hosts/$host
+desc	$group host
+group	$group$ip
+tools	ping traceroute availability status
+rrd	ping
+EOD_HOST
+			close(HOST);
+		}
+	}
+	close (FILE);
+}
+
+# Save the new ip_cache
+&write_ip_cache;
+
+# Touch config_dir to note that the configuration has changed
+my $now = time;
+utime $now, $now, $main::config_dir or
+	&abort("can't touch $main::config_dir for update-time");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] group [hostfile ...]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' as config-dir [$main::config_dir]
+    -h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

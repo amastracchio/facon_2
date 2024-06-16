@@ -1,0 +1,6 @@
+# scripts/lpd - is the print-server answering?
+# $Id: lpd,v 1.2 2002/04/16 15:21:21 remstats Exp $
+
+timeout	5
+port	515
+

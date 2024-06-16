@@ -1,0 +1,5 @@
+There are ##VALUE## messages in qmail's queue on 
+##HOST##(##IP##) for delivery to off-site hosts.  
+If this gets too high, you might be under spam attack.  
+
+Use qmail-qread to see what's in the queue.

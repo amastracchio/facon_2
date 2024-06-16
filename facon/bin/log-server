@@ -1,0 +1,398 @@
+#!/usr/bin/perl -Tw
+
+# log-server - allow the log-collector to get information 
+#	about a remote logfile, without transferring it
+# $Id: log-server.pl,v 1.15 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'log-server';
+# Where to store context (file position per log-file)
+$main::context_dir = '/var/tmp/facon';
+$main::context_prefix = 'log-server-';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.15 $'))[1];
+
+# - - -   Setup   - - -
+
+# Make sure there is no buffering of output
+$| = 1;
+
+my( $file, %opt, @logs, $logfile, $variable, $type, $pattern, %pattern, 
+	%type, $complete, @variables, $record, %lastof_value, %lastof_changed,
+	$value, $contextfile, $position, %value, %count, $records, $eof, $now,
+	$this_value);
+
+# Parse the command-line
+use Getopt::Std;
+%opt = ();
+getopts('d:hp:t', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'p'}) { $main::context_prefix = $opt{'p'}; }
+if (defined $opt{'t'}) { $main::testmode = 1; } else { $main::testmode = 0; }
+
+# Make sure some of the specified log-files actually exist
+unless ($#ARGV >= 0) { &usage; } # no return
+@logs = ();
+foreach $file (@ARGV) {
+	if (-f $file) { push @logs, $file; }
+	else { &error("log-file '$file' doesn't exist; ignored"); }
+}
+unless (@logs > 0) { &abort("no specified log-files exist"); }
+
+# Read the request, variables associated with patterns
+$complete = 0;
+@variables = ();
+while ($_ = &prompt()) {
+	tr/\015\012//d;
+	next if (/^#/ or /^\s*$/);
+	if (/^LOGFILE\s+(\S+)/) {
+		$logfile = $1;
+		unless( grep( $logfile, @logs)) {
+			&abort("$logfile isn't one of the log-files I serve.");
+		}
+	}
+	elsif (/^GO$/) {
+		$complete = 1;
+		last;
+	}
+	elsif (/^QUIT$/) { exit 0; }
+	elsif (/^VERSION$/) { print "$main::prog version $main::version\n"; }
+	elsif (/^DEBUG$/) {
+		$main::debug++;
+		&debug("debugging on; version $main::version");
+	}
+	elsif (/^TEST$/) { $main::testmode = 1; }
+	elsif (/^HELP$/) { &do_help; }
+	elsif (/^(\S+)\s+(sum|count|first|last|max|min|average|lastof)\s+(.+)/) {
+		$variable = $1;
+		$type = $2;
+		if( $type eq 'lastof') {
+			$pattern = [ map { qr{$_} } split(' ', $3) ];
+		}
+		else { $pattern = qr{$3}; }
+
+# May have some order-dependent stuff later
+		push @variables, $variable;
+		$pattern{$variable} = $pattern;
+		$type{$variable} = lc $type;
+	}
+	else { &error("unknown line in request: $_"); }
+}
+
+# Make sure we've got something comprehensible to do
+unless ($complete) { &abort("incomplete request"); }
+unless (defined $logfile) { &abort("no logfile requested"); }
+unless (%pattern) { &abort("no variables requested"); }
+unless (grep $logfile, @logs) { &abort("unknown logfile ($logfile)"); }
+
+&debug("logfiles available: ".join(', ',@logs)) if ($main::debug);
+&debug(($#variables+1)." variables read") if ($main::debug);
+
+# Make sure the context directory exists
+unless (-d $main::context_dir) {
+	mkdir ($main::context_dir, 0700) or 
+		&abort("can't mkdir ${main::context_dir}: $!\n");
+}
+
+# Make sure we have some context
+($contextfile = $logfile) =~ tr#/#_#;
+$contextfile = $main::context_dir . '/' . $main::context_prefix . $contextfile;
+
+# Get the current log-file position
+if ( -f $contextfile) {
+	$position = &get_context( $contextfile);
+	&abort("can't open existing context $contextfile")
+		unless( defined $position);
+	&debug("got $position from context $contextfile") if ($main::debug);
+
+# Has the log-file been rolled-over since last time?
+	if ((! defined $position) or ($position > -s $logfile)) {
+		&debug("logfile rolled over; starting from beginning") 
+			if ($main::debug);
+		$position = 0;
+	}
+}
+
+# No context-file; either this is a new log (never collected before) or
+# we've lost the context.  In either case, we have no reliable data.
+else {
+	&debug("no context; skipping data this time") if ($main::debug);
+	&put_context( $contextfile, -s $logfile) unless ($main::testmode);
+	exit 0;
+}
+
+# Skip the records we've already seen
+open (LOG, "<$logfile") or &abort("can't open $logfile: $!");
+seek (LOG, $position, 0) or &abort("can't seek $logfile: $!");
+
+# Load context for "lastof" variables
+foreach $variable (@variables) {
+	next unless( $type{$variable} eq 'lastof');
+	$file = $contextfile . '-' . $variable;
+	$lastof_changed{$variable} = 0;
+	$value = &get_context( $file);
+	&abort("can't get existing variable context $file") unless( defined $value);
+
+	if( ! defined $value) {
+		&debug("no value for $variable; zero used") if( $main::debug>1);
+		$lastof_value{$variable} = 0;
+		$lastof_changed{$variable} = 0;
+	}
+	elsif( $value =~ /^(\d+)$/) {
+		&debug("loaded $value for $variable") if( $main::debug>1);
+		$lastof_value{$variable} = $value;
+	}
+	else {
+		&error("context for $variable in $logfile was '$value', not a " .
+			"non-negative integer; zero used.");
+		$lastof_value{$variable} = 0;
+		$lastof_changed{$variable} = 0;
+	}
+}
+
+# - - -   Mainline   - - -
+
+# Now deal with the log-file
+$records = 0;
+while ($record = <LOG>) {
+	chomp $record;
+	++$records;
+	foreach $variable (@variables) {
+		$type = $type{$variable};
+		if ($type eq 'lastof' or $record =~ /$pattern{$variable}/i) {
+			&debug("pattern '$pattern{$variable}' matched rec '$record'")
+				if ($main::debug>1 and $type ne 'lastof');
+			$this_value = $1;
+			&debug("  extracted value='$this_value'") if( $main::debug>1 and
+				defined $this_value);
+
+			if ($type eq 'count') {
+				if (defined $value{$variable}) {
+					$value{$variable}++;
+				}
+				else { $value{$variable} = 1; }
+			}
+
+			elsif ($type eq 'sum') {
+				if (defined $this_value) {
+					if (defined $value{$variable}) {
+						$value{$variable} += $this_value;
+					}
+					else { $value{$variable} = $this_value; }
+				}
+				else {
+					&error("pattern for $variable doesn't " .
+						"define \$1; line=\n$record");
+				}
+			}
+
+			elsif ($type eq 'first') {
+				if (defined $this_value) {
+					unless (defined $value{$variable}) {
+						$value{$variable} = $this_value;
+					}
+				}
+				else {
+					&error("pattern for $variable doesn't " .
+						"define \$1; line=\n$record");
+				}
+			}
+
+			elsif ($type eq 'last') {
+				if (defined $this_value) {
+					$value{$variable} = $this_value;
+				}
+				else {
+					&error("pattern for $variable doesn't " .
+						"define \$1; line=\n$record");
+				}
+			}
+
+			elsif ($type eq 'min') {
+				if (defined $this_value) {
+					if (defined $value{$variable}) {
+						if ($this_value < $value{$variable}) {
+							$value{$variable} = $this_value;
+						}
+					}
+					else { $value{$variable} = $this_value; }
+				}
+				else {
+					&error("pattern for $variable doesn't " .
+						"define \$1; line=\n$record");
+				}
+			}
+
+			elsif ($type eq 'max') {
+				if (defined $this_value) {
+					if (defined $value{$variable}) {
+						if ($this_value > $value{$variable}) {
+							$value{$variable} = $this_value;
+						}
+					}
+					else { $value{$variable} = $this_value; }
+				}
+				else {
+					&error("pattern for $variable doesn't " .
+						"define \$1; line=\n$record");
+				}
+			}
+
+			elsif ($type eq 'average') {
+				if (defined $this_value) {
+					if (defined $value{$variable}) {
+						$value{$variable} += $this_value;
+					}
+					else { $value{$variable} = $this_value; }
+					if (defined $count{$variable}) { $count{$variable}++; }
+					else { $count{$variable} = 1; }
+				}
+				else {
+					&error("pattern for $variable doesn't " .
+						"define \$1; line=\n$record");
+				}
+			}
+
+			elsif( $type eq 'lastof') {
+				my $i = 1;
+				foreach $pattern (@{$pattern{$variable}}) {
+					&debug("  looking for pattern $pattern")
+						if( $main::debug>2);
+					if($record =~ /$pattern/i) {
+						&debug("  found pattern $pattern") if( $main::debug>2);
+						$lastof_value{$variable} = $i;
+						$lastof_changed{$variable} = 1;
+						last;
+					}
+					++$i;
+				}
+			}
+
+			else { &abort("unknown variable type $type for $variable"); }
+		}
+	}
+}
+
+# Remember where we left off
+$eof = tell(LOG);
+&debug("$records log records read") if ($main::debug);
+&debug("eof at $eof") if ($main::debug);
+close (LOG);
+&put_context($contextfile, $eof) unless ($main::testmode);
+
+# And save the context for lastof variables too
+foreach $variable (@variables) {
+	next unless( $type{$variable} eq 'lastof' or $lastof_changed{$variable});
+	$value{$variable} = $lastof_value{$variable};
+	$file = $contextfile . '-' . $variable;
+	&debug('updating ', $variable, ' with ', $lastof_value{$variable})
+		if( $main::debug);
+	&put_context( $file, $lastof_value{$variable}) unless( $main::testmode);
+}
+
+# Now report what we found
+$now = time();
+foreach $variable (@variables) {
+	if ($type{$variable} eq 'average') {
+		# Avoid division by zero
+		if (defined $value{$variable} and $count{$variable}) {
+			$value{$variable} = $value{$variable}/$count{$variable};
+		}
+	}
+	unless (defined $value{$variable}) { $value{$variable} = 0; }
+	print $now, ' ', $variable, ' ', $value{$variable}, "\n";
+}
+
+exit 0;
+
+#------------------------------------------------------------ prompt ---
+sub prompt {
+	if (-t STDIN) { print $main::prog .'> '; }
+	scalar(<STDIN>);
+}
+
+#------------------------------------------------------------ do_help ---
+sub do_help {
+	print <<"EOD_HELP";
+$main::prog version $main::version
+Valid commands are:
+	LOGFILE GO QUIT VERSION DEBUG TEST HELP
+or a variable specification:
+	variable function pattern
+
+The functions are: count, sum, min, max, average, last and lastof.  The
+lastof function requires multiple patterns.
+
+The LOGFILE command requires the name of the log-file.
+EOD_HELP
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] logfile ...
+where options are:
+	-d nnn	enable debugging output at level 'nnn'
+	-p ppp	set the prefix for context-files to 'ppp' [$main::context_prefix]
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#--------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#--------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------------- put_context ---
+sub put_context {
+	my ($file, $string) = @_;
+
+	open (PUTCONTEXT, ">$file") or &abort("can't open $file: $!");
+	print PUTCONTEXT $string or &abort("can't write $file: $!");
+	close (PUTCONTEXT) or &abort("can't close $file: $!");
+	&debug("saved context $string in $file") if ($main::debug);
+}
+
+#--------------------------------------------------------- get_context ---
+sub get_context {
+	my $file = shift @_;
+	my( $string);
+
+	open( GETCONTEXT, "<$file") or do {
+		&error("can't open $file: $!");
+		return undef;
+	};
+	defined( $string = <GETCONTEXT>) or do {
+		&error("can't read $file: $!");
+		return undef;
+	};
+	chomp $string;
+	close(GETCONTEXT);
+
+	return $string;
+}

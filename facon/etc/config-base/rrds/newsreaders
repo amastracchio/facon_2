@@ -1,0 +1,24 @@
+# newsreaders - Count the number of news readers (INN specific)
+# CVS $Id: newsreaders,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+data	readers=ps:readers GAUGE:1200:0:U ps count nnrpd
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	newsreaders
+	--title '##HOST## - Active News Readers (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'processes'
+	--units-exponent 0
+	DEF:readers=##DB##:readers:AVERAGE
+	CDEF:missing=readers,UN,INF,UNKN,IF
+	'LINE2:readers###COLOR1##:sessions'
+	'GPRINT:readers:AVERAGE:avg=%.0lf%s'
+	'GPRINT:readers:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# upgrade-1.0.10b - fix up all the ping rrds for the change in the definition
+# $Id: do-upgrade-1.0.10b.sh,v 1.1 2002/06/28 19:02:50 facon Exp $
+
+cd /var/facon/data
+echo "converting ping rrds..."
+for f in */ping.rrd */ping-*.rrd ; do
+	x=`dirname $f`/`basename $f .rrd`.xml
+	cp $f $f.bak
+	/var/facon/bin/add-min-archives $f > $x
+	rrdtool restore $x $f
+	echo "... $f"
+done
+echo "Done converting ping rrds."

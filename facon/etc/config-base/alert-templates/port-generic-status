@@ -1,0 +1,6 @@
+This is the generic alert-template for network service status for 
+port ##WILDPART## on ##HOST##(##IP##).  
+
+Exactly what it means depends on the probe scripts, but ERROR or 
+CRITICAL usually mean that the service is unavailable and WARN 
+usually means that service is degraded.

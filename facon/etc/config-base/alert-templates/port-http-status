@@ -1,0 +1,3 @@
+The web-server on ##HOST##(##IP##) isn't responding as expected.  
+Either it's not responding at all, or the response doesn't 
+include the standard OK status (status 200).

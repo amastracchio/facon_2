@@ -1,0 +1,33 @@
+# rrds/program-* - generic get-value-from-running-a-program RRD
+# CVS $Id: program-,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	unix-status
+step	300
+
+data	valor=valor:* GAUGE:1200:0:U  bamres *
+data	responsetime=bamres:* GAUGE:1200:0:U  bamres *
+
+
+
+
+
+alert	valor < 1 1 1
+archives day-avg week-avg month-avg 3month-avg year-avg predict1 predict2 predict3 predict4 predict5 
+times	day yesterday week month 3month
+
+
+graph	value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+	--title 'Universe Jobs ##HOST## - ##WILDPART## recurso (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' 
+	DEF:valor=##DB##:valor:AVERAGE
+	CDEF:missing=valor,UN,INF,UNKN,IF
+	--watermark 'bamac -vc'
+
+	'LINE2:valor###COLOR4##:recurso tomado'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:valor:LAST: Recurso Tomado         = %.2lf\l'
+
+

@@ -1,0 +1,7 @@
+The ntop-collector is not returning any data.  All the
+machines that it queries might be down, but it seems 
+unlikely.  Most likely is that the ntop server has died.
+Again.
+
+This started at ##START## and has been in this state
+for ##DURATION##.

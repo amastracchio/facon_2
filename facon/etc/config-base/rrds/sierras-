@@ -1,0 +1,98 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data1144748=1144748  GAUGE:1200:0:U
+data    ddata1144748=1144748  DERIVE:1200:0:U
+alert    data1144748 delta< 10 10 10 
+data    data1163821=1163821  GAUGE:1200:0:U
+data    ddata1163821=1163821  DERIVE:1200:0:U
+alert    data1163821 delta< 10 10 10 
+data    data1172917=1172917  GAUGE:1200:0:U
+data    ddata1172917=1172917  DERIVE:1200:0:U
+alert    data1172917 delta< 10 10 10 
+data    data1948419=1948419  GAUGE:1200:0:U
+data    ddata1948419=1948419  DERIVE:1200:0:U
+alert    data1948419 delta< 10 10 10 
+data    data1102951=1102951  GAUGE:1200:0:U
+data    ddata1102951=1102951  DERIVE:1200:0:U
+alert    data1102951 delta< 10 10 10 
+data    data1181945=1181945  GAUGE:1200:0:U
+data    ddata1181945=1181945  DERIVE:1200:0:U
+alert    data1181945 delta< 10 10 10 
+data    data1208244=1208244  GAUGE:1200:0:U
+data    ddata1208244=1208244  DERIVE:1200:0:U
+alert    data1208244 delta< 10 10 10 
+data    data1232462=1232462  GAUGE:1200:0:U
+data    ddata1232462=1232462  DERIVE:1200:0:U
+alert    data1232462 delta< 10 10 10 
+data    data1778325=1778325  GAUGE:1200:0:U
+data    ddata1778325=1778325  DERIVE:1200:0:U
+alert    data1778325 delta< 10 10 10 
+data    data827862=827862  GAUGE:1200:0:U
+data    ddata827862=827862  DERIVE:1200:0:U
+alert    data827862 delta< 10 10 10 
+data    data9001497=9001497  GAUGE:1200:0:U
+data    ddata9001497=9001497  DERIVE:1200:0:U
+alert    data9001497 delta< 10 10 10 
+data    responsetime=1144748-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/SearchDisplay?searchTermScope=&searchType=1002&filterTerm=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=0&sType=SimpleSearch&metaData=&pageSize=12&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&categoryId=40156&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1144748=##DB##:data1144748:AVERAGE
+      'LINE2:data1144748###COLOR1##:Sierra Ingleteadora 10 Pulgadas 1500W Stanley  SKU 1144748 ' 
+      'GPRINT:data1144748:LAST: last=%.1lf\n'
+      DEF:data1163821=##DB##:data1163821:AVERAGE
+      'LINE2:data1163821###COLOR2##:Ingleteadora Gcm 10 X 1700W  SKU 1163821 ' 
+      'GPRINT:data1163821:LAST: last=%.1lf\n'
+      DEF:data1172917=##DB##:data1172917:AVERAGE
+      'LINE2:data1172917###COLOR3##:Ingleteadora 1600W TC-MS 2513 L  SKU 1172917 ' 
+      'GPRINT:data1172917:LAST: last=%.1lf\n'
+      DEF:data1948419=##DB##:data1948419:AVERAGE
+      'LINE2:data1948419###COLOR4##:Sierra Ingleteadora Dewalt DW713  SKU 1948419 ' 
+      'GPRINT:data1948419:LAST: last=%.1lf\n'
+      DEF:data1102951=##DB##:data1102951:AVERAGE
+      'LINE2:data1102951###COLOR5##:Ingleteadora Telescópica Th-Sm 2534 Dual  SKU 1102951 ' 
+      'GPRINT:data1102951:LAST: last=%.1lf\n'
+
+graph   value2-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/SearchDisplay?searchTermScope=&searchType=1002&filterTerm=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=0&sType=SimpleSearch&metaData=&pageSize=12&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&categoryId=40156&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #2 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data1181945=##DB##:data1181945:AVERAGE
+      'LINE2:data1181945###COLOR1##:Ingleteadora 1400W Einhell Tc-Ms 2112  SKU 1181945 ' 
+      'GPRINT:data1181945:LAST: last=%.1lf\n'
+      DEF:data1208244=##DB##:data1208244:AVERAGE
+      'LINE2:data1208244###COLOR2##:Sierra Ingleteadora 1900W Einhell Tc-Sm2531  SKU 1208244 ' 
+      'GPRINT:data1208244:LAST: last=%.1lf\n'
+      DEF:data1232462=##DB##:data1232462:AVERAGE
+      'LINE2:data1232462###COLOR3##:Ingletadora Einhell Pxc Te-Ms 18V Solo  SKU 1232462 ' 
+      'GPRINT:data1232462:LAST: last=%.1lf\n'
+      DEF:data1778325=##DB##:data1778325:AVERAGE
+      'LINE2:data1778325###COLOR4##:Sierra Ingletadora 304 Mm 1375 W Dewalt  SKU 1778325 ' 
+      'GPRINT:data1778325:LAST: last=%.1lf\n'
+      DEF:data827862=##DB##:data827862:AVERAGE
+      'LINE2:data827862###COLOR5##:Sierra Ingletadora 10Pulg Eje 1Pulg Makita  SKU 827862 ' 
+      'GPRINT:data827862:LAST: last=%.1lf\n'
+
+graph   value3-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) https://www.easy.com.ar/tienda/es/easyar/search/SearchDisplay?searchTermScope=&searchType=1002&filterTerm=&maxPrice=&showResultsPage=true&langId=-5&beginIndex=0&sType=SimpleSearch&metaData=&pageSize=12&manufacturer=&resultCatEntryType=&catalogId=10051&pageView=image&categoryId=40156&storeId=10151 ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #3 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data9001497=##DB##:data9001497:AVERAGE
+      'LINE2:data9001497###COLOR1##:Sierra Ingleteadora 350 Mm 13.3/4 Pulgadas  SKU 9001497 ' 
+      'GPRINT:data9001497:LAST: last=%.1lf\n'
+

@@ -1,0 +1,52 @@
+# run-stages/collectors - run all the other collectors in parallel
+# $Id: collectors,v 1.4 2003/05/15 12:11:24 remstats Exp $
+#
+# Note: we are chdir'd to @@TMPDIR@@ first
+# Note2: stderr will be sent to NAME.$$
+# Note3: you'll need the -u and -F flags for the collectors if you're not
+#	running the ping stage (see collectors-with-ping)
+#
+# NAME ASYNC FREQ COMMAND
+#
+# For collecting from Cisco's Access Servers with screwy MIBs
+#cisco-access-server no 300 cisco-access-server-collector | updater cisco-access-server
+#
+# For collecting from a remote database (accessable via Perl's DBI)
+#dbi no 300 dbi-collector | updater dbi
+# For collecting from DNS servers
+#dns no 300 dns-collector | updater dns
+#
+# For collecting from remote log-files (via the log-server)
+log no 300 log-collector -p 9001 | updater  log
+#
+# For collecting from NT boxen
+nt-status no 300 nt-status-collector -p 9002 | updater -d 999 nt-status
+#
+# For collecting protocol distributions from an ntop server
+# Ntop wasn't stable for me, so there was not much point in running a the
+# collector against ntop which wasn't there half the time.
+#ntop no 300 ntop-collector | updater ntop
+#
+# For collecting ICMP ping reachability
+# If you enable ping here, remember to disable it in the ping stage,
+# which is a better place for it to run.
+ping no 300 ping-collector | updater ping
+#
+# For collecting by connecting to a port on remote machines
+port no 300 port-collector | updater port
+#
+# For collecting ping info originating on a remote server.
+# This isn't being maintained any more.  I only have one site.
+# Also I have better ideas about how to implement this kind of thing.
+#remoteping no 300 remoteping-collector | updater remoteping
+#
+# For collecting via SNMP
+snmp no 300 snmp-collector -d 999| updater snmp
+#
+# This doesn't scale to a full Internet BGP feed, but might be usefull
+# if you were dealing with a small set of routes.
+#snmp-route no 300 snmp-route-collector | updater snmp-route
+#
+program no 1 program-collector -u -d 999  | updater -d 999 program
+# For collecting from remote unix boxen via the unix-status-server
+unix-status no 300 unix-status-collector -u -d 999 -p 9000 -t 240 | updater -d 999 unix-status

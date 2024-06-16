@@ -1,0 +1,35 @@
+
+<VIEW::HEADER PRECIOS>
+
+<P>
+<h1>Comparacion de precios </h1>
+<UL>
+
+
+<h3>Seven Up 2.25 l. </h3>
+
+<VIEW::GRAPH 7791813423522 producto-7791813423522 temperatures day>
+
+
+<h3>Leche Sachet </h3>
+<VIEW::GRAPH 7793940448003 producto-7793940448003 temperatures day>
+<hr/>
+
+<h3>Agua Villavicencio 2 lt. </h3>
+<VIEW::GRAPH 7790315000422  producto-7790315000422  temperatures day>
+<hr/>
+
+<h3>Agua Bidon Villa del Sur 6,25 lt. </h3>
+<VIEW::GRAPH 7798062541397  producto-7798062541397  temperatures day>
+<hr/>
+
+<h3>Chocolate Aguila Taza semiamargo 150 grs. </h3>
+<VIEW::GRAPH 7790407031273   producto-7790407031273  temperatures day>
+<hr/>
+
+<h3>Yogur Entero Cereales Yogurisimo 166 Gr  </h3>
+<VIEW::GRAPH 7791337613027    producto-7791337613027   temperatures day>
+<hr/>
+
+<VIEW::FOOTER>
+~

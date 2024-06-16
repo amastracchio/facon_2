@@ -1,0 +1,32 @@
+# magicaly create by collecto2rrd.pl
+
+
+
+source  unix-status
+step    900
+
+
+
+data	ibamac1=ibamac1:* GAUGE:1800:0:U  bamsql *
+data	mk1_data_tmp=mk1_data_tmp:* GAUGE:1800:0:U  bamsql *
+data	temp_1=temp_1:* GAUGE:1800:0:U  bamsql *
+archives day-avg week-avg month-avg 3month-avg year-avg
+times   day yesterday week month 3month
+
+graph   value-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##) and using the result as the value."
+        --title 'Tablespaces ocupado ##HOST## - ##WILDPART## (##GRAPHTIME##)'
+        --lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+        --vertical-label 'percent'
+	 DEF:ibamac1=##DB##:ibamac1:AVERAGE
+	 DEF:mk1_data_tmp=##DB##:mk1_data_tmp:AVERAGE
+	 DEF:temp_1=##DB##:temp_1:AVERAGE
+      CDEF:missing=ibamac1,UN,INF,UNKN,IF
+        --watermark 'bamac -vc'
+	'LINE2:ibamac1###COLOR1##:ibamac1'
+	'LINE2:mk1_data_tmp###COLOR2##:mk1_data_tmp'
+	'LINE2:temp_1###COLOR3##:temp_1'
+	'AREA:missing###MISSING##:missing\l'
+	'GPRINT:ibamac1:LAST:ibamac1         = %.2lf\l'
+	'GPRINT:mk1_data_tmp:LAST:mk1_data_tmp         = %.2lf\l'
+	'GPRINT:temp_1:LAST:temp_1         = %.2lf\l'

@@ -1,0 +1,27 @@
+
+use JSON;
+use Data::Dumper;
+
+
+my $ej = "/usr/bin/curl";
+
+my $url = "https://www.bancogalicia.com/cotizacion/cotizar?currencyId=02&quoteType=SU&quoteId=999";
+
+my $com = $ej . " " . $url;
+
+print "Por ejecutar: $com\n";
+my $ret = system($ej,$url,"-o","pro");
+
+open(FILE, "pro");
+
+my $string = <FILE>;
+
+close FILE;
+
+$string .= "\n";
+my %h;
+$h = decode_json $string;
+
+print   Dumper $h;
+print $h->'sell';
+

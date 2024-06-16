@@ -1,0 +1,371 @@
+#!/usr/bin/perl -w
+# rrd-report - produce reports for various time-periods of various variables
+#		in the specified rrd.
+# CVS $Id: rrd-report.pl,v 1.12 2003/05/20 19:28:05 facon Exp $
+# from facon 1.0.13a
+# Copyright 1999 - 2003 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'rrd-report';
+# Which RRA (by consolidation function) to select data from
+$main::datacf = 'AVERAGE';
+# Which consolidation functions to show, by default
+my $cfs = 'MIN,AVERAGE,MAX';
+# Show stats for interval
+$main::interval = '1d';
+# Make summaries for this interval
+$main::summary_interval = '1w';
+# Which variables to show
+$main::variables = 'ALL';
+# where to put the temporary graph file
+$main::tempfile = '/tmp/'. $main::prog .'.'. $$;
+# Which report format to use
+$main::report_format = 'simple'; # or label or html
+# How to format a number
+$main::number_format = '%lf';
+# How html summary lines get highlighted
+$main::sumstart = '<span style="font-weight:bold">';
+$main::sumfinish = '</span>';
+# How html total lines get highlighted
+$main::totstart = '<span style="background-color:ccccc; font-weight:bold">';
+$main::totfinish = '</span>';
+# How the dates are to be formatted
+$main::date_format = 'both,pretty'; # {none|start|finish|both},{raw,simple,pretty}
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.12 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+use RRDs;
+
+# Parse the command-line
+my %opt = ();
+getopts('b:c:C:D:d:e:f:hi:ln:s:v:', \%opt);
+
+my ($list_dsnames, $rrdfile, $now, $temp, @cfs, @variables,
+	%variables, $just_did_summary, 
+	$summary_start, $summary_finish, $error, $varcf, $variable, $cf,
+	$print_dates, $start, $do_summary, $name, $finish);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'b'}) { $main::begin = $opt{'b'}; }
+if (defined $opt{'c'}) { $main::datacf = $opt{'c'}; }
+if (defined $opt{'C'}) { $cfs = $opt{'C'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'D'}) { $main::date_format = $opt{'D'}; }
+if (defined $opt{'e'}) { $main::end = $opt{'e'}; }
+if (defined $opt{'f'}) { $main::report_format = $opt{'f'}; }
+if (defined $opt{'l'}) { $list_dsnames = 1; } else { $list_dsnames = 0; }
+if (defined $opt{'n'}) { $main::number_format = $opt{'n'}; }
+if (defined $opt{'i'}) { $main::interval = $opt{'i'}; }
+if (defined $opt{'s'}) { $main::summary_interval = $opt{'s'}; }
+if (defined $opt{'v'}) { $main::variables = $opt{'v'}; }
+
+unless ($#ARGV == 0) { warn("I need an rrd-file."); &usage; } # no return
+$rrdfile = shift @ARGV;
+
+# Default time range is last month
+$now = time();
+if (!defined $main::begin) { $main::begin = $now - 60*60*24*30; }
+elsif (defined ($temp = &convert_interval($main::begin))) {
+	$main::begin = $now + $temp;
+}
+else { &abort("unknown beginning time ($main::begin)"); }
+
+if (!defined $main::end) { $main::end = $now; }
+elsif (defined ($temp = &convert_interval($main::end))) {
+	$main::end = $now + $temp;
+}
+else { &abort("unknown ending time ($main::end)"); }
+
+# a bit of pre-processing for command-line data
+@cfs = split(',',uc $cfs);
+
+$temp = &convert_interval($main::interval);
+if (defined $temp) { $main::interval = $temp; }
+else { &abort("unknown interval ($main::interval)"); }
+	
+$temp = &convert_interval($main::summary_interval);
+if (defined $temp) { $main::summary_interval = $temp; }
+else { &abort("unknown interval ($main::summary_interval)"); }
+
+if ($main::summary_interval == $main::interval) { $do_summary = 0; }
+elsif ($main::summary_interval < $main::interval) {
+	&abort("summary interval($main::summary_interval) must not be less than ".
+		"report interval($main::interval)");
+}
+else { $do_summary = 1; }
+
+@variables = split(',', $main::variables) unless ($main::variables eq 'ALL');
+if ($main::report_format ne 'simple' and 
+		$main::report_format ne 'label' and
+		$main::report_format ne 'html') {
+	warn("report format isn't valid ($main::report_format)");
+	&usage; # no return
+}
+
+# Decode the date_format
+($print_dates, $main::date_format) = split(',', $main::date_format);
+if ($print_dates =~ /^none$/i) {
+	$main::print_start = $main::print_finish = 0;
+}
+elsif ($print_dates =~ /^(start|begin(ning)?)$/i) {
+	$main::print_start = 1; 
+	$main::print_finish = 0;
+}
+elsif ($print_dates =~ /^(finish|end(ing)?)$/i) {
+	$main::print_start = 0; 
+	$main::print_finish = 1;
+}
+elsif ($print_dates =~ /^(both|all)$/i) {
+	$main::print_start = $main::print_finish = 1;
+}
+else { &abort("unknown date-selection ($print_dates)"); }
+
+# Get ready to start
+$start = $main::begin;
+$summary_start = $start;
+$summary_finish = $summary_start + $main::summary_interval;
+
+my (undef, $step, $names, undef) = RRDs::fetch ($rrdfile,
+	$main::datacf, '--start', $start, '--end', $start+$main::interval);
+$error = RRDs::error;
+&abort("RRDs::fetch error: $error") if ($error);
+&debug("step is $step") if ($main::debug);
+
+# List the DS names
+if ($list_dsnames) {
+	print join(' ',@$names) . "\n";
+	exit 0;
+}
+
+# Make sure that the variables they asked for exist in this RRD
+if (@variables) {
+	my %names = map {($_,1)} @{$names};
+	foreach my $namecf (@variables) {
+		($name) = split(':',$namecf,2);
+		unless (defined $names{$name}) {
+			&abort("no such variable as $name in $rrdfile");
+		}
+	}
+}
+
+# If they didn's specify, give them all
+else {
+	@variables = ();
+	foreach $name (@$names) {
+		foreach $cf (@cfs) {
+			push @variables, $name .':'. $cf;
+		}
+	}
+#	@variables = @$names;
+}
+
+# Build up the variable and print specs once
+@main::varspec = ();
+@main::printspec = ();
+@main::what = ();
+foreach $varcf (@variables) {
+	($variable, $cf) = split(':', $varcf, 2);
+	unless (defined $variables{$variable}) {
+		push @main::varspec, 'DEF:'. $variable .'='. $rrdfile .':'. $variable .':'. 
+			$main::datacf;
+		$variables{$variable} = 1;
+	}
+	push @main::printspec, 'PRINT:'. $varcf .':'. $main::number_format;
+	push @main::what, $varcf;
+}
+
+# HTML table headers
+if ($main::report_format eq 'html') {
+	print "<table border=1>\n<tr>\n";
+
+	if ($main::print_start) { print "\t<th>Start</th>\n"; }
+	if ($main::print_finish) { print "\t<th>Finish</th>\n"; }
+
+	foreach $varcf (@variables) {
+		print "<th>$varcf</th>\n";
+	}
+	print "</tr>\n";
+}
+
+# - - -   Mainline   - - -
+
+while ($start < $main::end) {
+	$just_did_summary = 0;
+	$finish = $start + $main::interval;
+	&report( $start, $finish, 'data');
+	if ($do_summary and ($finish > $summary_finish)) {
+		&report( $summary_start, $summary_finish, 'summary');
+		$summary_start = $summary_finish;
+		$summary_finish = $summary_start + $main::summary_interval;
+		$just_did_summary = 1;
+	}
+
+	$start = $finish;
+}
+
+# Make sure we get the final summary
+if ($do_summary and !$just_did_summary) {
+		&report( $summary_start, $summary_finish, 'summary');
+}
+
+# Get a total line at the bottom
+&report( $main::begin, $main::end, 'overall');
+
+if ($main::report_format eq 'html') {
+	print "</table>\n";
+}
+
+unlink $main::tempfile;
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] rrd-file
+where options are:
+	-b bbb	begin at time 'bbb' (see Note 3)
+	-c ccc  select data from consolidation-function 'ccc' [$main::datacf]
+	-d ddd  enable debugging output at level 'ddd'
+	-D DDD  show the dates as 'DDD' [$main::date_format]
+			(none|both|start|finish),(raw|simple|pretty)
+	-e eee  end at time 'eee' (see Note 3)
+	-f fff  use report format 'fff' [$main::report_format]
+			(from 'simple', 'label', 'html')
+	-h      show this help
+	-i iii  report on intervals 'iii' (see Note 2) [$main::interval]
+	-l      list the DS names in this rrd, no report
+	-n nnn  use 'nnn' as the format to print the numbers [$main::number_format]
+	-s sss  summary on interval 'sss' (see Note 2) [$main::summary_interval]
+	-v vvv  show variables 'vvv' (var:cf comma-separated) [$main::variables]
+Note: if report interval (-i) and summary interval (-s) are equal,
+  no summary reporting is done.
+Note 2: intervals are numbers of seconds, minutes, hours, days, weeks, Months
+  or years.  E.G. "4w" for 4 weeks, "1M" for one month.
+Note 3: Begin and End times are a unix timestamp (seconds since Jan 1, 1970) or
+  plus-or-minus an interval, as in Note 2.  E.G. "-1w" means "one week ago".
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------ convert_interval ---
+sub convert_interval {
+	my ($int) = @_;
+	my $secs;
+	if ($int =~ /^(-?\d+s?)$/) { $secs = $1; }
+	elsif ($int =~ /^(-?\d+)m$/) { $secs = $1*60; }
+	elsif ($int =~ /^(-?\d+)h$/) { $secs = $1*60*60; }
+	elsif ($int =~ /^(-?\d+)d$/) { $secs = $1*60*60*24; }
+	elsif ($int =~ /^(-?\d+)w$/) { $secs = $1*60*60*24*7; }
+	elsif ($int =~ /^(-?\d+)M$/) { $secs = $1*60*60*24*30; }
+	elsif ($int =~ /^(-?\d+)y$/) { $secs = $1*60*60*24*365; }
+$secs;
+}
+
+#------------------------------------------------------------ my_timestamp ---
+sub my_timestamp {
+	my ($secs,$format) = @_;
+	my $stamp;
+	my ($sec, $min, $hour, $mday, $mon, $year) = localtime($secs);
+
+	unless (defined $format) { $format = 'pretty'; }
+	if ($format eq 'pretty') {
+		$stamp = sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+			$year+1900, $mon+1, $mday, $hour, $min, $sec);
+	}
+	elsif ($format eq 'simple') {
+		$stamp = sprintf("%04d%02d%02d%02d%02d%02d",
+			$year+1900, $mon+1, $mday, $hour, $min, $sec);
+	}
+	elsif ($format eq 'raw') {
+		$stamp = $secs;
+	}
+	else { &abort("unknown my_timestamp format ($format)"); }
+$stamp;
+}
+
+#---------------------------------------------------------------- report ---
+sub report {
+	my ($start, $finish, $type) = @_;
+	my ($bb, $be, $db, $de);
+	&debug("report: START: $start, $finish, $type") if ($main::debug);
+
+	if (defined $finish and $finish > $main::end) { $finish = $main::end; }
+	my @cmd = ('--start', $start, '--end', $finish, 
+		@main::varspec, @main::printspec);
+	&debug("RRDs::graph passed $main::tempfile\n\t". join("\n\t",@cmd) )
+		if ($main::debug);
+	my ($results) = RRDs::graph $main::tempfile, @cmd;
+	my $error = RRDs::error;
+	if ($error) { &abort("RRDs::graph error: $error"); }
+
+	my @thiswhat = @main::what;
+
+	my $what;
+	if ($main::report_format eq 'simple' or $main::report_format eq 'label') {
+		print $type;
+		if ($main::print_start) {
+			print ' '. &my_timestamp($start, $main::date_format);
+		}
+		if ($main::print_finish) {
+			print ' '. &my_timestamp($finish, $main::date_format);
+		}
+		foreach my $result (@$results) {
+			$what = shift @thiswhat;
+			if ($main::report_format eq 'label') {
+				print ' '. $what;
+			}
+			if ($result eq 'NaN') { print ' NODATA'; }
+			else { print ' '. $result; }
+		}
+		print "\n";
+	}
+	elsif ($main::report_format eq 'html') {
+		if ($type eq 'summary') { $bb = $main::sumstart; $be = $main::sumfinish;  $db = ''; $de = ''; }
+		elsif ($type eq 'total') { $bb = $main::totstart; $be = $main::totfinish;  $db = $main::totstart; $de = $main::totfinish; }
+		else { $bb = ''; $be = ''; $db = '', $de = ''; }
+
+		print "<tr>\n";
+		if ($main::print_start) {
+			print "\t<td>$bb", &my_timestamp($start, $main::date_format),
+				"$be</td>\n";
+		}
+		if ($main::print_finish) {
+			print "\t<td>$bb", &my_timestamp($finish, $main::date_format),
+				"$be</td>\n";
+		}
+		foreach my $result (@$results) {
+			if ($result eq 'NaN') { $result = '&nbsp;'; }
+			print "\t<td align=right>$db$result$de</td>\n";
+		}
+		print "</tr>\n";
+	}
+}

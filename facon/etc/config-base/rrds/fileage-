@@ -1,0 +1,25 @@
+# rrds/uptime - unix host system uptime
+# CVS $Id: uptime,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+#
+desc	uptime for a unix host
+source	unix-status
+step	300
+
+data		age=fileage:* GAUGE:600:0:U	fileage *
+
+
+alert	age delta> 0
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	age desc='This is collected by the unix-status-collector.  It works by running the <B>uptime</B> command on the remote host and parsing the output.  The graph is uninteresting.  It simply shows the uptime (measured in seconds).'
+	--title '##HOST## - File-age of ##WILDPART## (##GRAPHTIME##)'
+	--vertical-label 'sec'
+	DEF:age=##DB##:age:AVERAGE
+	CDEF:missing=age,UN,INF,UNKN,IF
+	'LINE1:age###COLOR1##:age'
+	'GPRINT:age:LAST:current=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

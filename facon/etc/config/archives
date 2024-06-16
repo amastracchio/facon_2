@@ -1,0 +1,33 @@
+# archives - how long to store what resolution of data
+# $Id: archives,v 1.2 2002/04/16 15:23:09 facon Exp $
+
+# The specification is raw RRD style.  See the rrdcreate
+# manpage to explanation.
+
+#	(cf:xff:step:rows)
+
+day-avg		AVERAGE:0.1:1:600
+week-avg	AVERAGE:0.1:7:300
+month-avg	AVERAGE:0.1:30:300
+3month-avg	AVERAGE:0.1:90:300
+year-avg	AVERAGE:0.1:365:300
+predict1        HWPREDICT:1440:0.1:0.0035:288
+# explicito
+predict1	HWPREDICT:1440:0.1:0.0035:288:3
+predict2	SEASONAL:288:0.1:2
+predict3	DEVPREDICT:1440:5
+predict4	DEVSEASONAL:288:0.1:2
+predict5        FAILURES:288:7:9:5
+
+
+day-min		MIN:0.1:1:600
+week-min	MIN:0.1:7:300
+month-min	MIN:0.1:30:300
+3month-min	MIN:0.1:90:300
+year-min	MIN:0.1:365:300
+
+day-max		MAX:0.1:1:600
+week-max	MAX:0.1:7:300
+month-max	MAX:0.1:30:300
+3month-max	MAX:0.1:90:300
+year-max	MAX:0.1:365:300

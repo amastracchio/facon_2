@@ -1,0 +1,16 @@
+graph		df-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Disk Usage - ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:size=##DB##:size:AVERAGE
+		DEF:used=##DB##:used:AVERAGE
+		DEF:free=##DB##:free:AVERAGE
+#		CDEF:free=size,used,-
+		CDEF:missing=size,UN,INF,UNKN,IF
+		'AREA:size###TOTALCOLOR##:Disk Size'
+		'LINE3:used###USEDCOLOR##:Disk Used'
+		'GPRINT:free:LAST:free=%.1lf%s\g'
+		'GPRINT:size:LAST: of %.1lf%s'
+		'AREA:missing###MISSING##:missing'
+

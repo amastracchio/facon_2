@@ -1,0 +1,99 @@
+# rrds/snmpif-* - Interface data obtained via SNMP
+# CVS $Id: snmpif-,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# N.B. snmpif-* is a *MAGIC* name.  I.E. snmp-collector has it hard-wired
+# in and will collect the right things, as specified here.  You CANNOT add 
+# extra things by specifying the oids here, though you can leave some out, 
+# by leaving out the uninteresting data lines.  The oid lines are commented 
+# out by design. Until I re-write snmp-collector a bit.
+
+source	snmp
+step	300
+
+data	inbytes=if-*:inoctets COUNTER:600:0:U
+data	outbytes=if-*:outoctets COUNTER:600:0:U
+data	inerrors=if-*:inerrors COUNTER:600:0:U
+data	outerrors=if-*:outerrors COUNTER:600:0:U
+data	inucastpkts=if-*:inucastpkts COUNTER:600:0:U
+data	outucastpkts=if-*:outucastpkts COUNTER:600:0:U
+data	innucastpkts=if-*:innucastpkts COUNTER:600:0:U
+data	outnucastpkts=if-*:outnucastpkts COUNTER:600:0:U
+data	status=if-*:status GAUGE:600:0:1
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+#oid	ifInOctets
+#oid	ifOutOctets
+#oid	ifInErrors
+#oid	ifOutErrors
+#oid	ifInUcastPkts
+#oid	ifOutUcastPkts
+#oid	ifInNUcastPkts
+#oid	ifOutNUcastPkts
+#oid	ifType
+#oid	ifSpeed
+#oid	ifOperStatus
+
+graph	bytes-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case the OIDs in question are from the Interface MIB.  In and Out are from the point-of-view of the interface; In is for traffic received by the interface and Out is for traffic sent from the interface."
+	--title "##HOST## bits/s for ##WILDPART## (##GRAPHTIME##)"
+	--lower-limit 0
+	--watermark 'AACORN HP'
+	--vertical-label 'bits/s'
+	DEF:inbytes=##DB##:inbytes:AVERAGE
+	DEF:outbytes=##DB##:outbytes:AVERAGE
+	CDEF:inbits=inbytes,8,*
+	CDEF:outbits=outbytes,8,*
+	CDEF:missing=inbytes,UN,INF,UNKN,IF
+	HRULE:1540000###LINECOLOR##:T1
+	'AREA:inbits###INCOLOR##:bps in'
+	'LINE2:outbits###OUTCOLOR##:bps out'
+	'GPRINT:inbits:AVERAGE:in avg=%.0lf%s'
+	'GPRINT:inbits:MAX:max=%.0lf%s'
+	'GPRINT:inbits:LAST:cur=%.0lf%s'
+	'GPRINT:outbits:AVERAGE:out avg=%.0lf%s'
+	'GPRINT:outbits:MAX:max=%.0lf%s'
+	'GPRINT:outbits:LAST:cur=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+#graph	errors-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case the OIDs in question are from the Interface MIB.  In and Out are from the point-of-view of the interface; In is for traffic received by the interface and Out is for traffic sent from the interface."
+#	--title '##HOST## errors for ##WILDPART## (##GRAPHTIME##)'
+#	--lower-limit 0
+	--watermark 'AACORN HP'
+#	--vertical-label 'errors'
+#	DEF:inerrors=##DB##:inerrors:AVERAGE
+#	DEF:outerrors=##DB##:outerrors:AVERAGE
+#	CDEF:missing=inerrors,UN,INF,UNKN,IF
+#	'LINE2:inerrors###COLOR1##:errors in'
+#	'LINE2:outerrors###COLOR2##:errors out'
+#	'AREA:missing###MISSING##:missing'
+
+graph	packets-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case the OIDs in question are from the Interface MIB.  In and Out are from the point-of-view of the interface; In is for traffic received by the interface and Out is for traffic sent from the interface."
+		--title '##HOST## packets/s for ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'packets/s'
+		DEF:inucastpkts=##DB##:inucastpkts:AVERAGE
+		DEF:outucastpkts=##DB##:outucastpkts:AVERAGE
+		DEF:innucastpkts=##DB##:innucastpkts:AVERAGE
+		DEF:outnucastpkts=##DB##:outnucastpkts:AVERAGE
+		CDEF:missing=inucastpkts,UN,INF,UNKN,IF
+		'AREA:inucastpkts###INCOLOR##:unicast in'
+		'STACK:innucastpkts###INCOLOR2##:(broad/multi)cast in'
+		'LINE2:outnucastpkts###OUTCOLOR##:(broad/multi)cast out'
+		'STACK:outucastpkts###OUTCOLOR2##:unicast out' 
+		'AREA:missing###MISSING##:missing'
+
+#graph	status-* desc="This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case the OIDs in question are from the Interface MIB.  The status should be 1(up), 2(down) or 3(testing)."
+#	--title '##HOST## status for ##WILDPART## (##GRAPHTIME##)'
+#	--lower-limit 0
+	--watermark 'AACORN HP' --upper-limit 3 --rigid
+#	--vertical-label 'status'
+#	--units-exponent 0
+#	DEF:status=##DB##:status:AVERAGE
+#	CDEF:missing=status,UN,INF,UNKN,IF
+#	'LINE2:status###COLOR1##:bytes in'
+#	'COMMENT:(1=up, 2=down, 3=testing)'
+#	'AREA:missing###MISSING##:missing'
+

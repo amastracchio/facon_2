@@ -1,0 +1,107 @@
+# rrds/squid - monitor squid proxy web-cache
+# CVS $Id: squid,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# N.B.: you must add a 'community whatever' to either this rrd, or to the
+# host definitions that use it.  If you're monitoring other SNMP stuff on
+# those hosts, then you *must* have the 'community whatever' line here.
+
+source	snmp
+port	3401
+
+# FIXME:  I certainly hope that you're not using "public" as your community
+# string
+community public
+step	30
+
+data	vmsize=cacheSysVMsize GAUGE:1200:0:U
+data	memusage=cachememusage GAUGE:1200:0:U
+data	cpuusage=cachecpuusage COUNTER:1200:0:100
+data	disksize=cachesysstorage GAUGE:1200:0:U
+data	objects=cachenumobjcount GAUGE:1200:0:U
+data	requests=cacheclienthttprequests COUNTER:1200:0:U
+data	hits=cachehttphits COUNTER:1200:0:U
+data	inkb=cachehttpinkb COUNTER:1200:0:U
+data	outkb=cachehttpoutkb COUNTER:1200:0:U
+data	clients=cacheclients COUNTER:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+oid	cacheSysVMsize
+oid	cacheSysStorage
+oid	cacheMemUsage
+oid	cacheCpuUsage
+oid	cacheNumObjCount
+oid	cacheClientHttpRequests
+oid	cacheHttpHits
+oid	cacheHttpInKb
+oid	cacheHttpOutKb
+oid	cacheClients
+
+graph	size desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a squid http cache.  This graph shows how much memory and disk space squid is currently using for the cache.'
+	--title '##HOST## - Squid Size (##GRAPHTIME##)'
+	--vertical-label 'bytes'
+	DEF:vmsize=##DB##:vmsize:AVERAGE
+	DEF:disksize=##DB##:disksize:AVERAGE
+	CDEF:missing=vmsize,UN,INF,UNKN,IF
+	'LINE2:vmsize###COLOR1##:virtual memory'
+	'LINE2:disksize###COLOR3##:disk usage'
+	'AREA:missing###MISSING##:missing'
+
+graph	objects desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a squid http cache.  This graph shows how many objects (pages, images, ...) are currently in the cache.'
+	--title '##HOST## - Squid Objects (##GRAPHTIME##)'
+	DEF:objects=##DB##:objects:AVERAGE
+	CDEF:missing=objects,UN,INF,UNKN,IF
+	'LINE2:objects###COLOR1##:# objects'
+	'GPRINT:objects:MIN:(min,avg,max)=%.1lf%s'
+	'GPRINT:objects:AVERAGE:%.1lf%s'
+	'GPRINT:objects:MAX:%.1lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	cpu desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a squid http cache.  This graph shows how much CPU time squid is using'
+	--title '##HOST## - Squid CPU usage (##GRAPHTIME##)'
+	--vertical-label '%'
+	DEF:cpuusage=##DB##:cpuusage:AVERAGE
+	CDEF:cpupercent=cpuusage,100,*
+	CDEF:missing=cpuusage,UN,INF,UNKN,IF
+	'LINE2:cpupercent###COLOR1##:CPU usage'
+	'GPRINT:cpupercent:MIN:(min,avg,max)=%.1lf%s'
+	'GPRINT:cpupercent:AVERAGE:%.1lf%s'
+	'GPRINT:cpupercent:MAX:%.1lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	clients desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a squid http cache.  This graph shows how many concurrent clients the cache has.'
+	--title '##HOST## - Squid Clients (##GRAPHTIME##)'
+	--vertical-label 'clients'
+	DEF:clients=##DB##:clients:AVERAGE
+	CDEF:missing=clients,UN,INF,UNKN,IF
+	'LINE2:clients###COLOR1##:clients'
+	'GPRINT:clients:MIN:(min,avg,max)=%.1lf%s'
+	'GPRINT:clients:AVERAGE:%.1lf%s'
+	'GPRINT:clients:MAX:%.1lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	hits desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a squid http cache.  This graph shows the number of requests from clients and how many of them were satisfied from the cache (hits).'
+	--title '##HOST## - Squid Requests and Hits (##GRAPHTIME##)'
+	--vertical-label 'hits-per-sec'
+	DEF:requests=##DB##:requests:AVERAGE
+	DEF:hits=##DB##:hits:AVERAGE
+	CDEF:missing=requests,UN,INF,UNKN,IF
+	'LINE2:requests###COLOR1##:requests'
+	'LINE2:hits###COLOR2##:hits'
+	'AREA:missing###MISSING##:missing'
+
+graph	traffic desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OIDs in question are only implemented on a squid http cache.  This graph shows how much network bandwidth the cache is using.  In is traffic read from the network; Out is traffic sent to the network.'
+	--title '##HOST## - Squid Traffic (##GRAPHTIME##)'
+	--vertical-label 'bps or Bps'
+	DEF:inkb=##DB##:inkb:AVERAGE
+	DEF:outkb=##DB##:outkb:AVERAGE
+	CDEF:in=inkb,1024,*
+	CDEF:out=outkb,1024,*
+	CDEF:missing=inkb,UN,INF,UNKN,IF
+	'LINE2:in###COLOR1##:in'
+	'LINE2:out###COLOR2##:out'
+	'AREA:missing###MISSING##:missing'
+

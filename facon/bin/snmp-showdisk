@@ -1,0 +1,171 @@
+#!/usr/bin/perl -w
+
+use BER;
+use Data::Dumper;
+
+# snmp-showdisk - show all the disk on a particular machine
+#		so you'll know what to put for snmpif rrds
+# $Id: snmp-showif.pl,v 1.8 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'snmp-showif';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.8 $'))[1];
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+use SNMP_util;
+use lib '.', '/root/3p/facon/lib';
+require "snmpstuff.pl";
+require "facon.pl";
+
+# Parse the command-line
+# STRICT use vars qw( $opt_d $opt_h $opt_v );
+getopts('d:hv');
+
+if (defined $main::opt_h) { &usage; } # no return
+if (defined $main::opt_d) { $main::debug = $main::opt_d; } else { $main::debug = 0; }
+if (defined $main::opt_v) { $main::verbose = $main::opt_v; } else { $main::verbose = 0; }
+
+unless ($#ARGV == 1) { &usage; } # no return
+my $host = shift @ARGV;
+my $community = shift @ARGV;
+my $comhost = $community.'@'.$host;
+
+&snmp_load_oids();
+
+# - - -   Mainline   - - -
+
+#my ($ifnumber) = &snmpget($comhost, 'ifNumber');
+#if (defined $ifnumber) { print "$ifnumber interfaces found\n"; }
+#else { die "No interfaces found\n"; }
+#
+my ($i, $ifdescr, $ifname, $iftype, $inbytes, $outbytes,
+	$speed, $status, $ix, @ifIndices, $comment,
+	$realifname);
+
+my ($descr, $uptime) = &snmpget( $comhost, 'sysDescr', 'sysUptime');
+print <<"EOD_HOST";
+host:   $host
+uptime: $uptime
+type:   $descr
+EOD_HOST
+
+# Get the real ifIndex numbers
+foreach (&snmpwalk($comhost,'ifIndex')) {
+	($ix) = split(':',$_,2);
+	push @ifIndices, $ix;
+}
+
+$i =0;
+
+my $dskmount;
+my $dskname;
+my $dskindex;
+my $dsktotal;
+my $dskused;
+my $dskavail;
+my $usedpercent;
+
+
+
+print "Index    Monted on      Filesystem 1K-blocks    Used      Available     Use%\n";
+
+$i = 0;
+while ( $i < 10)  {
+	
+	$i++;
+	$dskindex = $i;
+	($dskmount) = &snmpget( $comhost, "1.3.6.1.4.1.2021.9.1.2.$i");
+	($dskname) = &snmpget( $comhost, "1.3.6.1.4.1.2021.9.1.3.$i");
+	($dsktotal) = &snmpget( $comhost, "1.3.6.1.4.1.2021.9.1.6.$i");
+	($dskused) = &snmpget( $comhost, "1.3.6.1.4.1.2021.9.1.8.$i");
+	($dskavail) = &snmpget( $comhost, "1.3.6.1.4.1.2021.9.1.13.$i");
+
+	 next unless (defined $dskmount);
+	$usedpercent = 100/$dsktotal*$dskused;
+
+#	($iftype) = &snmpget( $comhost, "ifPath.$i");
+#	($inbytes) = &snmpget( $comhost, "ifInOctets.$i");
+#	($outbytes) = &snmpget( $comhost, "ifOutOctets.$i");
+#	($speed) = &snmpget( $comhost, "ifSpeed.$i");
+#	($status) = &snmpget( $comhost, "ifOperStatus.$i");
+#	($comment) = &snmpget( $comhost, "ifAlias.$i");
+#	
+#	unless (defined $ifname) {
+#		if (defined $ifdescr) { $ifname = $ifdescr; }
+#		else {
+#			&debug("missing interface $i") if ($main::debug);
+#			next;
+#		}
+#	}
+#	$ifname =~ tr/A-Z /a-z_/;
+
+#	$iftype = (defined $iftype) ? &snmpiftype($iftype) : '-';
+#	$inbytes = (defined $inbytes) ? &siunits($inbytes) : '-';
+#	$outbytes = (defined $outbytes) ? &siunits($outbytes) : '-';
+#	$speed = (defined $speed) ? &siunits($speed) : '-';
+#	$status  = (defined $status) ? &snmpifstatus($status) : '-';
+#
+	print "$dskindex	$dskmount	$dskname          $dsktotal	$dskused	$dskavail       ".int($usedpercent)."%\n";
+
+#	printf "%4d %-10s %-10s %5s %7s %7s %7s\n",
+#		$i, $ifname, $iftype, $speed, 
+#		$status, $inbytes, $outbytes;
+	if ($main::verbose) {
+		unless (defined $realifname) { $realifname = ''; }
+		unless (defined $ifdescr) { $ifdescr = ''; }
+		print "  real ifname='$realifname', ifdescr='$ifdescr'\n";
+	}
+	
+	if (defined $comment and $comment !~ /^\s*$/) {
+		print "       $comment\n";
+	}
+		
+}
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] host community
+where options are:
+	-d	enable debugging output
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#---------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::opt_h = 0;
+}

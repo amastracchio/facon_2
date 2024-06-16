@@ -1,0 +1,224 @@
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users2
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users3
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users20
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users24
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users49
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             df-/users29
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             load
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             load
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             dupbl
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             ducis
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             procbmh
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             procbm3
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             tcpstates
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             bamac-CIS
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       yvas6120
+        service_description             bamac-CDAG
+        active_checks_enabled           0
+        check_freshness                 1
+        freshness_threshold             600         ; 26 hour threshold, since backups may not always finish at the same time
+        check_command                   sin_resultado        ; this command is run only if the service results are "stale"
+        obsess_over_service             1
+        }
+
+
+

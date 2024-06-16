@@ -1,0 +1,8 @@
+# scripts/proxy - We're running squid as an http/ftp proxy cache
+# $Id: proxy,v 1.3 2002/04/16 15:21:25 remstats Exp $
+
+send	GET http://##HOST##/ HTTP/1.1\nUser-Agent: Remstats/1.0.13a\nHost: ##HOST##\nConnection: close\n\n
+port	3128
+timeout	5
+ok      ^HTTP/\d\.\d 200
+

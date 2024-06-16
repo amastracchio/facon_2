@@ -1,0 +1,22 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc	The linux  machine
+ip	192.168.0.48
+group	prod
+tools	availability status
+rrd	ping
+#rrd     pscount-ed857416
+#rrd     pscount-wspheraa
+#rrd     pscount-root
+#rrd	load
+#rrd	process
+#rrd	memory
+#rrd     pssum-ed857416
+#rrd     pssum-wspheraa
+#rrd     pssum-root
+rrd      ntlogicaldisk-c
+rrd      ntpaging
+rrd      ntnetwork
+rrd      ntmemory
+#rrd      ntactivity no anda
+rrd      ntcpu

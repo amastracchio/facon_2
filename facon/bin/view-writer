@@ -1,0 +1,339 @@
+#!/usr/bin/perl -w
+
+# view-writer - write views web-pages
+# $Id: view-writer.pl,v 1.12 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'view-writer';
+# Where is the configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# Where is the datapage.cgi program?
+$main::datapage_cgi = '/facon/datapage.cgi';
+# How to show the status of an RRD variable (DS)
+$main::status_cgi = '/facon/var_status.cgi';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.12 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require 5.005;
+require "facon.pl";
+require "htmlstuff.pl";
+require "alertstuff.pl";
+require "cgistuff.pl";
+use RRDs;
+use Getopt::Std;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:f:h:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+&read_config_dir($main::config_dir, 'general', 'alerts', 'links', 'colors', 
+	'tools', 'times', 'html', 'oids', 'rrds', 'customgraphs', 'groups', 
+	'view-templates', 'views', 'host-templates', 'hosts', 
+	'alert-template-map');
+
+if (-f $main::config{RRDCGI}) {
+	$main::shebang = '#!' . $main::config{RRDCGI} . "\n";
+}
+else { &abort("rrdcgi ($main::config{RRDCGI}) isn't there"); }
+
+unless (-d $main::config{HTML}{VIEWDIR} or -l $main::config{HTML}{VIEWDIR}) {
+	&abort("missing viewdir $main::config{HTML}{VIEWDIR}");
+}
+
+# - - -   Mainline   - - -
+
+# Get the indices
+if ($main::config{HTML}{VIEWINDICES}) { %main::indices = &init_indices; }
+
+my $view_html = $main::shebang . &html_header($main::config{HTML}{VIEWINDEX}, 
+	$main::config{HTML}{VIEWINDEX}, %main::indices) . "<UL>\n";
+
+# Do the web pages
+my ($view);
+
+foreach $view (sort keys %{$main::config{VIEW}}) {
+# Make sure that the view definition is OK
+	if (((defined $main::config{VIEW}{$view}{GRAPHS} or 
+			defined $main::config{VIEW}{$view}{CUSTOMGRAPHS}) and
+			(defined $main::config{VIEW}{$view}{TEMPLATE} or
+			defined $main::config{VIEW}{$view}{DATAPAGE})) or
+			(defined $main::config{VIEW}{$view}{TEMPLATE} and
+			defined $main::config{VIEW}{$view}{DATAPAGE})
+			) {
+		&error("a view can have graphs/customgraphs or template or datapage; skipped $view");
+		next;
+	}
+
+# What kind of page is this?
+	if (defined $main::config{VIEW}{$view}{TEMPLATE}) {
+		$view_html .= &do_as_template($view);
+	}
+	elsif (defined $main::config{VIEW}{$view}{DATAPAGE}) {
+		$view_html .= &do_as_datapage($view);
+	}
+	else { $view_html .= &do_simple($view); }
+}
+
+# Finish the view index
+my $view_index = $main::config{HTMLDIR} . '/view-index.cgi';
+open (VIEW, ">$view_index.new") or &abort("can't open $view_index.new: $!");
+$view_html .= "</UL>\n". &html_footer;
+print VIEW $view_html;
+close(VIEW);
+chmod 0755, "$view_index.new" or &error("can't chmod $view_index.new: $!");
+rename "$view_index.new", $view_index or 
+	&abort("can't rename $view_index.new to $view_index: $!");
+
+exit 0;
+
+#-------------------------------------------------------- do_as_template ---
+sub do_as_template {
+	my ($view) = @_;
+	&debug("doing template view '$view'") if ($main::debug);
+
+# Generate the page from the template
+	my $template = $main::config{VIEW}{$view}{TEMPLATE};
+	my $html = $main::shebang . $main::config{VIEWTEMPLATE}{$template};
+	$html =~ s/<VIEW::GRAPH\s+(\S+)\s+(\S+)\s+(\S+?)>/&do_graph($view,"$1","$2","$3",undef)/ges;
+	$html =~ s/<VIEW::GRAPH\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+?)>/&do_graph($view,"$1","$2","$3","$4")/ges;
+	$html =~ s/<VIEW::CUSTOMGRAPH\s+(\S+)>/&do_customgraph($view,"$1",undef)/ges;
+	$html =~ s/<VIEW::CUSTOMGRAPH\s+(\S+)\s+(\S+?)>/&do_customgraph($view,"$1","$2")/ges;
+	$html =~ s/<VIEW::INCLUDE\s+(\S+)\s*>/&do_include($view,"$1")/ges;
+	$html =~ s/<VIEW::HEADER\s+([^>]+)>/&html_header("$1",'',%main::indices)/ges;
+	$html =~ s/<VIEW::FOOTER>/&html_footer()/ges;
+	$html =~ s/<VIEW::STATUS\s+(\S+)\s+([^>]+)>/&do_status("$1", "$2")/ges;
+	$html =~ s/<VIEW::ALERTSTATUS\s+(\S+)\s+(\S+)\s+(\S+)(\s+value)?>/&do_alert_status("$1", "$2", "$3")/ges;
+
+# Write it
+	my $viewfile = $main::config{HTML}{VIEWDIR} . '/'. &to_filename($view) .'/index.cgi';
+	open (VIEWTEMPLATE, ">$viewfile.new") or do {
+		&error("can't open view index $viewfile.new: $!; skipped");
+		return '';
+	};
+	print VIEWTEMPLATE $html;
+	close (VIEWTEMPLATE);
+	chmod 0755, "$viewfile.new" or 
+		&error("can't chmod $viewfile.new: $!");
+	rename "$viewfile.new", $viewfile or 
+		&error("can't rename $viewfile.new to $viewfile: $!");
+
+# Give back a link to this new page (view)
+	my $label = '<LI><A HREF="'. $main::config{HTML}{VIEWURL} .'/'. &to_filename($view) 
+		.'/index.cgi">'. $view .'</A>';
+	if (defined $main::config{VIEW}{$view}{DESC}) {
+		$label .= ' - '. $main::config{VIEW}{$view}{DESC} ."</LI>\n";
+	}
+	else { $label .= "</LI>\n"; }
+$label;
+}
+
+#-------------------------------------------------------- do_status ---
+sub do_status {
+	my ($host, $statusfile) = @_;
+	my ($status) = &get_status($host, $statusfile);
+	if ($status ne 'MISSING') {
+		$status = '<RRD::INCLUDE '. $main::config{DATADIR} .'/'.
+			$host .'/'. $statusfile .'>';
+	}
+$status;
+}
+
+#--------------------------------------------------- do_alert_status ---
+sub do_alert_status {
+	my ($host, $realrrd, $var) = @_;
+	my $fixed_host = $host;
+	my $fixed_rrd = $realrrd;
+	my $fixed_var = $var;
+	my $status = <<"EOD_STATUS";
+<IMG SRC="$main::status_cgi?host=$fixed_host&rrd=$fixed_rrd&var=$fixed_var" 
+	ALT="alert status of $fixed_host $fixed_rrd $fixed_var">
+EOD_STATUS
+	return $status;
+}
+
+#-------------------------------------------------------- do_graph ---
+sub do_graph {
+	my ($view, $host, $realrrd, $graph, $graphtime) = @_;
+	my ($wildrrd, $wildpart) = &get_rrd($realrrd);
+	my $html;
+
+	# Find the wildcard graph definition
+	$graph =~ s/$wildpart/\*/ if( defined $wildpart);
+	if (defined $main::config{RRD}{$wildrrd}{GRAPH}{$graph}) {
+
+		# Use 'day' as the graphtime if not specified
+		if (!defined $graphtime or (defined $graphtime and $graphtime eq '')) {
+			$graphtime = 'day';
+		}
+		&debug("  graph: $host $realrrd $graph $graphtime") if ($main::debug);
+		$html = &make_rrdcgi_graph( 'VIEWS', $host, $host, $realrrd, $graph, 
+			$graphtime, $host);
+	}
+	else {
+		&error("no such graph as '$graph' for rrd '$wildrrd' for view '$view'; skipped");
+		$html = "[no such graph as '$graph' for rrd '$wildrrd' for view '$view']";
+	}
+$html;
+}
+
+#---------------------------------------------------- do_customgraph ---
+sub do_customgraph {
+	my ($view, $customgraph, $graphtime) = @_;
+	my $html;
+	if (defined $main::config{CUSTOMGRAPH}{$customgraph}) {
+		if (!defined $graphtime or (defined $graphtime and $graphtime eq '')) {
+			$graphtime = 'day';
+		}
+		&debug("  customgraph: $customgraph $graphtime") if ($main::debug);
+		$html = &make_custom_graph( undef, undef, $customgraph, $graphtime);
+	}
+	else {
+		&error("no such customgraph as '$customgraph' for view '$view'; skipped");
+		$html = "[no such customgraph as '$customgraph' for view '$view']";
+	}
+$html;
+}
+
+#------------------------------------------------------ do_include ---
+sub do_include {
+	my ($view, $file) = @_;
+	&debug("  include: $file") if ($main::debug);
+	my $html = '<RRD::INCLUDE '. $file .'>';
+$html;
+}
+
+#-------------------------------------------------------- do_as_datapage ---
+sub do_as_datapage {
+	my ($view) = @_;
+	&debug("doing datapage view '$view'") if ($main::debug);
+
+# Make sure that we've got the datapage
+	my $datapage = $main::config{VIEW}{$view}{DATAPAGE};
+	my $datapagefile = $main::config{DATAPAGEDIR} .'/'. 
+		&to_filename($datapage) .'.page';
+	unless (-f $datapagefile or -l $datapagefile) {
+		&error("missing datapage '$datapagefile' for view $view");
+		return '';
+	}
+
+# Just return a link.  Datapages get generated at run-time
+	my $label = '<LI><A HREF="'. $main::datapage_cgi .'?'. 
+		$main::config{VIEW}{$view}{DATAPAGE} .  '">'. $view .'</A>';
+	if (defined $main::config{VIEW}{$view}{DESC}) {
+		$label .= ' - '. $main::config{VIEW}{$view}{DESC} ."</LI>\n";
+	}
+	else { $label .= "</LI>\n"; }
+$label;
+}
+
+#-------------------------------------------------------- do_simple ---
+sub do_simple {
+	my ($view) = @_;
+	my ($graphspec, $customgraph, $host, $realrrd, $graph, $type, 
+		$graphtime, $wildrrd);
+	&debug("doing simple view '$view'") if ($main::debug);
+
+# Generate the page (rrdcgi-style)
+	my $html = $main::shebang . &html_header($view, '', $main::indices);
+	foreach $graphspec (@{$main::config{VIEW}{$view}{GRAPHS}}) {
+		($type, $host, $realrrd, $graph, $graphtime) = split(' ',$graphspec);
+		if (!defined $graphtime or (defined $graphtime and $graphtime eq '')) {
+			$graphtime = 'day';
+		}
+
+		if ($type eq 'graph') {
+			($wildrrd) = &get_rrd($realrrd);
+			if (defined $main::config{RRD}{$wildrrd}{GRAPH}{$graph}) {
+				&debug("  graph: $host $realrrd $graph $graphtime") if ($main::debug);
+				$html .= &make_rrdcgi_graph( 'VIEWS', $host, $host, $realrrd, $graph, 
+					$graphtime, $host);
+			}
+			else {
+				&error("no such graph as '$graph' for rrd '$wildrrd' for view '$view'; skipped");
+				$html .= "[no such graph as '$graph' for rrd '$wildrrd' for view '$view']";
+			}
+		}
+		elsif ($type eq 'customgraph') {
+			$customgraph = $host;
+			if (defined $main::config{CUSTOMGRAPH}{$customgraph}) {
+				&debug("  customgraph: $customgraph $graphtime") if ($main::debug);
+				$html .= &make_custom_graph( undef, undef, $customgraph, $graphtime);
+			}
+			else {
+				&error("no such customgraph as '$customgraph' for view '$view'; skipped");
+				$html .= "[no such customgraph as '$customgraph' for view '$view']";
+			}
+		}
+		else {
+			&abort("unknown graph type '$type' in view $view");
+		}
+	}	
+	$html .= &html_footer;
+
+# Write it
+	my $viewfile = $main::config{HTML}{VIEWDIR} . '/'. &to_filename($view) .'/index.cgi';
+	open (VIEWSIMPLE, ">$viewfile.new") or do {
+		&error("can't open $viewfile.new: $!; skipped");
+		return '';
+	};
+	print VIEWSIMPLE $html;
+	close (VIEWSIMPLE);
+	chmod 0755, "$viewfile.new" or &error("can't chmod $viewfile.new: $!");
+	rename "$viewfile.new", $viewfile or
+		&error("can't rename $viewfile.new to $viewfile: $!");
+
+# Pass back a link to it.
+	my $label = '<LI><A HREF="'. $main::config{HTML}{VIEWURL} .'/'. &to_filename($view) 
+		.'/index.cgi">'. $view .'</A>';
+	if (defined $main::config{VIEW}{$view}{DESC}) {
+		$label .= ' - '. $main::config{VIEW}{$view}{DESC} ."</LI>\n";
+	}
+	else { $label .= "</LI>\n"; }
+$label;
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] collector
+where options are:
+	-d nnn	enable debugging output at level 'nnn'
+	-f fff	use 'fff' for config-dir [$main::config_dir]
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------------- abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}

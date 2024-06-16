@@ -1,0 +1,10 @@
+# host-templates/unix-host - generic unix host
+# $Id: unix-host,v 1.2 2002/04/16 15:25:25 remstats Exp $
+
+desc MISSING DESCRIPTION (unix host)
+tools	ping traceroute telnet http availability
+
+rrd	cpu
+rrd	memory
+rrd	load
+rrd	port-ssh

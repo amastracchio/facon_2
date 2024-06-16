@@ -1,0 +1,61 @@
+# rrds/ftpxferlog - info from the wu-ftpd xferlog
+# CVS $Id: ftpxferlog,v 1.6 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# This watches the xferlog produced by wu-ftpd to give counts of files and 
+# bytes transferred, average file-size and average transfer-time.
+
+source		log
+step		300
+data		files	DERIVE:600:0:1000000	count ^\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+
+data		bytes	DERIVE:600:0:1000000000000	sum ^\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\d+\s+\S+\s+(\d+)
+data		bytesavg GAUGE:600:0:10000000	average ^\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\d+\s+\S+\s+(\d+)
+data		timeavg	GAUGE:600:0:1000000	average ^\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(\d+)\s+\S+\s+\d+
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+graph		ftpfiles desc="Files sent/received by FTP"
+		--title '##HOST## - FTP Files (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label files-per-sec
+		DEF:files=##DB##:files:AVERAGE
+		LINE2:files###COLOR1##:Files
+		CDEF:missing=files,UN,INF,UNKN,IF
+		'GPRINT:files:AVERAGE:avg=%.0lf%s'
+		'GPRINT:files:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph		ftpbytes desc="Bytes sent/received by FTP"
+		--title '##HOST## - FTP Bytes (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label bytes-per-sec
+		DEF:bytes=##DB##:bytes:AVERAGE
+		LINE2:bytes###COLOR1##:Bytes
+		CDEF:missing=bytes,UN,INF,UNKN,IF
+		'GPRINT:bytes:AVERAGE:avg=%.0lf%s'
+		'GPRINT:bytes:MAX:max=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+
+graph		ftpbytesperfile desc="the average file-size"
+		--title '##HOST## - FTP Average File-size (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label bytes
+		DEF:bytesavg=##DB##:bytesavg:AVERAGE
+		LINE2:bytesavg###COLOR1##:File-size
+		'GPRINT:bytesavg:AVERAGE:avg=%.0lf%s'
+
+graph		ftptimeperfile desc="the average transfer-time per file"
+		--title '##HOST## - FTP Average Xfer-time (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label sec
+		DEF:timeavg=##DB##:timeavg:AVERAGE
+		CDEF:missing=timeavg,UN,INF,UNKN,IF
+		LINE2:timeavg###COLOR1##:xfer-time
+		'GPRINT:timeavg:AVERAGE:avg=%.0lf%s'
+		'AREA:missing###MISSING##:missing'
+

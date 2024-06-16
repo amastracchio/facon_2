@@ -1,0 +1,332 @@
+#!/usr/bin/perl -w
+
+# log-collector - a facon collector for remote logs
+# $Id: log-collector.pl,v 1.21 2002/08/14 11:08:42 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+use Data::Dumper;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'log-collector';
+# Which collector is this
+$main::collector = 'log';
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+# Which port is the log-server sitting on
+$main::port = 1958;
+# How long to wait for a response
+$main::timeout = 60; # seconds
+# Munge timestamps to deal with time-sync problems between server and collector
+$main::fix_timestamps = 1;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.21 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/var/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+require "socketstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FG:hH:K:p:t:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'p'}) { $main::port = $opt{'p'}; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'}+0; }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'times', 'rrds',
+	'groups', 'host-templates', 'hosts');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering
+if( $main::debug) {$| = 1;}
+
+# - - -   Mainline   - - -
+
+my ($host, $hosts, $ip, $realrrd, $wildrrd, $wildpart, $logfile, $fixedrrd,
+	$tmpfile, $lastfile, $start_time, $run_time);
+$start_time = time();
+$tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+$lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing host $host") if( $main::debug);
+	$main::data_from_host = 0;
+
+	# Collect the data from the remote server first
+	foreach $realrrd (@{$main::config{HOST}{$host}{RRDS}}) {
+		($wildrrd, $wildpart, $fixedrrd) = &get_rrd($realrrd);
+		next unless( &rrd_collected_by( $wildrrd, $main::collector));
+		$logfile = $main::config{HOST}{$host}{EXTRA}{$realrrd};
+		unless (defined $logfile) {
+			&error("$realrrd for $host has no logfile specified");
+			next;
+		}
+		unless ($main::force_collection or 
+				&check_collect_time($host, $wildrrd, $fixedrrd)) {
+			&debug("  not time yet for $realrrd($wildrrd): skipped")
+				if ($main::debug>1);
+			next;
+		}
+		&collect_rrd($host, $ip, $realrrd, $wildrrd, $wildpart, $logfile);
+	}
+}
+
+# Now facon instrumentation info
+my $now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+   -d nnn  enable debugging output at level 'nnn'
+   -f fff  use config-dir 'fff'[$main::config_dir]
+   -F      force collection, even if it is not time
+   -G GGG  only do hosts from group 'GGG', a comma-separated list
+   -h      show this help
+   -H HHH  only do hosts from 'HHH', a comma-separated list
+   -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+   -p ppp  contact log-server on port 'ppp' [$main::port]
+   -t ttt  timeout each port attempt after 'ttt' seconds [$main::timeout]
+   -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#----------------------------------------------------------- collect_rrd ---
+sub collect_rrd {
+	my ($host, $ip, $realrrd, $wildrrd, $wildpart, $logfile) = @_;
+	my ($line, $variable, $value, $data, $extra, $now, $socket, $status, $alias, $data1);
+	my $timeout = $main::timeout;
+
+         print "ARI entra collect_rrd = host = $host, ip = $ip, realrrd = $realrrd, wildrrd = $wildrrd, wildpart = $wildpart, logfile=$logfile\n";
+	&debug("doing host $host") if ($main::debug);
+
+	($socket, $status, $timeout) =
+		&open_socket( $host, $main::port, $timeout, $ip);
+	if ($status != $main::SOCKET_OK) {
+		&put_error( $host, &to_filename($realrrd), 
+			'collect_rrd: could not connect to ',
+			${host}, ':', ${main::port}, ': ', $!);
+		return undef;
+	}
+	&debug("  connected") if ($main::debug);
+
+# Send the request
+	($status, $timeout) = &write_socket( $socket, "LOGFILE $logfile\n",
+		$timeout, "'LOGFILE $logfile' to $host");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		return undef;
+	}
+	&debug("  sent 'LOGFILE $logfile'") if ($main::debug);
+
+	if ($main::debug) {
+		($status, $timeout) = &write_socket( $socket, "TEST\n", $timeout,
+			"'TEST' to $host");
+		unless ($status == $main::SOCKET_OK) {
+			$socket->close();
+			return undef;
+		}
+		&debug("  sent 'TEST'") if ($main::debug);
+
+		($status, $timeout) = &write_socket( $socket, "DEBUG\n", $timeout,
+			"'DEBUG' to $host");
+		unless ($status == $main::SOCKET_OK) {
+			$socket->close();
+			return undef;
+		}
+		&debug("  sent 'DEBUG'") if ($main::debug);
+
+	}
+
+
+#   print " A mostrar = wildrrd = $wildrrd\n";
+#   print Dumper $main::config{RRD}{$wildrrd};
+
+# And all the variable requests
+	foreach $data (@{$main::config{RRD}{$wildrrd}{DATANAMES}}) {
+
+		$extra = $main::config{RRD}{$wildrrd}{DS}{$data}{EXTRA};
+
+		# ari
+		$alias = $main::config{RRD}{$wildrrd}{DS}{$data}{ALIAS};
+		print "ARI alias=$alias wildrrd=$wildrrd data (DATANAME)=$data wildpart=$wildpart extra=$extra\n";
+
+	        # ari
+
+	        $data1 = $data;	
+		if ( $alias =~ /\*/) {
+
+			$data1 = $alias;
+			$data1 =~ s/\*/$wildpart/;
+
+			print "ARI nuevo data1 = $data1\n";
+			
+		}
+
+
+		print "ARI wildrrd=$wildrrd data1=$data1 wildpart=$wildpart extra=$extra\n";
+
+		unless (defined $extra) {
+			&error("collect_rrd: field $data1 has no request defined; skipped");
+			next;
+		}
+
+# Allow magic cookies in patterns
+		if ($extra =~ /##[A-Z0-9]+##/) {
+			$extra = &do_subs(undef, $realrrd, $wildpart, $host, undef, 
+				undef, undef, $extra);
+		}
+
+		($status, $timeout) = &write_socket( $socket, "$data1 $extra\n", 
+			$timeout, "'$data1 $extra' to $host");
+		unless ($status == $main::SOCKET_OK) {
+			$socket->close();
+			return undef;
+		};
+		++$main::requests;
+		&debug("  sent '$data1 $extra'") if ($main::debug);
+	}
+
+	($status, $timeout) = &write_socket( $socket, "GO\n", $timeout,
+		"'GO' to $host'");
+	unless ($status == $main::SOCKET_OK) {
+		$socket->close();
+		return undef;
+	};
+	$socket->flush();
+	&debug("  sent 'GO'") if ($main::debug);
+
+
+# Collect the results
+	while (($line, $status, $timeout) = &read_socket( $socket, $timeout, 
+			"response from $host"), 
+			((defined $line) and ($status == $main::SOCKET_OK))) {
+		$line =~ tr/\015\012//d;
+		++$main::entries_collected;
+		&debug("  raw data: '$line'") if ($main::debug>1);
+		next if ($line =~ /^#/ or $line =~/^\s*$/);
+
+# Deal with special output
+		if ($line =~ /^DEBUG:\s*(.*)/) {
+			&debug("REMOTE($host): $1") if ($main::debug);
+		}
+		elsif ($line =~ /^ERROR:\s*(.*)/) {
+			&error("collect_rrd: REMOTE($host): $1");
+		}
+		elsif ($line =~ /^ABORT:\s*(.*)/) {
+			&abort("REMOTE($host) $1");
+		}
+		else {
+			++$main::data_from_host;
+
+			# Munge timestamps to correct for time-sync problems
+			if( $main::fix_timestamps) {
+				if( $line =~ /^\s*\d+\s+(.*)$/) {
+					$line = time() . ' ' . $1;
+				}
+				else {
+					&error("missing timestamp on: $line");
+					next;
+				}
+			}
+
+			print "$host $line\n";
+			print TMP "$host $line\n";
+			++$main::entries_used;
+		}
+	}
+	$socket->close();
+	if ($status == $main::SOCKET_TIMEOUT) {
+		&debug("timeout reading logs from ${host}:$main::port")
+			if ($main::debug);
+		return undef;
+	}
+	elsif ($status != $main::SOCKET_OK) {
+		&debug("error reading logs from ${host}:$main::port: $_")
+			if ($main::debug);
+		return undef;
+	}
+}
+
+#----------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::SOCKET_TIMEOUT = 0;
+}

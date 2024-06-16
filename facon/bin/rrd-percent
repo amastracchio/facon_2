@@ -1,0 +1,149 @@
+#!/usr/bin/perl -w
+
+# rrd-percent - show value which 95% of values fall under or over
+# $Id: rrd-percent.pl,v 1.4 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'rrd-percent';
+# What is the threshold % that the values have to fall under (or over)
+$main::threshold_percent = 0.95;
+# fetch data through which consolidation function
+my $cf = 'AVERAGE';
+# How close do we have to be to the threshold?
+$main::close_enough = .001;
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.4 $'))[1];
+
+# - - -   Setup   - - -
+
+my ($error, $rrdfile, $dsname, %opt, $begin_time, $end_time, $show_over);
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+use RRDs;
+
+# Parse the command-line
+%opt = ();
+getopts('b:c:d:e:hl:ot:', \%opt);
+unless (@main::ARGV == 2) { &usage; }
+$rrdfile = shift @main::ARGV;
+$dsname = shift @main::ARGV;
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'b'}) { $begin_time = $opt{'b'}; }
+if (defined $opt{'c'}) { $cf = $opt{'c'}; }
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'e'}) { $end_time = $opt{'e'}; }
+if (defined $opt{'l'}) { $main::close_enough = $opt{'l'}+0; }
+if (defined $opt{'o'}) { $show_over = 1; } else { $show_over = 0; }
+if (defined $opt{'t'}) { $main::threshold_percent = $opt{'t'}/100; }
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+unless (-e $rrdfile) { &abort("no such file as $rrdfile"); }
+
+# set default times
+unless (defined $end_time) {
+	$end_time = RRDs::last $rrdfile;
+	$error = RRDs::error;
+	if ($error) { &abort("last error: $error"); }
+}
+unless (defined $begin_time) {
+	$begin_time = $end_time - 24*60*60;
+}
+
+# - - -   Mainline   - - -
+
+my ($start, $step, $names, $data, $dsindex, @data, $line, $max, $min, $value,
+	$index);
+
+($start, $step, $names, $data) = RRDs::fetch $rrdfile, 
+	$cf, '--start', $begin_time, '--end', $end_time;
+$error = RRDs::error;
+if ($error) { &abort("fetch error: $error"); }
+
+# Find the dsname in the list
+for ($dsindex=0; $dsindex < @$names; ++$dsindex) {
+	last if ($$names[$dsindex] eq $dsname);
+}
+if ($dsindex >= @$names) { &abort("unknown dsname ($dsname)"); }
+&debug("start=$start, step=$step, index=$dsindex") if ($main::debug);
+
+# Collect just the values for our dsname
+@data = ();
+for $line (@$data) {
+	$value = $$line[$dsindex];
+	next unless (defined $value);
+	push @data, $value;
+	&debug("value=$value") if ($main::debug>1);
+	if (!defined $max) {
+		$max = $value;
+	}
+	elsif ($max < $value) {
+		$max = $value;
+	}
+	if (!defined $min) {
+		$min = $value;
+	}
+	elsif ($min > $value) {
+		$min = $value;
+	}
+}
+unless (defined $max) { &abort("no values"); }
+
+# Special case
+if (abs($max - $min) < $main::close_enough) {
+	print (($max + $min) / 2, "\n");
+	exit 0;
+}
+
+sub numerically { $a <=> $b };
+@data = sort numerically @data;
+if ($show_over) { @data = reverse @data; }
+$index = int($main::threshold_percent * @data + .5);
+print $data[$index], "\n";
+exit 0;
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options] rrdfile dsname
+where options are:
+    -b bbb  start looking at time 'bbb' [-1d]
+    -d nnn  enable debugging output at level 'nnn'
+    -e eee  stop looking at time 'eee' [now]
+    -h      show this help
+    -l lll  how close the threshold must be [$main::close_enough]
+    -o      values must be over threshold, not under
+    -t ttt  set threshold to 'ttt' [$main::threshold_percent]
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}

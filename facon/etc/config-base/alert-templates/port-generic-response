@@ -1,0 +1,7 @@
+This is the generic alert-template for network service response time for 
+port ##WILDPART## on ##HOST##(##IP##).  The service took ##VALUE##ms to
+respond which is ##RELATION## ##THRESHOLD##.
+
+Exactly what it means depends on the probe scripts, but ERROR or 
+CRITICAL usually mean that the service is unavailable and WARN 
+usually means that service is degraded.

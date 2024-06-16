@@ -1,0 +1,32 @@
+# hosts/_remstats_ - remstats self-monitoring
+#
+desc	The linux  machine
+ip	192.168.0.115
+group	prod
+tools	availability status
+rrd	snmpuptime
+# solo para probar!! poner de nueo arriba y abajo
+rrd     snmpdisk-/
+rrd     snmpdisk-/var/www/htdocs/landsat
+rrd	snmpif-eth0
+rrd     snmpload
+rrd     snmpmeme
+#rrd     pscount-ed857416
+#rrd     pscount-wspheraa
+#rrd     pscount-root
+#rrd	load
+#rrd	process
+#rrd	memory
+#rrd     pssum-ed857416
+#rrd     pssum-wspheraa
+#rrd     pssum-root
+#1       /       /dev/sda1          24639868     20354872        3010324       82%
+#2       /dev/shm        tmpfs          302148   0       302148       0%
+#3       /var/www/htdocs/landsat /dev/sdb1          541372232    333876096       179995952       61%
+rrd     search /root/precios/search-desa.pl
+rrd     htdig /root/precios/stats-desa.pl
+rrd     sitios /root/precios/stats-desa.pl
+#rrd     mem /root/precios/mem-desa.pl
+rrd     totdoc /root/precios/totales-desa.pl
+rrd     io /root/precios/mem-desa.pl
+#

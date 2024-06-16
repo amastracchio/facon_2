@@ -1,0 +1,51 @@
+# rrds/tcpstates - show counts of processes in various TCP states
+# CVS $Id: tcpstates,v 1.4 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Could be used for various things: session counting, protocol problems
+
+source	unix-status
+step	300
+
+data	established=tcpstate:ESTABLISHED GAUGE:600:0:U	netstat-tcpstates
+data	synrcvd=tcpstate:SYN_RCVD GAUGE:600:0:U	netstat-tcpstates
+data	listen=tcpstate:LISTEN GAUGE:600:0:U	netstat-tcpstates
+data	closewait=tcpstate:CLOSE_WAIT GAUGE:600:0:U	netstat-tcpstates
+data	lastack=tcpstate:LAST_ACK GAUGE:600:0:U	netstat-tcpstates
+data	finwait1=tcpstate:FIN_WAIT_1 GAUGE:600:0:U	netstat-tcpstates
+data	finwait2=tcpstate:FIN_WAIT_2 GAUGE:600:0:U	netstat-tcpstates
+data	closing=tcpstate:CLOSING GAUGE:600:0:U	netstat-tcpstates
+data	timewait=tcpstate:TIME_WAIT GAUGE:600:0:U	netstat-tcpstates
+data	synsent=tcpstate:SYN_SENT GAUGE:600:0:U	netstat-tcpstates
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+alert	closewait < 50
+alert	timewait < 50
+alert	finwait1 < 50
+alert	finwait2 < 50
+
+graph	tcpstates	desc="This is collected by the unix-status-collector.  It works by running the <B>netstat</B> program on the remote host and parsing the output.  Here it counts the number of different TCP sessions in the different TCP states.  The various XXX_WAIT states should be of short duration so there should not be many sessions in those states.  You may have to tweak the alert numbers on a busy server."
+	--title '##HOST## - TCP States (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'sessions'
+	DEF:listen=##DB##:listen:AVERAGE
+	DEF:established=##DB##:established:AVERAGE
+	DEF:closewait=##DB##:closewait:AVERAGE
+	DEF:finwait1=##DB##:finwait1:AVERAGE
+	DEF:finwait2=##DB##:finwait2:AVERAGE
+	DEF:timewait=##DB##:timewait:AVERAGE
+	DEF:closing=##DB##:closing:AVERAGE
+	CDEF:missing=listen,UN,INF,UNKN,IF
+	'LINE1:listen###COLOR1##:LISTEN'
+	'LINE1:established###COLOR2##:ESTABLISHED'
+	'LINE1:closewait###COLOR3##:CLOSE_WAIT'
+	'LINE1:finwait1###COLOR4##:FIN_WAIT_1'
+	'LINE1:finwait2###COLOR5##:FIN_WAIT_2'
+	'LINE1:timewait###COLOR6##:TIME_WAIT'
+	'LINE1:closing###COLOR1A##:CLOSING'
+	'AREA:missing###MISSING##:missing'
+

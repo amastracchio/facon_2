@@ -1,0 +1,286 @@
+#!/usr/bin/perl -w
+
+# nt-discover - discover NT systems and base info from them
+# $Id: nt-discover.pl,v 1.8 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'nt-discover';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# How long to wait for a response
+$main::timeout = 10; # seconds
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.8 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use Socket;
+
+# Parse the command-line
+my %opt = ();
+getopts('d:hf:st:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'s'}) { $main::update_status = 1; } else { $main::update_status = 0; }
+if (defined $opt{'t'}) { $main::timeout = $opt{'t'}; }
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'oids', 'times', 'rrds', 
+	'groups', 'host-templates', 'hosts', 'discovery');
+
+# - - -   Mainline   - - -
+
+my ($cmd, $ntdir, @hosts, @users, $what, $value, $os_name,
+	$os_release, $os_version, $ip, %drives, $file, $nthost, $host,
+	$uptime, $machine, $drive, $query_file, $default_tools, $dir,
+	$software, $now);
+
+# Some stuff used by everything
+$query_file = '/root/3p/facon/tmp/' . $main::prog;
+$ntdir = $main::config{DATADIR} . '/NT';
+$cmd = '/root/3p/facon/bin/port-query -t ' . $main::timeout . ' ' . 
+	$main::config{DISCOVERY}{NTSTATUSSERVER} .
+	' 1957 <' . $query_file;
+&debug("cmd=$cmd") if ($main::debug);
+
+# Write the query for hosts
+open (QUERY, ">$query_file") or &abort("can't open $query_file: $!");
+print QUERY "NETVIEW\nGO\n";
+close(QUERY);
+
+# First, get a list of the NT hosts
+open (PIPE, "$cmd|") or &abort("can't open pipe to $cmd: $!");
+while (<PIPE>) {
+	tr/\015\012//d;
+	if (/^NETVIEW\s+(\S+)/) {
+		push @hosts, lc $1;
+	}
+	else { &debug("unknown: $_") if ($main::debug); }
+}
+close (PIPE);
+
+# Write them out, for future reference
+$file = $ntdir .'/nthosts';
+open (NTHOSTS, ">$file") or &abort("can't open $file: $!");
+print NTHOSTS join("\n", @hosts), "\n";
+close (NTHOSTS);
+&debug("wrote ", (scalar @hosts), " hosts") if ($main::debug);
+
+# Write the query for users
+open (QUERY, ">$query_file") or &abort("can't open $query_file: $!");
+print QUERY "USRSTAT\nGO\n";
+close(QUERY);
+
+# Now get the users, because it's easy
+open (PIPE, "$cmd|") or &abort("can't open pipe to $cmd: $!");
+while (<PIPE>) {
+	tr/\015\012//d;
+	if (/^USRSTAT\s+(.*)/) {
+		push @users, $_;
+	}
+	else { &debug("unknown: $_") if ($main::debug); }
+}
+close (PIPE);
+
+# Write them out, for future reference
+$file = $ntdir .'/ntusers';
+open (NTHOSTS, ">$file") or &abort("can't open $file: $!");
+print NTHOSTS join("\n", @users), "\n";
+close (NTHOSTS);
+&debug("wrote ", (scalar @users), " users") if ($main::debug);
+
+# Now get info about the hosts
+$main::hosts_added = 0;
+foreach $nthost (@hosts) {
+
+# Have we seen this before?
+	if (defined $main::config{HOST}{$nthost}) {
+		&debug("host $nthost is known; skipped") if ($main::debug);
+		next;
+	}
+	elsif( defined $main::config{HOST}{$nthost . '.' . 
+			$main::config{DISCOVERY}{DNSDOMAIN}}) {
+		&debug("host $nthost.$main::config{DISCOVERY}{DNSDOMAIN} is known; skipped") if ($main::debug);
+		next;
+	}
+
+# Write a new query for this host
+	open (QUERY, ">$query_file") or &abort("can't open $query_file: $!");
+	print QUERY "SRVINFO $nthost\nGO\n";
+	close(QUERY);
+	
+# Now query that host
+	undef $os_name;
+	undef $os_release;
+	undef $os_version;
+	undef $ip;
+
+	open( PIPE, "$cmd|") or &abort("can't open pipe to $cmd: $!");
+	while(<PIPE>) {
+		tr/\015\012//d;
+		(undef,  undef, $what, $value) = split(' ', $_, 4);
+
+# Save away the parts of the OS description
+		if( $what eq 'os_name') { $os_name = $value; }
+		elsif ($what eq 'os_release') { $os_release = $value; }
+		elsif ($what eq 'os_version') { $os_version = $value; }
+
+# Let's have an uptime
+		elsif ($what eq 'uptime') {
+			$uptime = $value;
+		}
+
+# It's nice to know what the machine is
+		elsif ($what eq 'machine') {
+			$machine = $value;
+		}
+
+# Save the IP address in case we need it
+		elsif ($what eq 'ipaddress') {
+			$ip = $value;
+		}
+
+# Note the drives
+		elsif( $what =~ /^drive-filesys:(.)/) {
+			$drives{$1}{FILESYS} = $value;
+		}
+		elsif( $what =~ /^drive-size-meg:(.)/) {
+			$drives{$1}{SIZE} = $value;
+		}
+		elsif( $what =~ /^drive-free-meg:(.)/) {
+			$drives{$1}{FREE} = $value;
+		}
+	}
+	close (PIPE);
+
+# What should we call it?
+	$ip = gethostbyname($nthost);
+	if (defined $ip) {
+		$ip = inet_ntoa($ip);
+		$host = $nthost;
+	}
+	elsif ($ip = gethostbyname( $nthost . '.' . 
+			$main::config{DISCOVERY}{DNSDOMAIN}), defined $ip) {
+		$ip = inet_ntoa($ip);
+		$host = $nthost . '.' . $main::config{DISCOVERY}{DNSDOMAIN};
+	}
+	else {
+		&debug("NT host unknown to DNS; called UNKNOWN-NT-$nthost") 
+			if ($main::debug);
+		$host = 'UNKNOWN-NT-' . $nthost;
+	}
+
+	unless (defined $os_name) { $os_name = 'UNKNOWN'; }
+	unless (defined $os_release) { $os_release = 'UNKNOWN'; }
+	unless (defined $os_version) { $os_version = 'UNKNOWN'; }
+	$software = $os_name .' '. $os_release .' '. $os_version;
+
+# Make sure the host data directory is there at least
+	$dir = $main::config{DATADIR} .'/'. $host;
+	if (-e $dir and ! $main::update_status) {
+		&debug("data directory for $host found; status update skipped") if ($main::debug);
+	}
+	elsif ($main::update_status) {
+		unless (-e $dir) {
+			&make_a_dir($dir) or next;
+		}
+		&do_status( $host, $uptime, $machine, $software);
+	}
+	elsif (&make_a_dir( $dir)) {
+		&do_status( $host, $uptime, $machine, $software);
+	}
+
+# Now write a host description
+	$file = $main::config_dir . '/hosts/' . $host;
+	if (-f $file) {
+		&debug("host file for $host exists; skipped") if ($main::debug);
+		next;
+	}
+	open (HOST, ">$file") or &abort("can't open $file: $!");
+	$default_tools = join(' ', @{$main::config{HTML}{DEFAULTTOOLS}});
+	$now = &timestamp;
+	print HOST <<"EOD_HOST";
+# hosts/$host - newly discovered NT host
+# Discovered by $main::prog version $main::version at $now
+desc	newly discovered NT host
+group	New
+tools	$default_tools
+nt-status-server $main::config{DISCOVERY}{NTSTATUSSERVER}
+rrd	ping
+EOD_HOST
+	if (defined $ip) { print HOST "ip\t$ip\n"; }
+
+	print HOST <<"EOD_HOST2";
+rrd	ntcpu
+rrd	ntmemory
+EOD_HOST2
+
+	foreach $drive (sort keys %drives) {
+		print HOST "rrd\tntlogicaldisk-$drive desc='$drives{$drive}{FILESYS}'\n";
+	}
+	print HOST "rrd\tnttime\n";
+
+	close(HOST);
+	&debug("added $nthost as $host") if ($main::debug);
+	++$main::hosts_added;
+}
+
+print STDERR "$main::hosts_added NT hosts added by $main::prog\n";
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+    -d nnn  enable debugging output at level 'nnn'
+    -f fff  use 'fff' for the config-dir [$main::config_dir]
+    -h      show this help
+    -s      update status files even if host data-dir found
+    -t ttt  use 'ttt' as timeout (in seconds) [$main::timeout]
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#-------------------------------------------------------------- do_status ---
+sub do_status {
+	my ($host, $uptime, $machine, $software) = @_;
+	&put_status( $host, 'UPTIME', $uptime);
+	&put_status( $host, 'UPTIME.html', &show_uptime($uptime));
+	&put_status( $host, 'UPTIMEFLAG.html', '');
+	&put_status( $host, 'HARDWARE', $machine);
+	&put_status( $host, 'SOFTWARE', $software);
+}

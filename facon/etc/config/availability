@@ -1,0 +1,108 @@
+# availability - defining what it means for a variable to be "available"
+# $Id: availability,v 1.8 2003/05/09 20:05:13 facon Exp $
+
+# There are two types of availability definitions: for an RRD or for an 
+# RRD on a particular host.  The RRD may also be a wildcard RRD, like
+# "df-*" or an instance of an RRD, like "df-/home".  The definitions
+# look like:
+#
+#	rrd RRDNAME VARNAME CF RELATION THRESHOLD
+# and
+#	host HOSTNAME RRDNAME VARNAME CF RELATION THRESHOLD
+#
+# The CF is one of LAST, MIN, MAX or AVERAGE, with rrdtool's usual
+# meaning.  The RELATION can be any one of: <, <=, >, >=, or =.  
+# The THRESHOLD is the number which the value of VARNAME must be 
+# in the correct RELATION.  (Clear as mud.)  
+#
+# As an example, take the following definition:
+#
+#	rrd ping rcvd > 0
+#
+# This means that the variable 'ping' must be greater than zero for it
+# to be considered "available".  All time intervals where it isn't, or
+# for which no data is available, are considered "unavailable".
+#
+# There are also two other record types: colors and thresholds.  A colors
+# record looks like:
+#
+#	colors COLOR1 ...
+#
+# A thresholds line looks like:
+#
+#	thresholds NUMBER ...
+#
+# and must have the same number of values as the colors line.  Only one of
+# each.  Here's an example to make the use clear (I hope):
+#
+#	colors avail1 avail2 avail3 avail4
+#	thresholds 99 98 95 90
+#
+# The colors line requires that the colors 'avail1', ... be defined in the
+# colors config-file.  The thresholds line specifies that if an availability
+# is 99% or above, it should be colored 'avail1' color, 98% or above, use
+# 'avail2' color, etc.
+
+colors	white green yellow red
+thresholds	99 98 95 0
+
+# Appletalk needs an afpd running
+rrd afpdprocs afpdprocs AVERAGE > 0
+# if there's no incoming voltage, we have no power
+rrd apcups ivoltage AVERAGE > 90
+# Appletalk needs an atalkd running
+rrd atalkdprocs atalkdprocs AVERAGE > 0
+# BGP peer is gone unless state = established
+rrd bgppeer-* state AVERAGE = 6
+# Are the collectors running?
+rrd collector-cisco-access-server collected AVERAGE > 0
+rrd collector-log collected AVERAGE > 0
+rrd collector-nt-status collected AVERAGE > 0
+rrd collector-ping collected AVERAGE > 0
+rrd collector-port collected AVERAGE > 0
+rrd collector-snmp collected AVERAGE > 0
+rrd collector-snmp collected AVERAGE > 0
+rrd collector-snmp-route collected AVERAGE > 0
+rrd collector-unix-status collected AVERAGE > 0
+
+# our Cisco 5300 at CRC only had 24 lines
+rrd dsinuse inuse MAX < 24
+# a frame-relay circuit must be up
+rrd frif-* status MAX = 1
+# a unix-status interface can be marked up
+rrd if-* status MAX = 1
+# memory available?  Try it. (in Kbytes)
+rrd memory freemem MIN > 1000
+# Samba must be running nmbd
+rrd nmbdprocs nmbdprocs AVERAGE > 1
+# a disk with less than a meg on it isn't available
+rrd ntlogicaldisk-* diskfree MIN > 1
+# less than a meg of memory free isn't available
+rrd ntmemory memfree MIN > 1000000
+# a host which doesn't respond to a ping isn't available
+rrd ping rcvd AVERAGE > 1
+rrd ping-* rcvd AVERAGE > 1
+# less than a meg isn't available (in Kbytes)
+rrd pixmem free AVERAGE > 1000
+# a port which isn't in OK status isn't available
+rrd port-* status AVERAGE = 1
+# Probably you want to specify different ones for different ports on
+# different machines, but this'll get things going
+rrd port-* response AVERAGE < 5000
+# FIXME if you've filled up the number of qmail-local or qmail-remote slots
+# then qmail isn't available, but you'll have to set the levels yourself
+rrd qmaillog localmax MAX < 10
+rrd qmaillog remotemax MAX < 20
+# Samba also needs an smbd running
+rrd smbdprocs smbdprocs AVERAGE > 0
+# SNMP-monitored interfaces must be UP
+rrd snmpif-* status MAX = 1
+# is the weathernetwork available
+rrd weathernetwork status AVERAGE = 1
+# DNS records
+rrd	dnssite-* soa AVERAGE > 0
+rrd	dnssite-* a AVERAGE > 0
+rrd	dnssite-* mx AVERAGE > 0
+rrd	dnssite-* ns AVERAGE > 0
+rrd dnsamx-* a AVERAGE > 0
+rrd dnsamx-* mx AVERAGE > 0

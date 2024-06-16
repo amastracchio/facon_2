@@ -1,0 +1,5 @@
+There are ##VALUE## messages in qmail's queue on 
+##HOST##(##IP##) for delivery to local hosts.  
+You might want to notify whoever is responsible for those mailhosts.  
+
+Use qmail-qread to see what's in the queue.

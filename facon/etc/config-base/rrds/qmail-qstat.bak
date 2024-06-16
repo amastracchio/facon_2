@@ -1,0 +1,41 @@
+# rrds/qmail-qstat - size of qmail's queue
+# CVS $Id: qmail-qstat,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# It shows the size of qmail's queue.  Backlog is the messages which 
+# haven't been pre-processed yet (i.e. which haven't fully entered the
+# queue).  
+
+# Note: this can take quite a while if the server has a huge queue.  If you're
+# going to run this against such a server, you might consider running a
+# separate instance of the unix-status-collector for just this, so it won't
+# slow down everything else.
+
+source		unix-status
+step		300
+
+data		qsize=qmail_qsize GAUGE:600:0:U	qmailqstat
+data		qbacklog=qmail_qbacklog GAUGE:600:0:U	qmailqstat
+
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min day-max week-max month-max 3month-max year-max
+times		day yesterday week month 3month year
+
+graph	qmailq desc='This is collected by the unix-status-collector.  It is only usefull for hosts which are running <A HREF="http://cr.yp.to/qmail.html">qmail</A>.  It works by running the <B>qmail-qstat</B> program and reading and parsing the output.  The Queue Size is the number of messages which have completely entered the queue.  The Backlog is the number of messages which have arrived and are waiting to be put into the queue.  If new messages are arriving faster than they are being put into the queue, then the backlog can increase quickly.  Any backlog which persists indicates a problem.  A large backlog means you need to make the queue faster in some way as the delivery speed is a lot slower with a backlog.'
+		--title '##HOST## - QMail Queue (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'AACORN HP'
+		--vertical-label 'messages'
+		DEF:qsize=##DB##:qsize:AVERAGE
+		DEF:qbacklog=##DB##:qbacklog:AVERAGE
+		CDEF:missing=qsize,UN,INF,UNKN,IF
+		'LINE2:qsize###COLOR2##:size'
+		'LINE2:qbacklog###COLOR1##:backlog'
+		'GPRINT:qsize:AVERAGE:size (avg,max,cur)=(%.0lf,\g'
+		'GPRINT:qsize:MAX:%.0lf,\g'
+		'GPRINT:qsize:LAST:%.0lf)'
+		'GPRINT:qbacklog:AVERAGE:backlog (avg,max,cur)=(%.0lf,\g'
+		'GPRINT:qbacklog:MAX:%.0lf,\g'
+		'GPRINT:qbacklog:LAST:%.0lf)'
+		'AREA:missing###MISSING##:missing'
+

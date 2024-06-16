@@ -1,0 +1,121 @@
+#!/usr/bin/perl -w
+
+# make-path - read traceroute outputs and reduce to one line per host
+# $Id: make-path.pl,v 1.10 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'make-path';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.10 $'))[1];
+
+# - - -   Setup   - - -
+
+# Parse the command-line
+use Getopt::Std;
+my %opt = ();
+getopts('d:h', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (@ARGV < 1 ) { push @ARGV, '-'; }
+
+# - - -   Mainline   - - -
+
+%main::paths = ();
+foreach my $file (@ARGV) {
+	&trace_path($file);
+}
+
+foreach (sort keys %main::paths) {
+	print $main::paths{$_} .' '. $_ . "\n";
+}
+
+exit 0;
+
+#------------------------------------------------------------ trace_path ---
+sub trace_path {
+	my ($file) = @_;
+	my ($host, $ip);
+	
+	open (FILE, "<$file") or die "Can't open $file: $!\n";
+
+# Which host is this for
+	my $firstline = <FILE>;
+	chomp $firstline;
+	if ($firstline =~ /^traceroute\s+to\s+(\S+)\s+\(([^\)]+)\)/i) {
+		$host = $1;
+		$ip = $2;
+	}
+	else {
+		&error("first line wrong: $firstline");
+		return;
+	}
+
+# Read the data from the file
+	my ($hop, $line, $asn, @temp);
+	while (<FILE>) {
+		chomp;
+		if (/\s\((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\)\s/) {
+			$hop = $1;
+			if (/\[no RADB record\]/i) {
+				undef $asn;
+			}
+			elsif (/\[([^\]]+)\]/) {
+				@temp = split('/', $1);
+				$asn = pop @temp;
+				$asn = substr($asn,2);
+				$hop .= ':'. $asn;
+			}
+		}
+		else { $hop = '-'; }
+
+		if (defined $line) { $line .= ' '. $hop; }
+		else { $line = $hop; }
+	}
+	close (FILE);
+
+# Purge traces that didn't reach the destination of trailing crud
+	while ($line =~ s/ -$//) {};
+
+	$main::paths{$line} = $host .' '. $ip;
+
+	&debug("$host $ip = $line") if ($main::debug);
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $main::prog [options] file ...
+where options are:
+	-d	enable debugging output
+	-h	show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}

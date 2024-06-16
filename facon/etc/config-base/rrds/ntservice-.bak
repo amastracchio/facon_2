@@ -1,0 +1,21 @@
+# rrds/ntservice-* - status of NT services
+# CVS $Id: ntservice-,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source	nt-status
+step	300
+data	status=service:* GAUGE:600:1:3 srvinfo
+alert	status < 1 1 1
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+
+graph	status
+	--title '##HOST## - Service ##WILDPART## (##GRAPHTIME##)'
+	--units-exponent 0
+	DEF:status=##DB##:status:AVERAGE
+	CDEF:missing=status,UN,INF,UNKN,IF
+	'AREA:status###COLOR1##:Status (1=running)'
+	'AREA:missing###MISSING##:missing'
+

@@ -1,0 +1,38 @@
+
+#
+# Powered by collector2rrd.pl
+#
+source  program
+step    300
+
+
+data    data2034573=2034573  GAUGE:1200:0:U
+data    ddata2034573=2034573  DERIVE:1200:0:U
+alert    data2034573 delta< 10 10 10 
+data    data1644041=1644041  GAUGE:1200:0:U
+data    ddata1644041=1644041  DERIVE:1200:0:U
+alert    data1644041 delta< 10 10 10 
+data    data2034565=2034565  GAUGE:1200:0:U
+data    ddata2034565=2034565  DERIVE:1200:0:U
+alert    data2034565 delta< 10 10 10 
+data    responsetime=2034573-response GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times           day yesterday week month 3month year
+
+
+graph   value1-* desc="This is collected by the program-collector.  It works by running the specified program (##WILDPART##)  ."
+	                --title '##HOST## - ##WILDPART## Auto Graph #1 (##GRAPHTIME##)'
+		        --watermark 'ariel mastracchio'
+		        --vertical-label 'unidades'
+
+      DEF:data2034573=##DB##:data2034573:AVERAGE
+      'LINE2:data2034573###COLOR1##:Madera para deck poste de pino impregnado 12.7 ... SKU 2034573 ' 
+      'GPRINT:data2034573:LAST: last=%.1lf\n'
+      DEF:data1644041=##DB##:data1644041:AVERAGE
+      'LINE2:data1644041###COLOR2##:Madera para deck poste de pino impregnado 9 cm ... SKU 1644041 ' 
+      'GPRINT:data1644041:LAST: last=%.1lf\n'
+      DEF:data2034565=##DB##:data2034565:AVERAGE
+      'LINE2:data2034565###COLOR3##:Madera para deck poste de pino impregnado 9 cm ... SKU 2034565 ' 
+      'GPRINT:data2034565:LAST: last=%.1lf\n'
+

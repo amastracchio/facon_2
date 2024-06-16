@@ -1,0 +1,30 @@
+# rrds/cpu - CPU usage via the unix-status-collector
+# CVS $Id: cpu,v 1.7 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+source		unix-status
+step		300
+
+data		user=cpuuser GAUGE:600:0:U	vmstat
+data		system=cpusystem GAUGE:600:0:U	vmstat
+
+alert		user < 95
+archives	day-avg week-avg month-avg 3month-avg year-avg
+times		day yesterday week month 3month year
+
+graph		cpu desc="This is collected by the unix-status-collector.  It comes from the output of the vmstat on the remote host.  The System time is time spent inside the kernel, doing system calls.  The User time is everything else."
+		--title '##HOST## - CPU Usage (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos' --upper-limit 100 --rigid
+		--vertical-label '%'
+		DEF:user=##DB##:user:AVERAGE
+		DEF:system=##DB##:system:AVERAGE
+		CDEF:total=user,system,+
+		CDEF:missing=user,UN,INF,UNKN,IF
+		'AREA:user###COLOR1##:User'
+		'STACK:system###COLOR2##:System'
+		'GPRINT:total:AVERAGE:avg=%.1lf'
+		'GPRINT:total:MAX:max=%.1lf'
+		'AREA:missing###MISSING##:missing'
+

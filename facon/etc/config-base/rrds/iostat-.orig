@@ -1,0 +1,78 @@
+# rrds/df-* - disk space available via the unix-status-collector
+# CVS $Id: df-,v 1.9 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Disk space available, including inodes, if the file-system has them.
+# Percent looks redundant, as it can be calculated, however, I can only
+# generate alerts on variables, not on calculations, so I really do need it.
+
+source		unix-status
+step		300
+
+
+# per interval not secons
+data		rs=iostatrs:* GAUGE:600:0:U	iostat
+data		ws=iostatws:* GAUGE:600:0:U	iostat
+data		krs=iostatkrs:* GAUGE:600:0:U	iostat
+data		kws=iostatkws:* GAUGE:600:0:U	iostat
+data		wai=iostatwai:* GAUGE:600:0:U	iostat
+data		actv=iostatactv:* GAUGE:600:0:U	iostat
+data		svct=iostatsvct:* GAUGE:600:0:U	iostat
+data		w=iostatw:* GAUGE:600:0:U	iostat
+data		b=iostatb:* GAUGE:600:0:U	iostat
+#
+#alert		percent < 90 95 98
+#alert		inodepct < 90 95 98
+archives	day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times		day yesterday week month 3month year
+
+graph		iostat-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Actividad Disco - ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'bytes'
+		DEF:rs=##DB##:rs:AVERAGE
+		DEF:ws=##DB##:ws:AVERAGE
+		DEF:krs=##DB##:krs:AVERAGE
+		DEF:kws=##DB##:kws:AVERAGE
+		CDEF:missing=rs,UN,INF,UNKN,IF
+		'LINE3:rs###GREEN##:Reads per sec'
+		'LINE3:ws###BLUE##:Writes per sec'
+		'LINE3:kws###RED##:KB Writes per sec'
+		'LINE3:krs###GREY##:KB Reads per sec'
+		'GPRINT:rs:LAST:free=%.1lf%s\g'
+		'AREA:missing###MISSING##:missing'
+
+graph		iostatperc-* desc="This is collected by the unix-status-collector. It works by running the <B>df</B> command on the remote host and parsing the output.  Size is the size of the file-system, Used is how much is currently occupied."
+		--title '##HOST## - Actividad Disco Percent- ##WILDPART## (##GRAPHTIME##)'
+		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+		--vertical-label 'percent'
+		DEF:wai=##DB##:wai:AVERAGE
+		DEF:actv=##DB##:actv:AVERAGE
+		DEF:svct=##DB##:svct:AVERAGE
+		DEF:w=##DB##:w:AVERAGE
+		DEF:b=##DB##:b:AVERAGE
+		CDEF:missing=wai,UN,INF,UNKN,IF
+		'LINE3:wai###GREEN##:wait trans.'
+		'LINE3:actv###BLUE##:serv trans.'
+		'LINE3:svct###CYAN##:resp time trans.'
+		'LINE3:w###YELLOW##:perc. waiting'
+		'LINE3:b###LIGHTYELLOW##:perc. busy'
+		'AREA:missing###MISSING##:missing'
+#		'GPRINT:wai:LAST:free=%.1lf%s\g'
+#graph		dfi-* desc="This is collected by the unix-status-collector.  It works by running the <B>df</B> command on the remote host and parsing the output.  Inodes are used in many unix file-systems and contain the information about a single file or directory entry.  Most file-systems are created with a fixed number of inodes and if they are exhausted, then no new files or directories can be created on that file-system."
+#		--title '##HOST## - Inode Usage - ##WILDPART## (##GRAPHTIME##)'
+#		--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+#		--vertical-label 'inodes'
+#		DEF:inodes=##DB##:inodes:AVERAGE
+#		DEF:inodeuse=##DB##:inodeuse:AVERAGE
+#		CDEF:free=inodes,inodeuse,-
+#		CDEF:missing=inodes,UN,INF,UNKN,IF
+#		'AREA:inodes###TOTALCOLOR##:Inodes'
+#		'LINE3:inodeuse###USEDCOLOR##:Inodes Used'
+#		'GPRINT:free:LAST:free=%.0lf%s'
+#		'AREA:missing###MISSING##:missing'
+

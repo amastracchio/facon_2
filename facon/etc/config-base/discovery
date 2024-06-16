@@ -1,0 +1,14 @@
+# discovery - limits on discovery
+# $Id: discovery,v 1.2 2002/04/16 15:23:12 remstats Exp $
+
+# An NT box running the nt-status-server
+nt-status-server	FIXME
+
+# Your NT domain
+ntdomain	FIXME
+
+# your DNS domain
+dnsdomain	FIXME
+
+# your subnets
+subnets		FIXME

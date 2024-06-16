@@ -1,0 +1,84 @@
+# rrds/namedstats - BIND server activity stats.
+# CVS $Id: namedstats,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# You can't afford to do this if you've got a heavily used server as BIND
+# doesn't answer while doing this.  The information is triggered on a BIND 8
+# server by "kill -ILL" at 5 min intervals.
+
+source	log
+step	300
+archives day-avg week-avg month-avg 3month-avg year-avg day-max week-max month-max 3month-max year-max
+times	day yesterday week month 3month year
+data	queries DERIVE:1200:0:U sum ^(\d+)\s+\S+\s+queries
+data	aqueries DERIVE:1200:0:U sum ^(\d+)\s+A\s+queries
+data	ptrqueries DERIVE:1200:0:U sum ^(\d+)\s+PTR\s+queries
+data	soaqueries DERIVE:1200:0:U sum ^(\d+)\s+SOA\s+queries
+data	hinfoqueries DERIVE:1200:0:U sum ^(\d+)\s+HINFO\s+queries
+data	locqueries DERIVE:1200:0:U sum ^(\d+)\s+LOC\s+queries
+data	txtqueries DERIVE:1200:0:U sum ^(\d+)\s+TXT\s+queries
+data	aaaaqueries DERIVE:1200:0:U sum ^(\d+)\s+(AAAA|A6)\s+queries
+data	zonexfers DERIVE:1200:0:U sum ^(\d+)\s+AXFR queries
+data	lastupdate DERIVE:1200:0:U last ^(\d+)\s+time since reset
+data	boottime GAUGE:1200:0:U last ^(\d+)\s+time since boot
+#alert	lastupdate > 300 600 900
+#alert	boottime < 3600 3600 3600
+
+graph	queries
+	--title "##HOST## - DNS queries (##GRAPHTIME##)"
+	--vertical-label "queries/sec"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:rawqueries=##DB##:queries:AVERAGE
+	DEF:xfers=##DB##:zonexfers:AVERAGE
+	CDEF:queries=UNKN,rawqueries,rawqueries,600,GT,IF
+	CDEF:missing=rawqueries,UN,INF,UNKN,IF
+	'LINE1:queries###COLOR1##:total queries'
+	'LINE1:xfers###COLOR2##:zone transfers'
+	'GPRINT:queries:AVERAGE:queries\: avg=%.0lf%s'
+	'GPRINT:queries:MAX:max=%.0lf%s'
+	'GPRINT:xfers:AVERAGE:zone xfers\: avg=%.0lf%s'
+	'GPRINT:xfers:MAX:max=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	common-queries-by-type
+	--title "##HOST## - Common DNS queries (##GRAPHTIME##)"
+	--vertical-label "queries/sec"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:queries=##DB##:queries:AVERAGE
+	DEF:aqueries=##DB##:aqueries:AVERAGE
+	DEF:ptrqueries=##DB##:ptrqueries:AVERAGE
+	DEF:soaqueries=##DB##:soaqueries:AVERAGE
+	CDEF:other=queries,aqueries,ptrqueries,soaqueries,-,-,-
+	CDEF:missing=queries,UN,INF,UNKN,IF
+	'AREA:aqueries###COLOR1##:A'
+	'STACK:ptrqueries###COLOR2##:PTR'
+	'STACK:soaqueries###COLOR3##:SOA'
+	'STACK:other###COLOR4##:other'
+	'GPRINT:aqueries:AVERAGE:A=%.0lf%s'
+	'GPRINT:ptrqueries:AVERAGE:PTR=%.0lf%s'
+	'GPRINT:soaqueries:AVERAGE:SOA=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+
+graph	uncommon-queries-by-type
+	--title "##HOST## - Uncommon DNS queries (##GRAPHTIME##)"
+	--vertical-label "queries/sec"
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	DEF:hinfoqueries=##DB##:hinfoqueries:AVERAGE
+	DEF:locqueries=##DB##:locqueries:AVERAGE
+	DEF:txtqueries=##DB##:txtqueries:AVERAGE
+	DEF:aaaaqueries=##DB##:aaaaqueries:AVERAGE
+	CDEF:missing=hinfoqueries,UN,INF,UNKN,IF
+	'LINE1:hinfoqueries###COLOR1##:HINFO'
+	'LINE1:locqueries###COLOR2##:LOC'
+	'LINE1:txtqueries###COLOR3##:TXT'
+	'LINE1:aaaaqueries###COLOR4##:AAAA'
+	'GPRINT:hinfoqueries:AVERAGE:HINFO=%.0lf%s'
+	'GPRINT:locqueries:AVERAGE:LOC=%.0lf%s'
+	'GPRINT:txtqueries:AVERAGE:TXT=%.0lf%s'
+	'GPRINT:aaaaqueries:AVERAGE:AAAA=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

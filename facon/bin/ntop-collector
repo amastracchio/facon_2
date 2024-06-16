@@ -1,0 +1,412 @@
+#!/usr/bin/perl -w
+
+# ntop-collector - a facon collector for getting info from an ntop server
+# $Id: ntop-collector.pl,v 1.9 2002/06/18 15:18:18 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'ntop-collector';
+# Which collector is this
+$main::collector = 'ntop';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# Until I build the real configuration for ntop
+@main::generic_items = qw (
+	appletalkRcvd
+	appletalkSent
+	bytesRcvdLoc 
+	bytesRcvdRem 
+	bytesSentLoc
+	bytesSentRem
+	decnetRcvd
+	decnetSent
+	icmpRcvd
+	icmpSent
+	igmpRcvd
+	igmpSent
+	ipBytesRcvd
+	ipBytesSent
+	ipxRcvd
+	ipxSent
+	netbiosRcvd
+	netbiosSent
+	nodeType
+	osiRcvd
+	osiSent
+	otherRcvd
+	otherSent
+	pktRcvd
+	pktSent
+	stpRcvd
+	stpSent
+	tcpBytesRcvd
+	tcpBytesSent
+	tcpRcvdLoc
+	tcpRcvdRem
+	tcpSentLoc
+	tcpSentRem
+	tcpRcvdFromLoc
+	tcpRcvdFromRem
+	tcpSentFromLoc
+	tcpSentFromRem
+	udpBytesRcvd
+	udpBytesSent
+	udpRcvdLoc
+	udpRcvdRem
+	udpSentLoc
+	udpSentRem
+);
+
+# For each of these we have keys for (sentLocally, sentRemotely,
+# receivedLocally and receivedFromRemote)
+@main::ip_protocols = qw (
+	FTP HTTP DNS Telnet NBios-IP Mail DHCP/BOOTP SNMP NEWS NFS X11 SSH
+	Remstats NTP Ntop
+);
+@main::ip_protocol_directions = qw ( sentLoc rcvdLoc sentRem rcvdFromRem );
+
+#@main::directions = qw (
+#	RcvdFromLoc RcvdFromRem RcvdLoc RcvdRem 
+#	SentFromLoc SentFromRem SentLoc SentRem
+#);
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.9 $'))[1];
+
+# - - -   Setup   - - -
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+require "facon.pl";
+use Getopt::Std;
+use RRDs;
+use Time::HiRes qw( time );
+# use LWP::Simple;
+require "socketstuff.pl";
+
+# Parse the command-line
+my %opt = ();
+my (@hosts, @groups, @keys);
+getopts('d:f:FhG:H:K:u', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; }
+else { $main::debug = 0; }
+if (defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+if (defined $opt{'F'}) { $main::force_collection = 1; }
+else { $main::force_collection = 0; }
+if( defined $opt{'G'}) { @groups = split(',', $opt{'G'}); }
+if( defined $opt{'H'}) { @hosts = split(',', $opt{'H'}); }
+if( defined $opt{'K'}) { @keys = split(',', $opt{'K'}); }
+if (defined $opt{'u'}) { $main::use_uphosts = 0; }
+else { $main::use_uphosts = 1; }
+
+&read_config_dir($main::config_dir, 'general', 'groups', 'oids', 
+	'times', 'rrds', 'groups', 'host-templates', 'hosts', 'ntops');
+%main::uphosts = &get_uphosts if ($main::use_uphosts);
+
+# Make sure that we haven't been stopped on purpose
+exit 0 if( &check_stop_file());
+
+@hosts = &select_hosts( \@hosts, \@groups, \@keys);
+
+# No buffering when debugging
+if ($main::debug) { $| = 1; }
+
+# - - -   Mainline   - - -
+
+my ($host, $ip, $realrrd, $wildrrd, $wildpart, $extra, $fixedrrd, $now,
+	$start_time, $run_time);
+$start_time = time();
+$main::entries_collected = $main::entries_used = $main::requests = 0;
+my $tmpfile = $main::config{DATADIR} .'/LAST/'. $main::collector .'.'. $$;
+my $lastfile = $main::config{DATADIR} .'/LAST/'. $main::collector;
+open (TMP, ">$tmpfile") or &abort("can't open $tmpfile: $!");
+
+foreach $host (@hosts) {
+	next unless( &host_collected_by( $host, $main::collector));
+	next if ($host eq '_facon_');
+
+	# Ignore this host if it's down and using uphosts file
+	if ($main::use_uphosts and not defined $main::uphosts{$host}) {
+		&debug("$host is down(uphosts); skipped") if ($main::debug);
+		next;
+	}
+
+	# Ignore this host if we can't find an IP number for it somehow
+	$ip = &get_ip($host);
+	unless (defined $ip) {
+		&debug("no IP number for $host; skipped") if( $main::debug);
+		next;
+	}
+
+	&debug("doing host $host") if ($main::debug);
+
+	&collect_ntop_host( $host, $ip);
+}
+
+# Now facon instrumentation info
+$now = time;
+$run_time = $now - $start_time;
+print <<"EOD_INSTRUMENTATION";
+_facon_ $now ${main::collector}-collector:requests $main::requests
+_facon_ $now ${main::collector}-collector:collected $main::entries_collected
+_facon_ $now ${main::collector}-collector:used $main::entries_used
+_facon_ $now ${main::collector}-collector:runtime $run_time
+EOD_INSTRUMENTATION
+
+close(TMP) or &abort("can't open $tmpfile: $!");
+rename $tmpfile, $lastfile or &abort("can't rename $tmpfile to $lastfile: $!");
+
+exit 0;
+
+#------------------------------------------------------- collect_ntop_host ---
+sub collect_ntop_host {
+	my( $host, $ip) = @_;
+	my ($now, $url, $hash_info, %ntop_hash, $send_string, $port, $status,
+		$response_time, $eval_time);
+
+	# Build the URL to fetch for the ntop info
+	if( defined $main::config{HOST}{$host}{IP}) {
+		$url = 'http://' . $main::config{HOST}{$host}{IP};
+		$send_string = 'Host: ' . $main::config{HOST}{$host}{IP} . "\n";
+	}
+	else {
+		$url = 'http://' . $host;
+		$send_string = 'Host: ' . $host . "\n";
+	}
+
+	if( defined $main::config{NTOPS}{$host}) {
+		$url .= ':' . $main::config{NTOPS}{$host} . 
+			'/dumpData.html?language=perl';
+		$port = $main::config{NTOPS}{$host};
+		$send_string = 'GET /dumpData.html?language=perl HTTP/1.1' . "\n" .
+			$send_string . 
+			"Connection: close\n" .
+			"User-Agent: Remstats/1.0.13a\n\n";
+	}
+	else {
+		&error( "$host isn't in ntops config-file; skipped");
+		return 1;
+	}
+
+	# Fetch the "page"
+	++$main::requests;
+	&debug("fetching $url...") if( $main::debug);
+
+#	$hash_info = get( $url); # "get" can and does hang
+	($hash_info, $status, $main::timeout, $response_time) =
+		&port_send_get( $host, $port, $send_string, $main::timeout, $ip);
+
+	# Did it work?
+	if( $status == $main::SOCKET_OK) {
+		# Does the response look OK?
+		if( $hash_info =~ m#HTTP/\d+\.\d+\s+(\d+).*?\n\n(.*)#is) {
+			$status = $1;
+			$hash_info = $2; # drop the HTTP headers
+			print $host, ' ', time(), ' ntop-raw-response ', 
+				$response_time, "\n";
+			unless( $status =~ /^2/) {
+				&error('NTop info has bad HTTP status (', $status, ')');
+				return 1;
+			}
+		}
+		else {
+			&error('NTop info from ', $host, ':', $port, ' is malformed');
+			return 1;
+		}
+	}
+
+	# Nope.  Do something else.
+	else {
+		&error('cannot get NTop info from ', $host, ':', $port);
+		return 1;
+	}
+	$now = time();
+	if( $hash_info) {
+
+		# Avoid the "%ntopHash =" at the beginning
+		$hash_info = substr($hash_info, 11);
+
+		# Deal with single-quotes in the values
+		$hash_info =~ s/=> '(.*?)',/&fixup("$1")/egm;
+		&debug("  got data") if( $main::debug);
+		&debug("RAW DATA:\n", $hash_info) if( $main::debug>1);
+	}
+	else {
+		&error("can't get ntop info from $host: $!");
+		return 0;
+	}
+
+	# Eval to populate the hash
+	%ntop_hash = eval( $hash_info);
+	if( $@) {
+		&error("can't eval data: $@");
+		return 0;
+	}
+	$eval_time = time() - $now;
+	print $host, ' ', time(), ' ntop-eval-time ', $eval_time, "\n";
+
+	&do_generic_items( $host, $now, %ntop_hash);
+}
+
+#---------------------------------------------------------------- fixup ---
+sub fixup {
+	my $string = shift @_;
+	$string =~ tr/'/ /;
+	return '=> \'' . $string . '\',';
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -f fff  use 'fff' for config-dir [$main::config_dir]
+  -F      force collection even if it is not time
+  -G GGG  only try hosts from group 'GGG', a comma-separated list
+  -h      show this help
+  -H HHH  only try hosts from 'HHH', a comma-separated list
+  -K KKK  only try hosts with key(s) 'KKK', a comma-separated list
+  -u      ignore uphosts file
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 1;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#-------------------------------------------------------- do_generic_items ---
+sub do_generic_items {
+	my( $host, $now, %ntop_hash) = @_;
+	my( $addr, $item, $direction, $what, %generic, $sent, $received,
+		%ip_protocols, $value, $this_host );
+	&debug('Doing generic protocols...') if( $main::debug);
+
+	foreach $addr (sort keys %ntop_hash) {
+		&debug('  addr=', $addr) if( $main::debug);
+
+		# Add up generic items first
+		foreach $item (@main::generic_items) {
+			$value = $ntop_hash{$addr}{$item};
+			if( defined $ntop_hash{$addr}{$item}) {
+
+				# First overall numbers
+				if( defined $generic{$item}) { $generic{$item} += $value; }
+				else { $generic{$item} = $value; }
+				
+				# Then per-host numbers
+				$this_host = &get_host( $addr, 0);
+				if( defined $this_host && 
+						defined $main::config{HOST}{$this_host}) {
+					print $this_host, ' ', $now, ' host-', $item, ' ', 
+						$value, "\n";
+					print TMP $this_host, ' ', $now, ' host-', $item, ' ', 
+						$value, "\n";
+					++$main::entries_used;
+				}
+
+				++$main::entries_collected;
+			}
+			else {
+				&debug('no data for ', $host, '/', $item)
+					if( $main::debug>2);
+			}
+		}
+
+		# Check on the IP Protocols as well
+		&debug('Doing IP protocols...') if( $main::debug);
+		foreach $item (@main::ip_protocols) {
+			foreach $direction ( @main::ip_protocol_directions) {
+				next unless( defined $ntop_hash{$addr}{IP}{$item});
+				$value = $ntop_hash{$addr}{IP}{$item}{$direction};
+				if( defined $value) {
+
+					# First total the overall numbers
+					if( defined $ip_protocols{$item}{$direction}) {
+						$ip_protocols{$item}{$direction} += $value;
+					}
+					else {
+						$ip_protocols{$item}{$direction} = $value;
+					}
+					++$main::entries_collected;
+					++$main::entries_used;
+
+					# Then the per-host numbers
+					$this_host = &get_host( $addr, 0);
+					if( defined $this_host &&
+							defined $main::config{HOST}{$this_host}) {
+						print $this_host, ' ', $now, ' host-', $item,
+							'-', $direction, ' ', $value, "\n";
+						print TMP $this_host, ' ', $now, ' host-', $item,
+							'-', $direction, ' ', $value, "\n";
+						++$main::entries_used;
+					}
+					++$main::entries_collected;
+
+				}
+				else {
+					&debug('no data for ', $host, '/IP-', $item,
+						'/', $direction) if( $main::debug);
+				}
+			}
+		}
+	}
+
+	# Now show the generic protocol info
+	foreach $item (sort keys %generic) {
+		$value = $generic{$item};
+		if( defined $value) {
+			print $host, ' ', $now, ' total-', $item, ' ', $value, "\n";
+			print TMP $host, ' ', $now, ' total-', $item, ' ', $value, "\n";
+		}
+		else {
+				&debug('no data for ', $host, '/', $item, '/', 
+					$direction) if( $main::debug);
+		}
+	}
+
+	# Now show the IP protocols
+	foreach $item (sort keys %ip_protocols) {
+		foreach $direction ( sort keys %{$ip_protocols{$item}}) {
+			$value = $ip_protocols{$item}{$direction};
+			if( defined $value) {
+				print $host, ' ', $now, ' total-IP-', $item, '-', 
+					$direction, ' ', $value, "\n";
+				print TMP $host, ' ', $now, ' total-IP-', $item, '-', 
+					$direction, ' ', $value, "\n";
+			}
+			else {
+				&debug('no data for ', $host, '/IP-', $item,
+					'/', $direction) if( $main::debug);
+			}
+		}
+	}
+}
+
+#------------------------------------------------------- keep_strict_happy ---
+sub keep_strict_happy {
+	$main::SOCKET_OK = 0;
+}

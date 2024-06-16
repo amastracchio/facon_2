@@ -1,0 +1,57 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	program
+step	300
+
+data	status=precioclaro GAUGE:1200:0:U
+data	response=precioclaro-response GAUGE:1200:0:U
+data	datauno=##RRD##:7792360071525:preclista GAUGE:1200:0:U
+data	dataunopromouno=##RRD##:7792360071525:precpromouno GAUGE:1200:0:U
+data	dataunopromodos=##RRD##:7792360071525:precpromodos GAUGE:1200:0:U
+
+data	datados=##RRD##:7793940448003:preclista GAUGE:1200:0:U
+data	datadospromouno=##RRD##:7793940448003:precpromouno GAUGE:1200:0:U
+data	datadospromodos=##RRD##:7793940448003:precpromodos GAUGE:1200:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	response desc='This is collected by the port-collector http://www.bna.com.ar/Personas .  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Response (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'ariel mastracchio' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:response:AVERAGE:%.0lf%s,'
+	'GPRINT:response:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Precio seven-up COTO (##GRAPHTIME##)'
+	--vertical-label 'pesos'
+	--watermark 'ariel mastracchio' 
+	DEF:precio=##DB##:precio:AVERAGE
+	DEF:cotopuno=##DB##:cotopuno:AVERAGE
+	DEF:cotopdos=##DB##:cotopdos:AVERAGE
+	CDEF:missing=precio,UN,INF,UNKN,IF
+	'LINE2:precio###COLOR1##:precio'
+	'LINE2:cotopuno###COLOR2##:cotopuno'
+	'LINE2:cotopdos###COLOR3##:cotopdos'
+	'GPRINT:precio:MIN:precio\: min=%.1lf'
+	'GPRINT:precio:AVERAGE:avg=%.1lf'
+	'GPRINT:precio:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+

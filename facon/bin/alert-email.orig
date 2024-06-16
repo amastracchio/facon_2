@@ -1,0 +1,95 @@
+#!/usr/bin/perl -w
+
+# alert-email - send an alert via email
+# $Id: alert-email.pl,v 1.4 2002/05/28 15:54:50 facon Exp $
+# from facon 1.0.13a
+
+# Copyright (c) 1999, 2000, 2001, 2002 Thomas Erskine <terskine@users.sourceforge.net>
+# All rights reserved.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::program = 'alert-email';
+# Where is the sendmail program?
+my $sendmail = &oneof('/usr/lib/sendmail', '/usr/local/bin/sendmail', 
+	'/usr/sbin/sendmail', '/var/qmail/bin/sendmail');
+# Where is the default configuration dir
+$main::config_dir = '/var/facon/etc/config';
+
+# - - -   Version History   - - -
+
+(undef, $main::version) = split(' ', '$Revision: 1.4 $');
+
+# - - -   Setup   - - -
+
+use Getopt::Std;
+my %opt;
+getopts('d:f:hs:', \%opt);
+
+if (defined $opt{'h'}) { &usage; } # no return
+if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+if (defined $main::opt_f) { $main::config_dir = $main::opt_f; }
+if (defined $opt{'s'}) { $sendmail = $opt{'s'}; }
+
+unless (defined $sendmail) { &abort("can't find sendmail"); }
+
+unless ($#ARGV == 0) { &usage; }
+my $towho = shift @ARGV;
+
+# Read the template
+my @temp = <STDIN>;
+my $template = join('', @temp);
+
+# - - -   Mainline   - - -
+
+# Send it.  This is easy.
+my $cmd = $sendmail .' '. $towho .' >/dev/null 2>&1';
+open (PIPE, "|$cmd") or &abort("can't open pipe to $cmd: $!");
+print PIPE $template or &abort("can't write to pipe to $cmd: $!");
+close (PIPE) or &abort("can't close pipe to $cmd: $!");
+exit 0;
+
+#------------------------------------------------------------ usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::program version $main::version from facon 1.0.13a
+usage: $main::program [options] addr
+Where options are:
+    -d ddd  set debugging output to level 'ddd'
+    -f fff  set config-dir to 'fff' [$main::config_dir]
+    -h      show this help
+    -s sss  use 'sss' for sendmail program
+	
+EOD_USAGE
+	exit 0;
+}
+
+#---------------------------------------------------------- abort ---
+sub abort {
+	my $msg = join('', @_);
+	print STDERR "ABORT: $msg\n";
+	exit 1;
+}
+
+#---------------------------------------------------------------- error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------------- oneof ---
+# Looks for a file in the list, and returns the first one it finds
+sub oneof {
+	my @files = @_;
+	my $file;
+	local ($_);
+	foreach (@files) {
+		if ( -f $_ or -l $_) {
+			$file = $_;
+			last;
+		}
+	}
+$file;
+}

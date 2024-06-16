@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# facon-monitor - watch what is happening while facon is running
+#	This is only intended for development monitoring, e.g.
+#	rough profiling.  If you find some other use for it, please
+# 	let me know.  <terskine@users.sourceforge.net>
+# $Id: facon-monitor.sh,v 1.6 2002/08/16 12:47:51 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 1999, 2000, 2001, 2002 (c) Thomas Erskine
+# See the COPYRIGHT file with the distribution.
+
+# This is *NOT* portable.  It assumes the standard location of files
+# and a SVR4 style ps and a /bin/date which accepts %Y to mean
+# a 4-digit year.
+
+# - - -   Configuration   - - -
+
+# How long to sleep between commands
+sleeptime=5
+pscols='pid,ppid,user,s,rss,time,args'
+if [ "`basename $0`" = 'facon-monitor' ] ; then
+	suffix='';
+else
+	suffix=`basename $0`
+	suffix=`echo $suffix | sed -e 's/^facon-monitor//'`
+fi
+LOCKFILE=/root/3p/facon/tmp/LOCK-run-run-facon2$suffix
+STATUSFILE=/root/3p/facon/tmp/STATUS-run-facon2
+dateprog=/bin/date
+datefmt='+%Y-%m-%d %H:%M:%S'
+
+# - - -   Version History   - - -
+
+# $Revision: 1.6 $
+
+# - - -   Setup   - - -
+
+if [ $# = 1 ] ; then
+	sleeptime=$1
+fi
+
+# - - -  Mainline   - - -
+
+while [ : ] ; do
+	if [ -f $LOCKFILE ] ; then
+		running="(`cat $LOCKFILE` running)"
+	else
+		running=''
+	fi
+	echo "=== `$dateprog \"$datefmt\"` ${running}$status ==="
+	if [ -f $STATUSFILE ] ; then
+		status=" `cat $STATUSFILE`"
+	else
+		status=''
+	fi
+	ps -e -o $pscols | \
+		egrep 'updater|-collector|graph-writer|datapage-interfaces|datapage-inventory|run-facon' | \
+		grep -v grep |\
+		sed -e 's#/usr/local/bin/perl -w ##' \
+			-e 's#sh -c PATH=[^ ]* ##' \
+			-e 's#/root/3p/facon/bin/##g' \
+			-e 's#/root/3p/facon/tmp/##g'
+	sleep $sleeptime
+done

@@ -1,0 +1,262 @@
+#!/usr/bin/perl -w
+
+# update-switch-ports  -  note which machines are on which port and
+#	which ports have which machines on them.
+# $Id: update-switch-ports.pl,v 1.5 2002/08/14 11:29:11 facon Exp $
+# from facon 1.0.13a
+
+# Copyright 2001, 2002 (c) Thomas Erskine <terskine@users.sourceforge.net>
+# See the COPYRIGHT file with the distribution.
+
+# - - -   Configuration   - - -
+
+use strict;
+
+# What is this program called, for error-messages and file-names
+$main::prog = 'update-switch-ports';
+# Where is the default configuration dir
+$main::config_dir = '/root/3p/facon/etc/config';
+# Where is the macinfo program?
+$main::macinfo_prog = '/root/3p/facon/bin/macinfo';
+
+# - - -   Version History   - - -
+
+$main::version = (split(' ', '$Revision: 1.5 $'))[1];
+
+# - - -   Setup   - - -
+
+my( $switch, @switches);
+
+use lib '.', '/root/3p/facon/lib', '/usr/local/rrdtool/lib/perl';
+use Getopt::Std;
+require "facon.pl";
+require "snmpstuff.pl";
+
+&parse_options();
+&initialize();
+
+@switches = &hosts_with_key( 'switch');
+
+# - - -   Mainline   - - -
+
+foreach $switch (@switches) {
+	&do_switch( $switch);
+}
+
+#----------------------------------------------------------- do_switch ---
+sub do_switch {
+	my $switch = shift @_;
+	my( $port, $comhost, $cmd, @hosts, $host, %port);
+
+	# What's their community?
+	$comhost = &get_comhost( $switch);
+	unless( defined $comhost) {
+		&error("can't get community for $switch; skipped");
+		return;
+	}
+	$cmd = $main::macinfo_prog . ' -N ' . $comhost;
+
+	# Open a pipe from macinfo
+	open( PIPE, "$cmd|") or do {
+		&error("can't open pipe to $cmd: $!");
+		return;
+	};
+
+	# See which hosts are on which switch ports
+	while(<PIPE>) {
+		chomp;
+		next if(/^#/ or /^\s*$/); # no comments
+		s/ \?//g; # drop unknowns
+		($port, @hosts) = split(' ', $_);
+
+# FIXME: this can be made smarter to figure out which switch/hub it is
+		# Is there a switch/hub on this port
+		if( @hosts > 1) {
+			$host = 'switch/hub';
+		}
+		
+		# A single host here
+		elsif( @hosts == 1) {
+			$host = shift @hosts;
+			&update_host( $host, $switch, $port);
+		}
+
+		# Nothing here
+		else { next; }
+
+		$port{$port} = $host;
+	}
+	close(PIPE);
+
+	# Update switch port descriptions
+	&update_switch( $switch, %port);
+}
+
+#---------------------------------------------------- update_switch ---
+sub update_switch {
+	my( $switch, %port) = @_;
+	my( $host_file, $text, $realrrd, $wildrrd, $extra, $desc, 
+		$line, $old_line, $host);
+	&debug("doing $switch...") if( $main::debug);
+
+	# Make sure we've got a config-file for this host
+	$host_file = $main::config_dir . '/hosts/' . $switch;
+	unless( -f $host_file or -l $host_file) {
+		&error("no host file ($host_file) found for $switch; skipped");
+		return;
+	}
+
+	# Open for read/update
+	open( HOSTCONFIG, "+<$host_file") or do {
+		&error("can't open $host_file: $!");
+		return;
+	};
+
+	# Look for RRDs to update descriptions
+	$text = '';
+	while(<HOSTCONFIG>) {
+		chomp;
+		$old_line = $_;
+
+		# RRD description update, maybe
+		if( $old_line =~ /^\s*rrd\s+(\S+)/) {
+			$realrrd = $1;
+
+			# Is this a port RRD?
+			$host = &find_host_from_port( $realrrd, %port);
+			if( $host) {
+				$extra = $main::config{HOST}{$switch}{EXTRA}{$realrrd};
+				$desc = $main::config{HOST}{$switch}{RRDDESC}{$realrrd};
+
+				# There's a description already.  Got to update carefully.
+				if( $desc) {
+
+					$desc =~ tr/'//d; # Make it quotable
+					# There's a previous host note here.  Replace it with the new one.
+					if( $desc =~ /^(.*)\{[^\}]+\}(.*)$/) {
+						$desc = $1 . '{' . $host . '}' . $2;
+					}
+					 # No?  Just add this note at the end.
+					else {
+						$desc .= ' {' . $host . '}';
+					}
+				}
+				
+				# No description?  This is easy.
+				else { $desc = '{' . $host . '}'; }
+
+				# Do the update
+				$line = "rrd\t$realrrd\tdesc='$desc'";
+				if( defined $extra) { $line .= ' ' . $extra; }
+				&debug("updating $realrrd from: $old_line\n\tto: $line") if( $main::debug);
+				$text .= $line . "\n";
+			}
+
+			# Wrong RRD.  Just save what's there
+			else {
+				$text .= $_ . "\n";
+			}
+		}
+
+		# Save everything else
+		else {
+			$text .= $_ . "\n";
+		}
+	}
+
+	# Re-write it with the updated version
+	seek HOSTCONFIG, 0, 0 or do {
+		&error("can't seek $host_file: $!");
+		close(HOSTCONFIG);
+		return;
+	};
+	print HOSTCONFIG $text or do {
+		&error("can't re-write $host_file: $!");
+		close(HOSTCONFIG);
+		return;
+	};
+	truncate( HOSTCONFIG, length($text)) or do {
+		&error("can't truncate $host_file: $!");
+		close(HOSTCONFIG);
+		return;
+	};
+	close(HOSTCONFIG) or do {
+		&error("can't close $host_file: $!");
+		return;
+	};
+
+}
+
+#------------------------------------------- find_host_from_port ---
+sub find_host_from_port {
+	my( $realrrd, %port) = @_;
+	my( $host, $port);
+
+	foreach $port (keys %port) {
+		if( $realrrd =~ /-$port$/) {
+			$host = $port{$port};
+			last;
+		}
+	}
+
+	return $host;
+}
+
+#------------------------------------------------------ update_host ---
+# Note that this host is on this port on this switch
+sub update_host {
+	my( $host, $switch, $port) = @_;
+
+	&put_status( $host, 'SWITCHPORT', $switch . ' ' . $port);
+	&debug("  updated $host SWITCHPORT to $switch $port") if( $main::debug);
+}
+
+#----------------------------------------------------------------- usage ---
+sub usage {
+	print STDERR <<"EOD_USAGE";
+$main::prog version $main::version from facon 1.0.13a
+usage: $0 [options]
+where options are:
+  -d nnn  enable debugging output at level 'nnn'
+  -f fff  use 'fff' as config-dir [$main::config_dir]
+  -h      show this help
+EOD_USAGE
+	exit 0;
+}
+
+#----------------------------------------------------------------- debug ---
+sub debug {
+	print STDERR 'DEBUG: ', @_, "\n";
+}
+
+#------------------------------------------------------------------ abort ---
+sub abort {
+	print STDERR 'ABORT: ', @_, "\n";
+	exit 6;
+}
+
+#------------------------------------------------------------------ error ---
+sub error {
+	print STDERR 'ERROR: ', @_, "\n";
+}
+
+#---------------------------------------------------------- parse_options ---
+sub parse_options {
+	# Parse the command-line
+	my %opt = ();
+	getopts('d:f:h', \%opt);
+
+	if (defined $opt{'h'}) { &usage; } # no return
+	if (defined $opt{'d'}) { $main::debug = $opt{'d'}; } else { $main::debug = 0; }
+	if( defined $opt{'f'}) { $main::config_dir = $opt{'f'}; }
+
+}
+
+#--------------------------------------------------------- initialize ---
+sub initialize {
+	# No buffering when debugging
+	if ($main::debug) { $| = 1; }
+
+	&read_config_dir($main::config_dir, 'general', 'html', 'oids', 'times',
+		'rrds', 'groups', 'host-templates', 'hosts');
+}

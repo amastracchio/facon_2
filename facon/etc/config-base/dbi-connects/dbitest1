@@ -1,0 +1,6 @@
+# dbi-connect/dbitest1 - a test connection
+# $Id: dbitest1,v 1.2 2002/04/16 15:24:40 remstats Exp $
+#
+dbisource	dbi:Oracle:host=FIXME.to.your.own.host;sid=FIXME-to-your-own-SID
+user	FIXME-to-your-own-user
+password	FIXME-to-your-own-password

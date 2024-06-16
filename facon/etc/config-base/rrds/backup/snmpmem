@@ -1,0 +1,34 @@
+# rrds/snmpmem - Memory usage via SNMP.  
+# CVS $Id: snmpmem,v 1.8 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Comes from a Cisco-specific MIB which only appears to be implemented in the
+# routers.
+
+source	snmp
+step	300
+
+data	freemem=ciscofreemem GAUGE:600:0:U
+data	totalmem=ciscototalmem GAUGE:600:0:U
+
+archives day-avg week-avg month-avg 3month-avg year-avg day-min week-min month-min 3month-min year-min
+times	day yesterday week month 3month year
+
+oid	CiscoFreeMem
+oid	CiscoTotalMem
+
+graph	snmpmem  desc='This is collected by the snmp-collector.  It works by sending an SNMP query to the host for certain RRD-specified OIDs.  In this case, the OID in question are only implemented on an <A HREF="http://www.cisco.com/">Cisco</A> router.  The OIDs in question tell the total and free memory on the router.'
+	--title '##HOST## - Memory (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos'
+	--vertical-label 'bytes'
+	DEF:freemem=##DB##:freemem:AVERAGE
+	DEF:totalmem=##DB##:totalmem:AVERAGE
+	CDEF:missing=freemem,UN,INF,UNKN,IF
+	'AREA:totalmem###TOTALCOLOR##:Total memory'
+	'LINE2:freemem###USEDCOLOR##:Free memory'
+	'GPRINT:freemem:LAST:free=%.0lf%s'
+	'GPRINT:freemem:MIN:free min=%.0lf%s'
+	'AREA:missing###MISSING##:missing'
+

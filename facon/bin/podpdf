@@ -1,0 +1,11 @@
+#!/usr/bin/perl -w
+
+# As if I'm going to copyright this.
+# podpdf - convert POD files to PDF
+
+use Pod::Pdf;
+
+unless (@ARGV >= 1) { push @ARGV, '-'; }
+unshift @ARGV, qw(--paper usletter --verbose 1);
+
+pod2pdf(@ARGV);

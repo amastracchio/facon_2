@@ -1,0 +1,88 @@
+# rrds/weathernetwork - get weather info from theweathernetwork.com
+# CVS $Id: weathernetwork,v 1.5 2003/03/20 18:09:45 remstats Exp $
+# from remstats version 1.0.13a
+# Copyright 2003 by Thomas Erskine <terskine@users.sourceforge.net>
+
+# Status is (1=OK, 2=WARN, 3=ERROR, 4=CRITICAL)
+# Response is number of milliseconds it took to query the service.
+
+# Note: They are very prone to changing their format.  See
+# scripts/weathernetwork.
+
+source	port
+step	300
+
+data	status=weathernetwork GAUGE:1200:0:U
+data	response=weathernetwork-response GAUGE:1200:0:U
+data	temp=weathernetwork:value1 GAUGE:1200:-60:40
+data	humidity=weathernetwork:value2 GAUGE:1200:0:100
+data	humidex=weathernetwork:value4 GAUGE:1200:-80:60
+data	pressure=weathernetwork:value5 GAUGE:1200:90:120
+data	windspeed=weathernetwork:value6 GAUGE:1200:0:100
+data	dewpoint=weathernetwork:value7 GAUGE:1200:-60:40
+
+archives day-avg week-avg month-avg 3month-avg year-avg
+times	day yesterday week month 3month year
+
+graph	response desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and showing how long it took to get the response.'
+	--title '##RRD## Response (##GRAPHTIME##)'
+	--lower-limit 0
+	--watermark 'Sanatorio San Carlos' 
+	--vertical-label 'ms'
+	DEF:response=##DB##:response:AVERAGE
+	CDEF:missing=response,UN,INF,UNKN,IF
+	'LINE2:response###COLOR1##:response'
+	'GPRINT:response:MIN:(min,avg,max) = (%.0lf%s,'
+	'GPRINT:response:AVERAGE:%.0lf%s,'
+	'GPRINT:response:MAX:%.0lf%s)'
+	'AREA:missing###MISSING##:missing'
+
+graph	temperatures desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the temperature related numbers for Ottawa.  Humidex is a pseudo-temperature telling how hot it feels, taking humidity into account.  The Dewpoint is the temperature at which the current humidity would saturate the air and begin to condense.  I.E. when it would begin to precipitate.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Temperatures for Ottawa (##GRAPHTIME##)'
+	--vertical-label 'degrees C'
+	DEF:temp=##DB##:temp:AVERAGE
+	DEF:humidex=##DB##:humidex:AVERAGE
+	DEF:dewpoint=##DB##:dewpoint:AVERAGE
+	CDEF:missing=temp,UN,INF,UNKN,IF
+	'AREA:temp###COLOR1##:temperature'
+	'LINE2:humidex###COLOR2##:humidex'
+	'LINE2:dewpoint###COLOR3##:dewpoint'
+	'GPRINT:temp:MIN:temperature\: min=%.1lf'
+	'GPRINT:temp:AVERAGE:avg=%.1lf'
+	'GPRINT:temp:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	humidity desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the Humidity in Ottawa.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Humidity for Ottawa (##GRAPHTIME##)'
+	--vertical-label '%'
+	DEF:humidity=##DB##:humidity:AVERAGE
+	CDEF:missing=humidity,UN,INF,UNKN,IF
+	'LINE1:humidity###COLOR1##:humidity'
+	'GPRINT:humidity:MIN:min=%.1lf'
+	'GPRINT:humidity:AVERAGE:avg=%.1lf'
+	'GPRINT:humidity:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	pressure desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the barometric Pressure in Ottawa.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Pressure for Ottawa (##GRAPHTIME##)'
+	--upper-limit 103 --lower-limit 99
+	--vertical-label 'kPa'
+	DEF:pressure=##DB##:pressure:AVERAGE
+	CDEF:missing=pressure,UN,INF,UNKN,IF
+	'LINE1:pressure###COLOR1##:pressure'
+	'GPRINT:pressure:MIN:min=%.1lf'
+	'GPRINT:pressure:AVERAGE:avg=%.1lf'
+	'GPRINT:pressure:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
+graph	windspeed desc='This is collected by the port-collector.  It works by connecting to the specified port on the remote host, sending a service-specific string and parsing the result.  Here we have the Wind Speed in Ottawa.  In this example, you would have to change the associated script to change which city we are getting data for.'
+	--title 'Wind-Speed for Ottawa (##GRAPHTIME##)'
+	--vertical-label 'km/h'
+	DEF:windspeed=##DB##:windspeed:AVERAGE
+	CDEF:missing=windspeed,UN,INF,UNKN,IF
+	'LINE1:windspeed###COLOR1##:windspeed'
+	'GPRINT:windspeed:MIN:min=%.1lf'
+	'GPRINT:windspeed:AVERAGE:avg=%.1lf'
+	'GPRINT:windspeed:MAX:max=%.1lf\l'
+	'AREA:missing###MISSING##:missing'
+
